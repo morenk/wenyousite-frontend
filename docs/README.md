@@ -44,6 +44,7 @@
 | [advanced-name-data-contract](./modules/advanced-name-data-contract.md) | 史实与文学风格、结构模板、跨端确定性样例 | active |
 | [fancy-data-contract](./modules/fancy-data-contract.md) | 花体字体与装饰映射、跨端固定样例和复制语义 | active |
 | [text-toolbox](./modules/text-toolbox.md) | 文字工具、姓名词库与匿名移动端嵌入入口 | active |
+| [audio](./modules/audio.md) | 音频上传、正文播放、本机恢复与兼容 | active |
 | [drafts](./modules/drafts.md) | 草稿箱 | active |
 | [bookmarks](./modules/bookmarks.md) | 收藏 | active |
 | [mentions](./modules/mentions.md) | 帖内提及 | active |

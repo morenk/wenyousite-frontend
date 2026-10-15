@@ -161,7 +161,7 @@ export function ReplyCard({
 
       {!isEditing ? (
         <div id={`reply-content-${reply.id}`}>
-          <MarkdownContent mentionIdentities={reply.mentionIdentities} mediaDisplays={reply.mediaDisplays}
+          <MarkdownContent mentionIdentities={reply.mentionIdentities} mediaDisplays={reply.mediaDisplays} mediaAudios={reply.mediaAudios}
             content={reply.content}
             diceRolls={reply.diceRolls}
             sourcePostId={reply.id}

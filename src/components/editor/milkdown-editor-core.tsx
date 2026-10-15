@@ -24,6 +24,7 @@ const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
+  audioDraftKey?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   editorRef?: Ref<EditorSubmissionHandle>;
@@ -51,6 +52,7 @@ export interface MilkdownEditorProps {
 
 function EditorCore({
   defaultValue,
+  audioDraftKey,
   mediaDisplays,
   mentionIdentities,
   editorRef,
@@ -113,6 +115,7 @@ function EditorCore({
   const writeAssessmentRef = useRef<{ content: string; version: number; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
+    if (hostRef.current?.hasPendingUpload?.()) { toast.error("请先完成或移除音频上传"); return null; }
     const content = flush();
     if (content === null) return null;
     const cached = writeAssessmentRef.current;
@@ -174,6 +177,7 @@ function EditorCore({
     >
       {contractVersionReady && !protectedContent && (
         <MilkdownEditorHost mentionIdentities={mentionIdentities}
+          audioDraftKey={audioDraftKey} audioUserId={user?.id}
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}

@@ -171,3 +171,7 @@ revision 2 精确示例：`[wenyousite-align-v1-center]: #\n甲\n\n乙` 显示�
 HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source-label`（含 `@`）成对保源，粘贴时严格验证；纯文本仅复制当前显示投影。编辑器 DOM 装饰不修改 ProseMirror 节点，粗斜体、引用、剪切/复制/粘贴保留完整目标。跨主题发布仍由后端验证，不静默转成账号。
 
 能力支持与新写开关分开：支持 v6 的客户端即使新增关闭仍可编辑、重排或删除原有源；无能力或服务端拒绝时保留正文。导出 `.md/.txt` 是安全展示副本，header6 额外的 `identity-sources.json` 才是原源清单，关闭期间也可能含历史称呼，不能混为当前显示。全局 Markdown5及旧写保护保留，本批不激活线上新写。
+
+## 普通链接音频投影
+
+音频以无 title 的顶层独立 `[音频](URL)` 保存，编辑态与旧端保持普通链接；仅服务端有效 mediaAudios 投影精确匹配才在阅读态升级播放器。保留自定义 label/marks 和相邻独立链接边界，不把内联、列表、引用、图片标签或无效投影升级。共享16正文/5无效投影语料随 Backend 已提交契约同步，详情见[音频模块](audio.md)。

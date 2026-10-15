@@ -140,3 +140,9 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 新后端候选始终传 `includeIdentities=true`，即使新写关闭；空列表不得回退兼容主身份，`@全体玩家` 独立。显式 ACCOUNT 和各 RP 使用 `candidateKey`，插入 `mentionHref`/`mentionLabel`，不按账号合并同名角色。旧 bare 历史节点保留。`40014`/`40015` 保留草稿并刷新能力/候选。
 
 固定语料 `contracts/markdown-v6-role-mentions-fixtures.json` 随 OpenAPI 同步校验。源语法、复制与显示边界见[正文协议](markdown-content-protocol.md#平级角色提及-v6-扩展)。
+
+## 音频上传与正文投影
+
+固定来源为 Backend `cb44acaeb7fbc735fb569276aef00435bf24efe5` / `5.37.0-dev.20261016.1`，通过 `WENYOUSITE_BACKEND_ROOT`、`BACKEND_CONTRACT_REF` 标准同步，再生成 `src/api/types.ts`。同步脚本同时复制 `markdown-audio-v1-fixtures.json` 与 schema，并验证两者 schemaVersion 一致；既有共享夹具版本校验保留。
+
+复用媒体预约、PUT、确认、状态及续签接口，purpose 新增 RICH_CONTENT_AUDIO，meta.audioUpload 只门控新入口。正文/草稿 DTO 可选 mediaAudios；缺失投影降级普通链接，旧客户端继续读取无 title 链接。本机恢复、精确投影校验、播放器和安全边界见[音频模块](audio.md)。兼容后端先发布，消费者随后；本轮不删除旧端点或历史 Markdown。

@@ -5,8 +5,10 @@ import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { EditorToolbarSettings } from "../editor-toolbar-settings";
 import { EDITOR_TOOLBAR_STORAGE_KEY, defaultCustomToolbar, parseEditorToolbarPreference } from "@/lib/editor-toolbar-preference";
 
+const capability = vi.hoisted(() => ({ enabled: false }));
+vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => ({ data: capability.enabled ? { audioUpload: { version: 1 } } : {} }) }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
-afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
+afterEach(() => { capability.enabled = false; cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
 function show(onClose = vi.fn()) { render(<ConfirmProvider><EditorToolbarSettings onClose={onClose} /></ConfirmProvider>); return onClose; }
 function tool(zone: "主栏" | "展开栏", name: string) {
   return within(screen.getByRole("toolbar", { name: `${zone}工具` })).getByRole("button", { name, exact: true });
@@ -49,7 +51,7 @@ test("键盘拖放支持排序和跨栏，放下后才修改布局并保存本�
   fireEvent.click(screen.getByRole("button", { name: "保存", exact: true }));
   await waitFor(() => expect(onClose).toHaveBeenCalled());
   const stored = parseEditorToolbarPreference(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY))!;
-  expect(stored.more).toEqual(["bold", "sticker"]);
+  expect(stored.more).toEqual(["bold", "sticker", "audio"]);
   expect(stored.primary.slice(0, 2)).toEqual(["italic", "heading"]);
   expect([...stored.primary, ...stored.more]).not.toContain("more");
 });
@@ -84,7 +86,8 @@ test("恢复默认保存后删除自定义", async () => {
 });
 test("存储失败保留配置弹窗并显示恢复提示", async () => {
   const close = show();
-  vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("denied"); });
+  // happy-dom 缓存 Storage 的绑定方法；只拒绝本次写入，避免遗留拒绝影响后续用例。
+  vi.spyOn(window.localStorage, "setItem").mockImplementationOnce(() => { throw new Error("denied"); });
   const heading = tool("主栏", "正文样式");
   fireEvent.keyDown(heading, { key: " " });
   fireEvent.keyDown(heading, { key: "ArrowRight" });
@@ -108,4 +111,24 @@ test("打开和关闭默认设置不转换偏好，取消拖动保留底部表�
   await waitFor(() => expect(close).toHaveBeenCalled());
   expect(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY)).toBeNull();
   expect(screen.queryByText("放弃未保存修改")).toBeNull();
+});
+
+test("有能力时音频默认展开，可拖到主栏；能力关闭后隐藏但保存排序不丢", async () => {
+  capability.enabled = true;
+  let close = show();
+  const audio = tool("展开栏", "音频");
+  expect(screen.getByRole("img", { name: "更多，固定位置" })).toBeVisible();
+  fireEvent.keyDown(audio, { key: " " }); fireEvent.keyDown(audio, { key: "ArrowUp" }); fireEvent.keyDown(audio, { key: "Home" }); fireEvent.keyDown(audio, { key: " " });
+  expect(tool("主栏", "音频")).toBeVisible();
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存", exact: true })).toBeEnabled());
+  await userEvent.setup().click(screen.getByRole("button", { name: "保存", exact: true }));
+  await waitFor(() => expect(close, screen.queryByRole("alert")?.textContent ?? "no alert").toHaveBeenCalled()); cleanup();
+  expect(parseEditorToolbarPreference(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY))!.primary[0]).toBe("audio");
+  capability.enabled = false; close = show();
+  expect(screen.queryByRole("button", { name: "音频" })).toBeNull();
+  const bold = tool("主栏", "粗体");
+  fireEvent.keyDown(bold, { key: " " }); fireEvent.keyDown(bold, { key: "ArrowDown" }); fireEvent.keyDown(bold, { key: " " });
+  fireEvent.click(screen.getByRole("button", { name: "保存", exact: true }));
+  await waitFor(() => expect(close).toHaveBeenCalled());
+  expect(parseEditorToolbarPreference(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY))!.primary[0]).toBe("audio");
 });

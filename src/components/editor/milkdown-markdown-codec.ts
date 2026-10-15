@@ -268,6 +268,49 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
   return serializeInlineDiceNode({ nodeId: node.nodeId, notation: node.notation });
 }
 
+function remarkStandaloneSourceLinks() {
+  return (root: unknown) => {
+    const tree = root as EditorMarkdownNode;
+    // 只有原本相邻的独立同 URL 链接需要边界身份；普通分片仍共享同一个 link mark。
+    const visit = (node: EditorMarkdownNode) => {
+      const children = node.children ?? [];
+      children.forEach((child, index) => {
+        if (child.type === "link" && [children[index - 1], children[index + 1]].some((other) => other?.type === "link" && other.url === child.url)) {
+          child.data = { ...child.data, wenyouSourceLinkBoundary: index + 1 };
+        }
+        visit(child);
+      });
+    };
+    visit(tree);
+    for (const paragraph of tree.children ?? []) {
+      const link = paragraph.children?.[0];
+      if (paragraph.type === "paragraph" && paragraph.children?.length === 1 && link?.type === "link") {
+        link.data = { ...link.data, wenyouStandaloneLink: true };
+      }
+    }
+  };
+}
+
+/** Milkdown 按 marks 顺序拆开的同一原始链接重新包住 label；边界身份不同则不合并。 */
+function standaloneSourceLinkParagraph(paragraph: EditorMarkdownNode): EditorMarkdownNode {
+  let source: EditorMarkdownNode | undefined;
+  let valid = true;
+  const unwrap = (node: EditorMarkdownNode): EditorMarkdownNode[] => {
+    if (node.type === "link" && node.data?.wenyouStandaloneLink === true) {
+      if (source && (source.url !== node.url || source.data?.wenyouSourceLinkBoundary !== node.data.wenyouSourceLinkBoundary)) valid = false;
+      source ??= node;
+      return node.children ?? [];
+    }
+    if (["strong", "emphasis", "delete"].includes(node.type ?? "") && node.children) {
+      return [{ ...node, children: node.children.flatMap(unwrap) }];
+    }
+    valid = false;
+    return [node];
+  };
+  const children = paragraph.children?.flatMap(unwrap) ?? [];
+  return valid && source ? { ...paragraph, children: [{ ...source, children }] } : paragraph;
+}
+
 /**
  * 编辑器结构的 Markdown 写出规则。
  * Shift+Enter 在 ProseMirror 中仍是 break 节点，但存储协议把它写成普通 LF，
@@ -275,16 +318,36 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
   configureEditorTrailingParagraph(ctx);
-  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkCanonicalMentions, options: {} }]);
+  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkStandaloneSourceLinks, options: {} }, { plugin: remarkCanonicalMentions, options: {} }]);
   ctx.update(linkSchema.key, (previous) => (schemaCtx) => {
     const base = previous(schemaCtx);
-    return { ...base, toMarkdown: { ...base.toMarkdown, runner: (state, mark, node) => {
+    return { ...base,
+      attrs: { ...base.attrs, sourceLinkBoundary: { default: null }, sourceLinkStandalone: { default: false } },
+      parseMarkdown: { ...base.parseMarkdown, runner: (state, node, markType) => {
+        state.openMark(markType, { href: node.url, title: node.title, sourceLinkBoundary: (node.data as Record<string, unknown> | undefined)?.wenyouSourceLinkBoundary ?? null, sourceLinkStandalone: (node.data as Record<string, unknown> | undefined)?.wenyouStandaloneLink === true });
+        state.next(node.children); state.closeMark(markType);
+      } },
+      toDOM: (mark, inline) => {
+        const output = base.toDOM!(mark, inline);
+        if (Array.isArray(output) && output[1] && typeof output[1] === "object") {
+          const attributes = { ...output[1] } as Record<string, unknown>;
+          delete attributes.sourceLinkBoundary;
+          delete attributes.sourceLinkStandalone;
+          return [output[0], attributes, ...output.slice(2)] as typeof output;
+        }
+        return output;
+      },
+      toMarkdown: { ...base.toMarkdown, runner: (state, mark, node) => {
       const target = parseMentionTarget(mark.attrs.href as string, node.text);
       if (target && target.mode !== "LEGACY") {
         state.withMark(mark, "wenyouMention", undefined, { url: target.sourceHref });
         return;
       }
-      return base.toMarkdown.runner(state, mark, node);
+      // 内部 AST 身份阻止相邻同 URL 的不同来源链接合并；Markdown 不写此属性。
+      state.withMark(mark, "link", undefined, {
+        title: mark.attrs.title, url: mark.attrs.href,
+        data: { wenyouSourceLinkBoundary: mark.attrs.sourceLinkBoundary, wenyouStandaloneLink: mark.attrs.sourceLinkStandalone },
+      });
     } } };
   });
 
@@ -312,6 +375,8 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
       wenyouBoundaryText: textHandler,
       break: () => "\n",
       paragraph: (node, _parent, state, info) => {
+        // 仅保留原顶层独立链接形态，不改变既有 v7 普通组合的嵌套顺序。
+        node = standaloneSourceLinkParagraph(node) as typeof node;
         const exit = state.enter("paragraph");
         const subexit = state.enter("phrasing");
         let value = state.containerPhrasing(node, info);

@@ -9,6 +9,7 @@ export interface EditorSubmissionHandle {
   flush: () => string | null;
   /** 当前编辑器已授权的媒体展示描述，供临时会话恢复。 */
   getMediaDisplays?: () => readonly MarkdownMediaDisplay[];
+  hasPendingUpload?: () => boolean;
   canClose?: () => boolean;
   isComposing?: () => boolean;
 }

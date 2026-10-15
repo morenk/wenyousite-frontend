@@ -1,0 +1,51 @@
+/* 轨道保持轻量，原生 range 仍提供键盘语义与 40px 透明触控区域。 */
+.seek {
+  --audio-track: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-control);
+}
+
+.seek:disabled { cursor: default; }
+.seek:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.seek::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--brand-strong) var(--audio-progress), var(--audio-track) var(--audio-progress));
+}
+.seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand-strong);
+}
+.seek:disabled::-webkit-slider-thumb { visibility: hidden; }
+
+.seek::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--audio-track);
+}
+.seek::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--brand-strong);
+}
+.seek::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand-strong);
+}
+.seek:disabled::-moz-range-thumb { visibility: hidden; }

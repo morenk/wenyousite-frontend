@@ -11,6 +11,8 @@ import {
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
 } from "react";
+import { AudioPlayer } from "@/components/shared/audio-player";
+import { findMediaAudio, remarkMediaAudio, type MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { remarkCanonicalMentions } from "@/lib/markdown-mention";
 import { parseMentionTarget } from "@/lib/mention";
 import type { PostDetail } from "@/api/hooks/use-post";
@@ -77,9 +79,18 @@ type SpanProps = ComponentProps<"span"> & ExtraProps & {
 const MarkdownRenderContext = createContext<{
   sourcePostId?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mediaAudios?: readonly MarkdownMediaAudio[];
   mentionIdentities?: readonly MentionIdentity[];
   diceRollsByNodeId: ReadonlyMap<string, InlineDiceRoll>;
 }>({ diceRollsByNodeId: new Map() });
+
+function MarkdownAudioRenderer({ node, children, ...props }: ComponentProps<"div"> & ExtraProps) {
+  const { mediaAudios } = useContext(MarkdownRenderContext);
+  const source = node?.properties?.["data-audio-source"];
+  const media = typeof source === "string" ? findMediaAudio(source, mediaAudios) : undefined;
+  if (media) return <AudioPlayer key={media.sourceUrl} media={media}>{children}</AudioPlayer>;
+  return <div {...props}>{children}</div>;
+}
 
 function MarkdownImageRenderer(props: ImageProps) {
   const { sourcePostId, mediaDisplays } = useContext(MarkdownRenderContext);
@@ -431,6 +442,7 @@ interface MarkdownContentProps {
   mentionIdentities?: readonly MentionIdentity[];
   content: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mediaAudios?: readonly MarkdownMediaAudio[];
   diceRolls?: InlineDiceRoll[];
   sourcePostId?: string;
   size?: "reading" | "compact";
@@ -441,6 +453,7 @@ export function MarkdownContent({
   mentionIdentities,
   content,
   mediaDisplays,
+  mediaAudios,
   diceRolls = [],
   sourcePostId,
   size = "reading",
@@ -481,7 +494,7 @@ export function MarkdownContent({
         size === "compact" && "wenyou-prose-compact",
       )}
     >
-      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, mentionIdentities, diceRollsByNodeId }}>
+      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, mediaAudios, mentionIdentities, diceRollsByNodeId }}>
         <ReactMarkdown
           rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
           remarkPlugins={[
@@ -493,9 +506,11 @@ export function MarkdownContent({
             remarkInlineDice(diceRolls),
             remarkBareInternalReferences,
             remarkPreserveSoftLineBreaks,
+            remarkMediaAudio(mediaAudios),
           ]}
           components={{
             a: MarkdownLink,
+            div: MarkdownAudioRenderer,
             img: MarkdownImageRenderer,
             span: MarkdownSpan,
           }}
@@ -511,7 +526,7 @@ export function MarkdownContent({
 
 /** 身份资料只复用原正文渲染，不带作者、时间或楼层操作。 */
 export function renderPostBody(post: PostDetail) {
-  return <MarkdownContent content={post.content} mediaDisplays={post.mediaDisplays}
+  return <MarkdownContent content={post.content} mediaDisplays={post.mediaDisplays} mediaAudios={post.mediaAudios}
     mentionIdentities={post.mentionIdentities} diceRolls={post.diceRolls} sourcePostId={post.id}
     markdownContractVersion={6} />;
 }

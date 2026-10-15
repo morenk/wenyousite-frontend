@@ -171,7 +171,7 @@ export function ThreadCreateForm({
             control={form.control}
             name="content"
             render={({ field }) => (
-              <MilkdownEditor mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
+              <MilkdownEditor audioDraftKey={`body:${thread.defaultSubthread.id}`} mediaDisplays={thread.defaultSubthread.bodyPost?.mediaDisplays}
                 editorRef={editor.editorRef}
                 onValidityChange={editor.onValidityChange}
                 onDocumentChange={editor.onDocumentChange}

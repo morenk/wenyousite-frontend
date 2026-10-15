@@ -4000,6 +4000,16 @@ export interface components {
             /** @description 历史未补处理或无法确认时为空 */
             display: components["schemas"]["MediaDisplayResponseDto"] | null;
         };
+        AudioMediaDto: {
+            /** @description 正文普通链接的精确固定 URL；保存继续保留此 URL */
+            sourceUrl: string;
+            mediaId: string;
+            /** @enum {string} */
+            contentType: "audio/mpeg";
+            /** @description 规范播放副本字节数 */
+            size: number;
+            durationMs: number;
+        };
         RecentReplyThreadResponseDto: {
             title: string;
         };
@@ -4015,6 +4025,8 @@ export interface components {
         RecentReplyResponseDto: {
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             /** Format: date-time */
             createdAt: string;
@@ -4468,6 +4480,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             content: string;
             version: number;
@@ -5388,6 +5402,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -5434,6 +5450,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -5554,6 +5572,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -5647,6 +5667,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             threadId: string;
             subthreadId: string;
@@ -5711,6 +5733,8 @@ export interface components {
         DraftResponseDto: {
             /** @description 仅此次已授权正文中的精确来源映射；编辑保存继续使用 sourceUrl */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             id: string;
             userId: string;
             slot: number;
@@ -6677,6 +6701,8 @@ export interface components {
             mentionIdentities?: components["schemas"]["MentionIdentityDisplayDto"][];
             /** @description 已授权正文的精确来源映射 */
             mediaDisplays?: components["schemas"]["MarkdownMediaDisplayResponseDto"][];
+            /** @description 本次已授权正文内的音频引用；缺失时链接按旧端规则呈现 */
+            mediaAudios?: components["schemas"]["AudioMediaDto"][];
             /**
              * @description BODY 为正文，FLOOR 为主楼层或楼中楼
              * @enum {string}
@@ -6721,9 +6747,9 @@ export interface components {
              * @example image/jpeg
              * @enum {string}
              */
-            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif";
+            contentType: "image/jpeg" | "image/png" | "image/gif" | "image/webp" | "image/avif" | "audio/mpeg" | "audio/mp4" | "audio/wav" | "audio/ogg" | "audio/flac";
             /**
-             * @description 文件大小（字节），上限 10MB
+             * @description 文件大小（字节），图片上限 10MiB；RICH_CONTENT_AUDIO 音频上限 30MiB
              * @example 204800
              */
             size: number;
@@ -6732,7 +6758,7 @@ export interface components {
              * @default LEGACY
              * @enum {string}
              */
-            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "STICKER_SOURCE" | "LEGACY";
+            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "RICH_CONTENT_AUDIO" | "STICKER_SOURCE" | "LEGACY";
         };
         UploadUrlResponseDto: {
             /** @description 对象存储预签名 PUT 地址 */
@@ -6752,6 +6778,13 @@ export interface components {
             mediaId: string;
         };
         MediaResponseDto: {
+            /** @description 完成音频的实际时长（毫秒）；图片或未完成时为 null */
+            durationMs?: number | null;
+            /**
+             * @description 音频最终失败的受控原因；其它状态为 null
+             * @enum {string|null}
+             */
+            failureCode?: "AUDIO_INVALID" | "AUDIO_TOO_LONG" | "AUDIO_PROCESSING_FAILED" | null;
             /** @description 完整 WebP 展示资源；缺少或为空时为兼容历史媒体 */
             display?: components["schemas"]["MediaDisplayResponseDto"] | null;
             id: string;
@@ -6773,7 +6806,7 @@ export interface components {
             width: number | null;
             height: number | null;
             /** @enum {string} */
-            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "STICKER_SOURCE" | "LEGACY";
+            purpose: "AVATAR" | "PROFILE_COVER" | "DIRECT_MESSAGE" | "MOMENT" | "MOMENT_COMMENT" | "RICH_CONTENT" | "RICH_CONTENT_AUDIO" | "STICKER_SOURCE" | "LEGACY";
             /** @description 是否为保留动画的 GIF */
             animated: boolean;
             /** @enum {string} */
@@ -6923,6 +6956,17 @@ export interface components {
             message: string;
             conversationCanceled: boolean;
         };
+        AudioUploadCapabilityDto: {
+            /** @enum {number} */
+            version: 1;
+            /** @example 31457280 */
+            maxBytes: number;
+            /** @example 600000 */
+            maxDurationMs: number;
+            contentTypes: ("audio/mpeg" | "audio/mp4" | "audio/wav" | "audio/ogg" | "audio/flac")[];
+            /** @enum {string} */
+            outputContentType: "audio/mpeg";
+        };
         ApiCapabilitiesResponseDto: {
             /** @description 支持 RP 身份绑定本主题资料楼层及按查看者授权读取；缺失按 false，客户端不得发送 profilePostId/clearProfilePost */
             rpIdentityProfileSupported?: boolean;
@@ -6947,6 +6991,8 @@ export interface components {
             ios: components["schemas"]["MobilePlatformCompatibilityDto"];
         };
         ApiMetaResponseDto: {
+            /** @description 仅明确启用且转码运行依赖就绪时返回；缺失时隐藏上传入口 */
+            audioUpload?: components["schemas"]["AudioUploadCapabilityDto"];
             contractVersion: string;
             buildSha: string | null;
             /** @example 5 */

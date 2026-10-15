@@ -13,6 +13,7 @@ const EDITOR_ICON_IDS = {
   alignment: "editor.alignment",
   link: "editor.link",
   image: "editor.image",
+  audio: "editor.audio",
   quote: "editor.quote",
   hr: "editor.horizontal-rule",
   dice: "editor.dice",

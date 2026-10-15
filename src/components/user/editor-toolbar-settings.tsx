@@ -1,5 +1,6 @@
 "use client";
 
+import { useApiMeta } from "@/api/hooks/use-api-meta";
 import type { RefObject } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,6 +25,7 @@ export function EditorToolbarSettings({ onClose, returnFocus }: {
   returnFocus?: RefObject<HTMLElement | null>;
 }) {
   const preference = useEditorToolbarPreference();
+  const { data: meta } = useApiMeta();
   const defaults = preference ?? defaultCustomToolbar();
   const form = useForm<Values>({
     resolver: zodResolver(schema),
@@ -55,7 +57,7 @@ export function EditorToolbarSettings({ onClose, returnFocus }: {
   });
   return <SettingsDialog title="编辑器工具栏" onClose={onClose} returnFocus={returnFocus} dirty={isDirty} wide className="max-w-[calc(var(--editor-frame-max)+3rem+4px)]">
     <form onSubmit={save}>
-      <EditorToolbarArrangement custom={custom} primary={primary} more={more} onChange={change} />
+      <EditorToolbarArrangement audioEnabled={meta?.audioUpload?.version === 1} custom={custom} primary={primary} more={more} onChange={change} />
       {errors.root ? <p role="alert" className="mt-3 text-sm text-destructive">{errors.root.message}</p> : null}
       <div className="mt-4 flex items-end justify-between gap-3">
         <Button type="button" variant="ghost" onClick={restore}>恢复默认</Button>
