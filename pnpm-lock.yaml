@@ -59,8 +59,8 @@ importers:
         specifier: ^3.14.9
         version: 3.14.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@wenyousite/foundation':
-        specifier: github:morenk/wenyousite-foundation#v7.2.1
-        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/c7729bc9e28c608c6c3a76cdc088e3c5b6a5a663
+        specifier: github:morenk/wenyousite-foundation#v7.4.0
+        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -185,6 +185,9 @@ importers:
       happy-dom:
         specifier: ^20.11.1
         version: 20.11.1
+      mdast-util-to-markdown:
+        specifier: 2.1.2
+        version: 2.1.2
       msw:
         specifier: ^2.15.0
         version: 2.15.0(@types/node@20.19.43)(typescript@5.9.3)
@@ -1899,9 +1902,9 @@ packages:
   '@vue/shared@3.5.42':
     resolution: {integrity: sha512-2rPxex1jQf4jvl9MOHl6YaXCPcrNqz/FstMOEh3QWY+/OME9nQTvl9WYeCwhW7AFjaR0SnngZGlp/wkR6rkI6g==}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/c7729bc9e28c608c6c3a76cdc088e3c5b6a5a663':
-    resolution: {gitHosted: true, integrity: sha512-CaEpcFUWR1KMEHLRXFWt9wiQjQVJzSwK1W/P22ubM0RL5ReNl3718bdKF+gLFAT/CIyTFdJ0lGdtsD5H0a4FUw==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/c7729bc9e28c608c6c3a76cdc088e3c5b6a5a663}
-    version: 7.2.1
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d':
+    resolution: {gitHosted: true, integrity: sha512-3dttJz1211/tevW7k49CjBUAORA9xXmG+KdQR4252tnD6M2cP1KNxpoCFHH44gJ2bPVMjnV4xoSgrI/Nd6hbfw==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d}
+    version: 7.4.0
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -6192,7 +6195,7 @@ snapshots:
 
   '@vue/shared@3.5.42': {}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/c7729bc9e28c608c6c3a76cdc088e3c5b6a5a663':
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d':
     dependencies:
       lucide-static: 1.28.0
 
