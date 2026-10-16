@@ -66,7 +66,7 @@ Backend `6d1228cd8c128f24860ef99747aa923c461a595a` / API5.36 增加可选能力�
 
 ## 音频文件兼容
 
-Backend `78685f48f0eeabf358fb4a6f5a4b0bca6b068a12` / API `5.39.0-dev.20261017.1` 兼容新增媒体 purpose、能力与可选投影，Web 消费 Foundation 正式 v7.4.0。普通无 title Markdown 链接为持久格式，旧端、缺失/无效投影、内联/列表/引用仍保持链接；关闭新上传不禁用已存在合法投影阅读。先兼容 Backend，后 Web/Mobile；回滚消费者只撤销上传/播放增强，不改历史数据与媒体 URL。没有旧协议满足清理四项证据，本次不清理兼容。详见[音频模块](modules/audio.md)。
+Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / API `5.39.0-dev.20261017.1` 兼容新增媒体 purpose、能力与可选投影，Web 消费 Foundation 正式 v7.4.0。普通无 title Markdown 链接为持久格式，旧端、缺失/无效投影、内联/列表/引用仍保持链接；关闭新上传不禁用已存在合法投影阅读。先兼容 Backend，后 Web/Mobile；回滚消费者只撤销上传/播放增强，不改历史数据与媒体 URL。没有旧协议满足清理四项证据，本次不清理兼容。详见[音频模块](modules/audio.md)。
 
 ## 文本颜色 v1 保源兼容
 

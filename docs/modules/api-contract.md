@@ -143,7 +143,7 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 
 ## 音频上传与正文投影
 
-固定来源为 Backend `78685f48f0eeabf358fb4a6f5a4b0bca6b068a12` / `5.39.0-dev.20261017.1`，通过 `WENYOUSITE_BACKEND_ROOT`、`BACKEND_CONTRACT_REF` 标准同步，再生成 `src/api/types.ts`。同步脚本同时复制 `markdown-audio-v1-fixtures.json` 与 schema，并验证两者 schemaVersion 一致；既有共享夹具版本校验保留。
+固定来源为 Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / `5.39.0-dev.20261017.1`，通过 `WENYOUSITE_BACKEND_ROOT`、`BACKEND_CONTRACT_REF` 标准同步，再生成 `src/api/types.ts`。同步脚本同时复制 `markdown-audio-v1-fixtures.json` 与 schema，并验证两者 schemaVersion 一致；既有共享夹具版本校验保留。
 
 复用媒体预约、PUT、确认、状态及续签接口，purpose 新增 RICH_CONTENT_AUDIO，meta.audioUpload 只门控新入口。正文/草稿 DTO 可选 mediaAudios；缺失投影降级普通链接，旧客户端继续读取无 title 链接。本机恢复、精确投影校验、播放器和安全边界见[音频模块](audio.md)。兼容后端先发布，消费者随后；本轮不删除旧端点或历史 Markdown。
 
