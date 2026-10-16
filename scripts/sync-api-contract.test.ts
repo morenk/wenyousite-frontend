@@ -29,6 +29,8 @@ function workspace() {
     "media-display-v1-fixtures.json": { schemaVersion: 1, contractVersion: "test", cases: [] },
     "markdown-block-boundary-v1-fixtures.json": { contract: "wenyousite-markdown-block-boundary", version: 1, markdownContractVersion: 5, cases: [] },
     "markdown-editor-newline-v1-fixtures.json": { contract: "wenyousite-editor-newline", version: 1 },
+    "markdown-audio-v1-fixtures.json": { version: 1, markdownContractVersion: 5, cases: [], invalidProjectionCases: [] },
+    "markdown-audio-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "openapi.json": { openapi: "3.0.3", info: { version: "test" } },
     "internal-reference-v1-fixtures.json": { contract: "wenyousite-internal-reference", version: 1 },
     "editor-clipboard-v2-fixtures.json": { contract: "wenyousite-editor-clipboard", version: 2 },
