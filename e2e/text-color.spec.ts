@@ -46,7 +46,7 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(floor.locator('[data-wenyou-color-v1] code')).toHaveCSS("color", "rgb(209, 67, 67)");
   for (const dark of [false, true]) {
     await page.getByRole("button", { name: /^外观：/ }).click();
-    await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "白天", { exact: true }).click();
+    await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "亮色", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
     await expect(floor.locator('[data-wenyou-color-v1] strong')).toHaveCSS("color", "rgb(209, 67, 67)");
     await floor.screenshot({ path: ".e2e-results/" + run.manifest.runId + (dark ? "-text-color-dark.png" : "-text-color-light.png") });
@@ -82,7 +82,7 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(editorColors).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
   for (const dark of [false, true]) {
     await page.getByRole("button", { name: /^外观：/ }).click();
-    await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "白天", { exact: true }).click();
+    await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "亮色", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
     // ProseMirror 按组合 mark 拆分 DOM；逐段核验实际着色文字，而不要求 reader 的单一 span 结构。
     for (const segment of await editorColors.all()) await expect(segment).toHaveCSS("color", "rgb(209, 67, 67)");
