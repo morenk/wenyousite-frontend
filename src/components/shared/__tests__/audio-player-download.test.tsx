@@ -17,7 +17,7 @@ test("点击才保存，不设置播放src；label生成MP3文件名并可失败
  await act(async () => fireEvent.click(screen.getByRole("button", { name: "保存到本地" })));
  expect(screen.getByRole("alert")).toHaveTextContent("保存失败"); expect(view.container.querySelector("audio")).not.toHaveAttribute("src");
  download.mockResolvedValueOnce(new Blob(["abc"]));
- let filename = ""; vi.mocked(HTMLAnchorElement.prototype.click).mockImplementation(function () { filename = this.download; });
+ let filename = ""; vi.mocked(HTMLAnchorElement.prototype.click).mockImplementation(function (this: HTMLAnchorElement) { filename = this.download; });
  await act(async () => fireEvent.click(screen.getByRole("button", { name: "保存到本地" })));
  expect(filename).toBe("雨夜.mp3"); expect(screen.queryByRole("alert")).toBeNull();
  view.unmount(); expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:test");

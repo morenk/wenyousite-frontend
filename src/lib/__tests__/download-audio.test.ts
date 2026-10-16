@@ -23,7 +23,8 @@ test("下载名来自标签且扩展名与播放副本一致", () => {
  expect(audioDownloadName("CON.wav")).toBe("_CON.mp3"); expect(audioDownloadName("")).toBe("音频.mp3");
 });
 
-for (const headers of [{ "content-type": "text/html" }, { "content-type": "audio/mpeg", "content-length": "999" }]) test("响应头不符立即取消响应流", async () => {
+const invalidHeaders: Record<string, string>[] = [{ "content-type": "text/html" }, { "content-type": "audio/mpeg", "content-length": "999" }];
+for (const headers of invalidHeaders) test("响应头不符立即取消响应流", async () => {
  const cancel = vi.fn(); const body = new ReadableStream({ cancel });
  vi.stubGlobal("fetch", vi.fn().mockResolvedValue(new Response(body, { headers })));
  await expect(downloadAudioBlob(media, new AbortController().signal)).rejects.toThrow(); expect(cancel).toHaveBeenCalledTimes(1);

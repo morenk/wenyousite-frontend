@@ -5,7 +5,7 @@ import type { RefObject } from "react";
 import { useEditorAudioUpload } from "../use-editor-audio-upload";
 import type { AudioDraftRecord } from "@/lib/audio-draft";
 import type { AudioUploadCapability } from "@/lib/upload-audio";
-const mocks = vi.hoisted(() => ({ upload: vi.fn(), load: vi.fn(), save: vi.fn(), remove: vi.fn(), insert: vi.fn(), clear: vi.fn(), capability: undefined as AudioUploadCapability | undefined }));
+const mocks = vi.hoisted(() => ({ upload: vi.fn(), load: vi.fn(), save: vi.fn<(record: AudioDraftRecord) => Promise<void>>(), remove: vi.fn(), insert: vi.fn(), clear: vi.fn(), capability: undefined as AudioUploadCapability | undefined }));
 vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => ({ data: { audioUpload: mocks.capability } }) }));
 vi.mock("@/api/hooks/use-upload-audio", () => ({ useUploadAudio: () => ({ mutateAsync: mocks.upload }) }));
 vi.mock("@/lib/audio-draft", () => ({ loadAudioDraft: mocks.load, saveAudioDraft: mocks.save, removeAudioDraft: mocks.remove }));
@@ -21,7 +21,7 @@ beforeEach(() => {
   vi.clearAllMocks(); mocks.capability = capability;
   mocks.load.mockResolvedValue(null); mocks.save.mockResolvedValue(undefined); mocks.remove.mockResolvedValue(undefined); mocks.insert.mockReturnValue(true); mocks.upload.mockReset();
   file = new File(["audio"], "rain.mp3", { type: "audio/mpeg" });
-  vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function () { Object.defineProperty(this, "files", { value: [file] }); fireEvent.change(this); });
+  vi.spyOn(HTMLInputElement.prototype, "click").mockImplementation(function (this: HTMLInputElement) { Object.defineProperty(this, "files", { value: [file] }); fireEvent.change(this); });
 });
 afterEach(() => { cleanup(); document.body.replaceChildren(); vi.restoreAllMocks(); });
 for (const change of ["account", "target"] as const) test(`${change} 切换失效占位/迟到预约/完成，保留旧本机草稿`, async () => {
@@ -122,7 +122,7 @@ test("选中文件立即显示原名音频占位卡，无链接/音源；处理�
  expect(screen.getByRole("progressbar")).not.toHaveAttribute("aria-valuenow");
  expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "处理中…");
  expect(card.querySelector("audio")).toBeNull();
- await act(async () => { fireEvent.click(screen.getByRole("button", { name: "取消", exact: true })); });
+ await act(async () => { fireEvent.click(screen.getByRole("button", { name: "取消" })); });
  expect(card).toHaveTextContent("已暂停");
  mocks.upload.mockRejectedValueOnce(new Error("处理失败"));
  await act(async () => { fireEvent.click(screen.getByRole("button", { name: "继续" })); });

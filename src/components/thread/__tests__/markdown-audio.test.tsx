@@ -17,8 +17,8 @@ const fixture = JSON.parse(readFileSync("contracts/markdown-audio-v1-fixtures.js
 };
 beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, "load").mockImplementation(() => {});
-  vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function () { this.dispatchEvent(new Event("pause")); });
-  vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function () { this.dispatchEvent(new Event("playing")); return Promise.resolve(); });
+  vi.spyOn(HTMLMediaElement.prototype, "pause").mockImplementation(function (this: HTMLMediaElement) { this.dispatchEvent(new Event("pause")); });
+  vi.spyOn(HTMLMediaElement.prototype, "play").mockImplementation(function (this: HTMLMediaElement) { this.dispatchEvent(new Event("playing")); return Promise.resolve(); });
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 for (const item of fixture.cases) test(`音频正文共享契约 ${item.id}`, () => {
