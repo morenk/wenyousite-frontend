@@ -2,6 +2,7 @@
 
 "use client";
 
+import { normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
   createContext,
   useContext,
@@ -69,6 +70,7 @@ function isGifUrl(url: string): boolean {
 type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type SpanProps = ComponentProps<"span"> & ExtraProps & {
+  "data-wenyou-color-v1"?: string;
   "data-dice-node-id"?: string;
   "data-dice-notation"?: string;
 };
@@ -99,7 +101,8 @@ function MarkdownSpan({ node: _node, ...props }: SpanProps) {
   const nodeId = props["data-dice-node-id"];
   const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
   if (roll) return <DiceInlineResult roll={roll} />;
-  return <span {...props} />;
+  const color = normalizeTextColor(props["data-wenyou-color-v1"]);
+  return <span {...props} style={color ? { color } : undefined} />;
 }
 
 function getNodeText(node: ReactNode): string {
@@ -281,7 +284,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
   const byNodeId = new Map(rolls.map((roll) => [roll.nodeId, roll]));
   return () => (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children) return;
+      if (!node.children || node.type === TEXT_COLOR_MARK) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -333,7 +336,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
 function remarkBareInternalReferences() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode") return;
+      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode" || node.type === TEXT_COLOR_MARK) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -368,7 +371,7 @@ function remarkBareInternalReferences() {
 function remarkPreserveSoftLineBreaks() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children) return;
+      if (!node.children || node.type === TEXT_COLOR_MARK) return;
       const children: MarkdownNode[] = [];
       for (let index = 0; index < node.children.length; index++) {
         const child = node.children[index]!;
@@ -486,6 +489,7 @@ export function MarkdownContent({
           rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
           remarkPlugins={[
             remarkGfm,
+            remarkTextColor,
             remarkCanonicalMentions,
             [remarkWenyouAlignment, markdownOptions],
             remarkRecoverAttentionBoundaries,

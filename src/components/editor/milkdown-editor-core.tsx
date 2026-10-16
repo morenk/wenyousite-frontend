@@ -84,6 +84,8 @@ function EditorCore({
     handleValidityChange,
     markdownContractVersion,
     advertisedMarkdownContractVersion,
+    textColorSupported,
+    advertisedTextColorSupported,
     user,
     restoredValue,
     restoredMediaDisplays,
@@ -110,17 +112,17 @@ function EditorCore({
     onSyncErrorChange,
   });
 
-  const writeAssessmentRef = useRef<{ content: string; version: number; allowed: boolean } | null>(null);
+  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
     const content = flush();
     if (content === null) return null;
     const cached = writeAssessmentRef.current;
-    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion) {
-      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, allowed: assessEditorInput(content, advertisedMarkdownContractVersion).edit };
+    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion || cached.color !== advertisedTextColorSupported) {
+      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, color: advertisedTextColorSupported, allowed: assessEditorInput(content, advertisedMarkdownContractVersion, advertisedTextColorSupported).edit };
     }
     return writeAssessmentRef.current!.allowed ? content : null;
-  }, [advertisedMarkdownContractVersion, flush, isComposing]);
+  }, [advertisedMarkdownContractVersion, advertisedTextColorSupported, flush, isComposing]);
 
   const handleValidity = useCallback((valid: boolean) => {
     setInvalid(!valid);
@@ -134,7 +136,7 @@ function EditorCore({
     return () => window.removeEventListener("beforeunload", preventLoss);
   }, [invalid]);
 
-  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion).edit, [contractVersionReady, restoredValue, markdownContractVersion]);
+  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported]);
   useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays]);
   useEffect(() => {
     if (protectedContent) {
@@ -178,6 +180,7 @@ function EditorCore({
           initialValue={restoredValue ?? ""}
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
           markdownContractVersion={markdownContractVersion}
+          textColorVersion={textColorSupported ? 1 : undefined}
           editorRef={hostRef}
           onValidityChange={handleValidity}
           onChange={handleChange}

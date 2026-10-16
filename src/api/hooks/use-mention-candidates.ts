@@ -52,6 +52,9 @@ export function useMentionCandidates(
 /** 明确拒绝过期提及时立即刷新候选，重选不能继续命中过期名字。 */
 export function invalidateChangedMentionCandidates(client: QueryClient, error: unknown) {
   const code = getApiError(error).code;
+  if (code === API_ERROR_CODE.TEXT_COLOR_CAPABILITY_REQUIRED || code === API_ERROR_CODE.TEXT_COLOR_DISABLED) {
+    return client.invalidateQueries({ queryKey: queryKeys.meta });
+  }
   if (code === API_ERROR_CODE.ROLE_MENTIONS_DISABLED || code === API_ERROR_CODE.MARKDOWN_CAPABILITY_REQUIRED) {
     return Promise.all([
       client.invalidateQueries({ queryKey: queryKeys.meta }),
