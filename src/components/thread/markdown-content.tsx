@@ -375,6 +375,16 @@ function remarkBareInternalReferences() {
   };
 }
 
+/** 已解析换行只生成安全 br，避免 mdast→hast 对标准 break 后的作者空格再次裁剪。 */
+function readerLineBreak(node?: MarkdownNode): MarkdownNode {
+  return {
+    ...node,
+    type: "wenyouReaderLineBreak",
+    data: { ...node?.data, hName: "br" },
+    children: [],
+  };
+}
+
 /** 完整正文把 CommonMark 软换行显式渲染为换行，与 Flutter 阅读态保持一致。 */
 function remarkPreserveSoftLineBreaks() {
   return (tree: MarkdownNode) => {
@@ -383,6 +393,10 @@ function remarkPreserveSoftLineBreaks() {
       const children: MarkdownNode[] = [];
       for (let index = 0; index < node.children.length; index++) {
         const child = node.children[index]!;
+        if (child.type === "break") {
+          children.push(readerLineBreak(child));
+          continue;
+        }
         if (
           child.type === "text"
           && /^[\t ]+$/u.test(child.value ?? "")
@@ -407,7 +421,7 @@ function remarkPreserveSoftLineBreaks() {
         }
         const lines = child.value.split("\n");
         for (let lineIndex = 0; lineIndex < lines.length; lineIndex++) {
-          if (lineIndex > 0) children.push({ type: "break" });
+          if (lineIndex > 0) children.push(readerLineBreak());
           if (lines[lineIndex]) children.push({ ...child, value: lines[lineIndex] });
         }
       }
