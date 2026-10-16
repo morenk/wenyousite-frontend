@@ -2,7 +2,7 @@
 
 状态：`active`
 
-接口来源为 Backend `9159729106cefb883726121dc9f94c0b164678c1` 的 OpenAPI `5.38.0-dev.20261017.1`、`markdown-audio-v1-fixtures.json` 与 schema；体验和图标消费 Foundation 正式 `v7.3.0`。不引入录音、封面、波形或新的 Markdown 格式。
+接口来源为 Backend `78685f48f0eeabf358fb4a6f5a4b0bca6b068a12` 的 OpenAPI `5.39.0-dev.20261017.1`、`markdown-audio-v1-fixtures.json` 与 schema；体验和图标消费 Foundation 正式 `v7.3.0`。不引入录音、封面、波形或新的 Markdown 格式。
 
 ## 上传入口与本机布局
 
