@@ -84,3 +84,9 @@ if (audio.version !== 1 || audio.markdownContractVersion !== 5 || !Array.isArray
 if (JSON.parse(source.read(audioFiles[1])).$schema !== "https://json-schema.org/draft/2020-12/schema") throw new Error("后端音频 schema 无效");
 const names = [profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
   "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...audioFiles, ...textColorFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
+// 在写入前读取全部内容，来源缺失时不留下半套契约。
+const contents = names.map((name) => [name, source.read(name)]);
+mkdirSync(target, { recursive: true });
+for (const [name, body] of contents) writeFileSync(resolve(target, name), body);
+for (const name of readdirSync(target).filter(isMarkdown)) if (!markdownFiles.includes(name)) unlinkSync(resolve(target, name));
+console.log("Synced API contract " + contract.info.version + " from " + source.description);

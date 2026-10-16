@@ -385,3 +385,4 @@
 /* 原样 RGB：内层组合格式不覆盖已声明的文字颜色。 */
 .milkdown span[data-wenyou-color-v1] :is(strong, em, del, s, a, code) {
   color: inherit;
+}
