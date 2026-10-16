@@ -1,7 +1,10 @@
+import type { Unsafe } from "mdast-util-to-markdown";
+import { hoistTextColors, normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
   remarkStringifyOptionsCtx,
   remarkPluginsCtx,
   serializerCtx,
+  parserCtx,
 } from "@milkdown/core";
 import { linkSchema, paragraphAttr, textSchema } from "@milkdown/kit/preset/commonmark";
 import type { Ctx } from "@milkdown/kit/ctx";
@@ -23,6 +26,12 @@ import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 import { canonicalizeEditorEmptyRows, documentWithExplicitEmptyRows, handlePlainNewline } from "./editor-plain-newline";
 import { adoptEditedTrailingParagraphs, configureEditorTrailingParagraph, withoutAutomaticTrailingParagraph } from "./editor-trailing-paragraph";
 
+declare module "mdast-util-to-markdown" {
+  interface ConstructNameMap {
+    wenyouTextColor: "wenyouTextColor";
+  }
+}
+
 type DiceMarkdownNode = {
   nodeId?: unknown;
   notation?: unknown;
@@ -32,6 +41,7 @@ type EditorMarkdownNode = {
   type?: string;
   value?: string;
   url?: string;
+  color?: string;
   data?: Record<string, unknown>;
   children?: EditorMarkdownNode[];
 };
@@ -78,6 +88,7 @@ export interface EditorMarkdownBridgeOptions {
   onValid?: () => void;
   onReady?: (flush: (() => string | null) | null) => void;
   markdownContractVersion?: number;
+  textColorVersion?: 1;
 }
 
 export class EditorMarkdownCodecError extends Error {
@@ -275,7 +286,7 @@ function serializeDiceMarkdownNode(node: DiceMarkdownNode): string {
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
   configureEditorTrailingParagraph(ctx);
-  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkCanonicalMentions, options: {} }]);
+  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkTextColor, options: {} }, { plugin: remarkCanonicalMentions, options: {} }]);
   ctx.update(linkSchema.key, (previous) => (schemaCtx) => {
     const base = previous(schemaCtx);
     return { ...base, toMarkdown: { ...base.toMarkdown, runner: (state, mark, node) => {
@@ -299,12 +310,16 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
     return node.value.endsWith(" ")
       ? safe.replace(/(?:&#x20;)+$/u, (tail) => " ".repeat(tail.length / 6)) : safe;
   };
+  const colorUnsafe: Unsafe[] = [
+    { character: "@", inConstruct: "wenyouTextColor" },
+    { character: "/", inConstruct: "wenyouTextColor", notInConstruct: ["autolink", "destinationLiteral", "destinationRaw", "titleQuote", "titleApostrophe"] },
+  ];
   ctx.update(remarkStringifyOptionsCtx, (options) => ({
     ...options,
     rule: "-" as const,
     ruleRepetition: 3,
     ruleSpaces: false,
-    unsafe: [...(options.unsafe ?? []), { character: ">" }],
+    unsafe: [...(options.unsafe ?? []), { character: ">" }, ...colorUnsafe],
     handlers: {
       ...options.handlers,
       // Milkdown 的尾随空白捷径会漏转义行首 >；所有文字均经标准安全输出。
@@ -314,13 +329,34 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
       paragraph: (node, _parent, state, info) => {
         const exit = state.enter("paragraph");
         const subexit = state.enter("phrasing");
-        let value = state.containerPhrasing(node, info);
+        let value = state.containerPhrasing({ ...node, children: hoistTextColors(node.children ?? []) }, info);
         subexit();
         exit();
         // CommonMark 会裁剪段落两端空格；只编码已有边界字符，不增加可见内容。
         if (/^[\t ]/u.test(value)) value = encodeFirstCodePoint(value);
         if (/[\t ]$/u.test(value)) value = encodeLastCodePoint(value);
         return value;
+      },
+      heading: (node, _parent, state, info) => {
+        const exit = state.enter("headingAtx");
+        const subexit = state.enter("phrasing");
+        const prefix = "#".repeat(node.depth) + " ";
+        const value = state.containerPhrasing({ ...node, children: hoistTextColors(node.children ?? []) }, { ...info, before: prefix, after: "\n" });
+        subexit(); exit();
+        return prefix + value;
+      },
+      wenyouTextColor: (nodeValue: unknown, _parent: unknown, stateValue: unknown, infoValue: unknown) => {
+        const node = nodeValue as EditorMarkdownNode;
+        const color = normalizeTextColor(node.color);
+        if (!color) throw new EditorMarkdownCodecError("文字颜色无效，正文已保留");
+        const prefix = '<span data-wenyou-color-v1="' + color + '">';
+        const suffix = "</span>";
+        const state = stateValue as SerializerState;
+        const exit = state.enter("phrasing");
+        const exitColor = state.enter("wenyouTextColor");
+        const value = state.containerPhrasing(node, { ...infoValue as SerializerInfo, before: ">", after: "<" });
+        exitColor(); exit();
+        return prefix + value + suffix;
       },
       delete: safeDeleteMarkdownHandler,
       wenyouMention: (nodeValue: unknown, _parent: unknown, stateValue: unknown, infoValue: unknown) => {
@@ -362,8 +398,8 @@ function normalizeInlineBoundaryWhitespace(node: ProseNode): ProseNode {
     const leading = /^\p{White_Space}*/u.exec(text)![0];
     const trailing = /\p{White_Space}*$/u.exec(text)![0];
     const core = text.slice(leading.length, Math.max(leading.length, text.length - trailing.length));
-    const sharedBefore = child.marks.filter((mark) => node.maybeChild(index - 1)?.marks.some((other) => mark.eq(other)));
-    const sharedAfter = child.marks.filter((mark) => node.maybeChild(index + 1)?.marks.some((other) => mark.eq(other)));
+    const sharedBefore = child.marks.filter((mark) => mark.type.name === TEXT_COLOR_MARK || node.maybeChild(index - 1)?.marks.some((other) => mark.eq(other)));
+    const sharedAfter = child.marks.filter((mark) => mark.type.name === TEXT_COLOR_MARK || node.maybeChild(index + 1)?.marks.some((other) => mark.eq(other)));
     if (!core) {
       children.push(child.mark(sharedBefore.filter((mark) => sharedAfter.some((other) => mark.eq(other)))));
       return;
@@ -374,6 +410,21 @@ function normalizeInlineBoundaryWhitespace(node: ProseNode): ProseNode {
     if (trailing) children.push(node.type.schema.text(trailing, sharedAfter));
   });
   return node.copy(Fragment.fromArray(children));
+}
+
+/** 按字符比较颜色与共同格式，避免分片/合并掩盖保存时的颜色丢失。 */
+function coloredTextSignature(doc: ProseNode) {
+  const result: { text: string; marks: string[] }[] = [];
+  doc.descendants((node) => {
+    if (!node.isText || !node.marks.some((mark) => mark.type.name === TEXT_COLOR_MARK)) return;
+    const marks = node.marks.map((mark) => {
+      const attrs = { ...mark.attrs };
+      if (["emphasis", "strong"].includes(mark.type.name)) delete attrs.marker;
+      return JSON.stringify({ type: mark.type.name, attrs });
+    }).sort();
+    for (const text of Array.from(node.text ?? "")) result.push({ text, marks });
+  });
+  return result;
 }
 
 /** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
@@ -411,6 +462,14 @@ export function serializeEditorMarkdown(
   if (options.markdownContractVersion !== 6 && parseInlineMentionNodes(markdown).some((node) => node.type === "mention" && node.sourceHref)) {
     throw new EditorMarkdownCodecError("当前服务尚不支持此提及格式，正文已保留");
   }
+  const colors = coloredTextSignature(doc);
+  if (colors.length > 0) {
+    if (options.textColorVersion !== 1) throw new EditorMarkdownCodecError("当前服务尚不支持文字颜色，正文已保留");
+    const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(markdown, options));
+    if (!reopened || JSON.stringify(coloredTextSignature(reopened)) !== JSON.stringify(colors)) {
+      throw new EditorMarkdownCodecError("文字颜色保存校验失败，正文已保留");
+    }
+  }
   const unsupported = findUnsupportedMarkdownFormats(markdown, options);
   if (unsupported.length > 0) {
     const first = unsupported[0]!;
@@ -434,6 +493,7 @@ export function createEditorMarkdownBridge({
   onValid,
   onSyncErrorChange,
   markdownContractVersion,
+  textColorVersion,
 }: EditorMarkdownBridgeOptions) {
   return $prose((ctx) => {
     let previousMarkdown: string | undefined;
@@ -544,7 +604,7 @@ export function createEditorMarkdownBridge({
             // 文档为不可变对象；契约版本绑定本插件生命周期，选区/重复 flush 复用已验证结果。
             const markdown = view.state.doc === encodedDoc && encodedMarkdown !== undefined
               ? encodedMarkdown
-              : serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
+              : serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion, textColorVersion });
             encodedDoc = view.state.doc;
             encodedMarkdown = markdown;
             const changed = failed || documentRevision !== synchronizedRevision;

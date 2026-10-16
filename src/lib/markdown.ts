@@ -1,5 +1,7 @@
 /** Markdown v5 工具：规范化、工具栏能力白名单与字面文本降级。 */
 
+import { validTextColorTokens } from "@/lib/markdown-text-color";
+
 import { ALIGNMENT_MARKER_RE, analyzeMarkdownBlockBoundaries, projectMarkdownBlockBoundaries } from "@/lib/markdown-block-boundaries";
 
 /** 匹配图片语法中括号为空的写法：![alt]() 或 ![alt]( ) */
@@ -75,6 +77,7 @@ export const ACTIVE_MARKDOWN_CONTRACT_VERSION = 5;
 export const IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION = 5;
 
 export interface MarkdownValidationOptions {
+  textColorVersion?: 1;
   markdownContractVersion?: number;
 }
 
@@ -331,8 +334,9 @@ export function findUnsupportedMarkdownFormats(
             issues.push({ type: "hard-break", startLine: line, endLine: line });
           }
         }
+        const colorTokens = validTextColorTokens(token.children ?? [], token.content);
         for (const child of token.children ?? []) {
-          if (child.type === "html_inline") {
+          if (child.type === "html_inline" && !colorTokens.has(child)) {
             issues.push(issue("raw-html", map));
           } else if (child.type === "link_open") {
             if (!isSafeUrl(child.attrGet("href") ?? "", false)) {

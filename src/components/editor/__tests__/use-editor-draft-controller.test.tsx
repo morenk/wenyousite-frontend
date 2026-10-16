@@ -4,14 +4,15 @@ import { queryKeys } from "@/api/query-keys";
 import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
 import { createQueryWrapper } from "@/test/query-client";
 
-const { mockUseAuth, mockSaveDraft, mockToastSuccess, mockToastError } = vi.hoisted(() => ({
+const { mockUseAuth, mockMeta, mockSaveDraft, mockToastSuccess, mockToastError } = vi.hoisted(() => ({
   mockUseAuth: vi.fn(),
+  mockMeta: vi.fn(),
   mockSaveDraft: vi.fn(),
   mockToastSuccess: vi.fn(),
   mockToastError: vi.fn(),
 }));
 
-vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => ({ data: { markdownContractVersion: 5 } }) }));
+vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => mockMeta() }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/api/hooks/use-save-draft", () => ({
   useSaveDraft: () => ({ mutateAsync: mockSaveDraft }),
@@ -23,6 +24,7 @@ vi.mock("sonner", () => ({
 beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5 } });
   mockUseAuth.mockReturnValue({ user: { id: "u1" } });
   mockSaveDraft.mockResolvedValue({ id: "d1", version: 3, content: "正文" });
 });
@@ -305,4 +307,34 @@ test("组词中切账号取消旧队列并清除组合状态，新账号编辑�
   act(() => { result.current.handleDocumentChange(); result.current.handleChange("新账号正文"); result.current.handleAutoSaveChange(true, { id: "new", version: 1 }); });
   await flushAutoSave();
   expect(mockSaveDraft).toHaveBeenCalledExactlyOnceWith({ draftId: "new", content: "新账号正文", version: 1 });
+});
+
+test.each([false, true])("彩色草稿supported=%s时恢复与自动保存受同一能力保护", async (supported) => {
+  const content = '<span data-wenyou-color-v1="#D14343">**中文😀**</span>';
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: supported, textColorV1WriteEnabled: false } } });
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "原输入" }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleRestore({ content }));
+  expect(result.current.currentContent).toBe(supported ? content : "原输入");
+  if (supported) {
+    act(() => result.current.handleAutoSaveChange(true));
+    await flushAutoSave();
+    expect(mockSaveDraft).toHaveBeenCalledWith({ content, slot: 1 });
+  } else {
+    expect(mockToastError).toHaveBeenCalledWith(expect.stringContaining("原草稿和当前输入已保留"));
+    expect(mockSaveDraft).not.toHaveBeenCalled();
+  }
+});
+
+test("颜色能力撤回时保留原文并取消待发自动草稿", async () => {
+  const content = '<span data-wenyou-color-v1="#D14343">原文</span>';
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: true } } });
+  const { result, rerender } = renderHook(() => useEditorDraftController({ defaultValue: content }), { wrapper: createQueryWrapper().Wrapper });
+  act(() => result.current.handleAutoSaveChange(true));
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5 } });
+  rerender();
+  await flushAutoSave();
+  expect(result.current.currentContent).toBe(content);
+  expect(result.current.restoredValue).toBe(content);
+  expect(result.current.textColorSupported).toBe(false);
+  expect(mockSaveDraft).not.toHaveBeenCalled();
 });
