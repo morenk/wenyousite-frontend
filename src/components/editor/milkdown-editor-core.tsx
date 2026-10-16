@@ -22,6 +22,7 @@ import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
 const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
+const AUTO_SAVE_LABELS = { idle: "等待编辑", saving: "保存中", saved: "已保存", error: "保存失败" } as const;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
@@ -216,13 +217,7 @@ function EditorCore({
                 autoSaveStatus === "error" ? "text-destructive" : "text-muted-foreground",
               )}>
                 自动草稿：
-                {autoSaveStatus === "saving"
-                  ? "保存中"
-                  : autoSaveStatus === "saved"
-                    ? "已保存"
-                    : autoSaveStatus === "error"
-                      ? "保存失败"
-                      : "等待编辑"}
+                {AUTO_SAVE_LABELS[autoSaveStatus]}
               </span>
             )}
             <span className={cn("text-xs tabular-nums", charWarning)}>
