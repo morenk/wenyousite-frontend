@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, act } from "@testing-library/react";
 import { readFileSync } from "node:fs";
+import { CrepeBuilder } from "@milkdown/crepe/builder";
+import { editorViewCtx } from "@milkdown/core";
+import { configureEditorMarkdownSerializer, serializeEditorMarkdown } from "@/components/editor/milkdown-markdown-codec";
+import { editorMarkdownPastePlugin } from "@/components/editor/markdown-literal-paste";
+import { createAudioUploadAnchor } from "@/components/editor/editor-audio-anchor";
 import { MarkdownContent } from "../markdown-content";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { createReaderSelectionClipboardPayload } from "@/lib/site-clipboard";
@@ -109,4 +114,78 @@ test("后台解除src停止缓冲，用户点击并收到metadata后才恢复进
   expect(audio).toHaveAttribute("src", item.mediaAudios[0].sourceUrl); expect(screen.getByRole("slider")).toBeDisabled();
   Object.defineProperty(audio, "readyState", { configurable: true, value: 1 }); fireEvent.loadedMetadata(audio);
   expect(audio.currentTime).toBe(0.5); expect(screen.getByRole("slider")).not.toBeDisabled();
+});
+
+
+test("上传原文件名序列化后的服务端正文与投影可直接阅读，缺失投影先降级而不猜URL", async () => {
+ const media = fixture.cases[0].mediaAudios[0];
+ const root = document.createElement("div"); document.body.append(root);
+ const anchor = createAudioUploadAnchor();
+ const editor = new CrepeBuilder({ root, defaultValue: "" });
+ editor.editor.config(configureEditorMarkdownSerializer).use(anchor.plugin);
+ await editor.create();
+ let content = "";
+ try {
+  editor.editor.action((ctx) => {
+   const view = ctx.get(editorViewCtx); anchor.start(view);
+   expect(anchor.insert(view, media.sourceUrl, "雨[夜] *片段*.wav")).toBe(true);
+   content = serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion: 5 });
+  });
+ } finally { await editor.destroy(); root.remove(); }
+ // API消费端按返回字段透传，不用本机上传缓存替代服务端媒体投影。
+ const response = JSON.parse(JSON.stringify({ content, mediaAudios: [media] }));
+ const view = render(<MarkdownContent content={response.content} />);
+ expect(view.container.querySelector("audio")).toBeNull();
+ expect(screen.getByRole("link", { name: "雨[夜] *片段*.wav" })).toHaveAttribute("href", media.sourceUrl);
+ view.rerender(<MarkdownContent content={response.content} mediaAudios={response.mediaAudios} />);
+ expect(view.container.querySelector('[data-slot="audio-label"]')).toHaveTextContent("雨[夜] *片段*.wav");
+ expect(view.container.querySelector("audio")).not.toHaveAttribute("src");
+ expect(screen.getByRole("button", { name: "保存到本地" })).toBeInTheDocument();
+});
+
+test.each(["**", "*", "~~"])("独占音频链接外层 %s 格式仍显示播放器并保留格式", (mark) => {
+ const media = fixture.cases[0].mediaAudios[0];
+ const { container } = render(<MarkdownContent content={`${mark}[录音.wav](${media.sourceUrl})${mark}`} mediaAudios={[media]} />);
+ expect(container.querySelector('[data-slot="audio-player"]')).not.toBeNull();
+ const tag = mark === "**" ? "strong" : mark === "*" ? "em" : "del";
+ expect(container.querySelector(`[data-slot="audio-label"] ${tag}`)).toHaveTextContent("录音.wav");
+ expect(container.querySelector("audio")).not.toHaveAttribute("src");
+});
+test("格式包裹的混排/多链接与缺失投影仍保留普通链接", () => {
+ const media = fixture.cases[0].mediaAudios[0];
+ const view = render(<MarkdownContent content={`**前文[录音](${media.sourceUrl})**`} mediaAudios={[media]} />);
+ expect(view.container.querySelector("audio")).toBeNull();
+ view.rerender(<MarkdownContent content={`**[一](${media.sourceUrl})[二](${media.sourceUrl})**`} mediaAudios={[media]} />);
+ expect(view.container.querySelector("audio")).toBeNull(); expect(view.container.querySelectorAll("a")).toHaveLength(2);
+ view.rerender(<MarkdownContent content={`**[录音](${media.sourceUrl})**`} />);
+ expect(view.container.querySelector("audio")).toBeNull(); expect(view.container.querySelector("a")).not.toBeNull();
+});
+
+test("嵌套内外marks与前后段落兼容，阅读复制到编辑再阅读保留单链接", async () => {
+ const media = fixture.cases[0].mediaAudios[0];
+ const view = render(<MarkdownContent content={`前文\n\n***~~[**录音.wav**](${media.sourceUrl})~~***\n\n后文`} mediaAudios={[media]} />);
+ const player = view.container.querySelector<HTMLElement>('[data-slot="audio-player"]')!;
+ expect(player).not.toBeNull(); expect(view.container).toHaveTextContent("前文"); expect(view.container).toHaveTextContent("后文");
+ for(const tag of ["strong", "em", "del"]) expect(player.querySelector(`[data-slot="audio-label"] ${tag}`)).toHaveTextContent("录音.wav");
+ const selection = window.getSelection()!; const range = document.createRange(); range.selectNode(player); selection.removeAllRanges(); selection.addRange(range);
+ const payload = createReaderSelectionClipboardPayload(view.container.firstElementChild as HTMLElement, selection)!;
+ expect(payload.html).not.toContain("button"); expect(payload.html).not.toContain("mediaId");
+ const root = document.createElement("div"); document.body.append(root);
+ const editor = new CrepeBuilder({ root, defaultValue: "" }); editor.editor.config(configureEditorMarkdownSerializer).use(editorMarkdownPastePlugin); await editor.create();
+ let roundtrip = "";
+ try {
+  editor.editor.action(ctx => {
+   const pm = ctx.get(editorViewCtx);
+   const event = new Event("paste", { bubbles: true, cancelable: true });
+   Object.defineProperty(event, "clipboardData", { value: { files: [], getData: (type: string) => type === "text/html" ? payload.html : type === "text/plain" ? payload.text : "" } });
+   pm.dom.dispatchEvent(event);
+   roundtrip = serializeEditorMarkdown(ctx, pm.state.doc, { markdownContractVersion: 5 });
+  });
+ } finally { await editor.destroy(); root.remove(); }
+ view.rerender(<MarkdownContent content={roundtrip} mediaAudios={[media]} />);
+ expect(view.container.querySelectorAll('[data-slot="audio-player"]')).toHaveLength(1);
+ for(const tag of ["strong", "em", "del"]) expect(view.container.querySelector(`[data-slot="audio-label"] ${tag}`)).toHaveTextContent("录音.wav");
+ for(const content of [`> **[录音](${media.sourceUrl})**`, `- **[录音](${media.sourceUrl})**`, "\x60**[录音](" + media.sourceUrl + ")**\x60", `**[录音](${media.sourceUrl})** 后文`]) {
+  view.rerender(<MarkdownContent content={content} mediaAudios={[media]} />); expect(view.container.querySelector("audio")).toBeNull();
+ }
 });

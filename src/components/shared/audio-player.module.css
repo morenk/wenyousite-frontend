@@ -16,19 +16,8 @@
   isolation: isolate;
   transition: background-color 180ms ease-out, border-color 180ms ease-out;
 }
-.player::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  border-radius: inherit;
-  background: linear-gradient(100deg, color-mix(in srgb, var(--brand-strong) 12%, transparent), transparent 60%);
-  opacity: 0;
-  transition: opacity 180ms ease-out;
-}
+.player[data-download="false"] { grid-template-columns: auto minmax(0, 1fr); }
 .player[data-playing="true"] { border-color: color-mix(in srgb, var(--brand-strong) 22%, var(--border)); }
-.player[data-playing="true"]::before { opacity: 1; }
 .playFace {
   position: relative;
   display: block;
@@ -112,12 +101,12 @@
 .player[data-dragging="true"] .seek::-moz-range-thumb,
 .seek:focus-visible::-moz-range-thumb { transform: scale(1.4); }
 
-.player[data-visual-motion="off"], .player[data-visual-motion="off"]::before,
+.player[data-visual-motion="off"],
 .player[data-visual-motion="off"] * { transition: none; animation: none; }
 .player[data-visual-motion="off"] .seek::-webkit-slider-thumb { transition: none; }
 .player[data-visual-motion="off"] .seek::-moz-range-thumb { transition: none; }
 @media (prefers-reduced-motion: reduce) {
-  .player, .player::before, .player * { transition: none !important; animation: none !important; }
+  .player, .player * { transition: none !important; animation: none !important; }
   .playButton:active .playFace { transform: none; }
   .player .seek::-webkit-slider-thumb { transition: none; transform: none; }
   .player .seek::-moz-range-thumb { transition: none; transform: none; }

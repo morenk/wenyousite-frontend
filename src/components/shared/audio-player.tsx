@@ -12,12 +12,12 @@ import styles from "./audio-player.module.css";
 import { audioTime, claimAudioPlayback, ownsAudioPlayback, releaseAudioPlayback } from "@/lib/audio-playback";
 
 /** 不在挂载、滚动或 hover 时设置 src；浏览器直接读取桶的 Range 响应。 */
-export function AudioPlayer(props: { media: MarkdownMediaAudio; children: ReactNode }) {
+export function AudioPlayer(props: { media: MarkdownMediaAudio; children: ReactNode; showDownload?: boolean }) {
   const pathname = usePathname();
   return <AudioPlayerBody key={JSON.stringify([props.media.sourceUrl, pathname])} {...props} />;
 }
 
-function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; children: ReactNode }) {
+function AudioPlayerBody({ media, children, showDownload = true }: { media: MarkdownMediaAudio; children: ReactNode; showDownload?: boolean }) {
   const ref = useRef<HTMLAudioElement>(null);
   const frame = useRef<HTMLDivElement>(null);
   const draggingRef = useRef(false);
@@ -149,7 +149,7 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
   const action = failed ? `${AUDIO_ACCESSIBILITY.retryLabel}${AUDIO_ACCESSIBILITY.playLabel}` : playing || waiting ? AUDIO_ACCESSIBILITY.pauseLabel : AUDIO_ACCESSIBILITY.playLabel;
   return (
     <div ref={frame} data-slot="audio-player" data-wenyou-clipboard-audio={media.sourceUrl}
-      data-playing={playing} data-dragging={dragging} data-visual-motion={inView && pageActive ? "on" : "off"}
+      data-playing={playing} data-download={showDownload} data-dragging={dragging} data-visual-motion={inView && pageActive ? "on" : "off"}
       className={cn(styles.player, "not-prose my-3 flex w-full items-center gap-3 rounded-[var(--radius-compact)] border border-border/50 bg-card px-3 py-2 text-foreground")}>
       <Tooltip content={action}><button type="button" className={cn(styles.playButton, "flex size-10 shrink-0 items-center justify-center rounded-full text-accent-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring")}
         aria-label={action} aria-describedby={labelId} aria-pressed={playing} aria-busy={waiting} onClick={() => void toggle()}>
@@ -183,12 +183,12 @@ function AudioPlayerBody({ media, children }: { media: MarkdownMediaAudio; child
             className={styles.seek} />
         </div>
         {failed ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>播放失败</span> : null}
-        {saveFailed ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>保存失败，请重试</span> : null}
+        {showDownload && saveFailed ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>保存失败，请重试</span> : null}
       </div>
-      <Tooltip content={saving ? "取消保存" : "保存到本地"}><button type="button" aria-label={saving ? "取消保存" : "保存到本地"} aria-busy={saving} onClick={() => void save()}
+      {showDownload ? <Tooltip content={saving ? "取消保存" : "保存到本地"}><button type="button" aria-label={saving ? "取消保存" : "保存到本地"} aria-busy={saving} onClick={() => void save()}
         className={cn(styles.saveButton, "flex size-10 shrink-0 items-center justify-center rounded-full text-muted-foreground disabled:opacity-50")}>
         <WenyouIcon id={saving ? "status.loading" : "action.download"} className={cn("size-5", saving && styles.loading)} />
-      </button></Tooltip>
+      </button></Tooltip> : null}
       <audio ref={ref} preload={AUDIO_PLAYBACK.preload} onLoadedMetadata={(event) => {
         const audio = event.currentTarget;
         if (audio.readyState < 1) return;

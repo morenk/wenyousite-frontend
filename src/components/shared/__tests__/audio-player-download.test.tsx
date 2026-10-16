@@ -36,3 +36,13 @@ test("超时解除busy，显示显式重试", async () => {
  await act(async () => { await vi.advanceTimersByTimeAsync(45_000); });
  expect(download.mock.calls[0][1].reason.name).toBe("TimeoutError"); expect(screen.getByRole("button", { name: "保存到本地" })).toHaveAttribute("aria-busy", "false"); expect(screen.getByRole("alert")).toHaveTextContent("保存失败");
 });
+
+test("编辑态不提供保存入口，阅读态默认保留，切换不加载音源", () => {
+ const view = render(<AudioPlayer media={media} showDownload={false}>录音.wav</AudioPlayer>);
+ expect(screen.getByRole("button", { name: "播放" })).toBeInTheDocument();
+ expect(screen.queryByRole("button", { name: "保存到本地" })).toBeNull();
+ expect(view.container.querySelector('[data-slot="audio-player"]')).toHaveAttribute("data-download", "false");
+ view.rerender(<AudioPlayer media={media}>录音.wav</AudioPlayer>);
+ expect(screen.getByRole("button", { name: "保存到本地" })).toBeInTheDocument();
+ expect(download).not.toHaveBeenCalled(); expect(view.container.querySelector("audio")).not.toHaveAttribute("src");
+});

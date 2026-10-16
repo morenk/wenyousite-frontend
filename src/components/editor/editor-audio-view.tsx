@@ -185,5 +185,5 @@ export function useEditorAudioView(mappings: readonly MarkdownMediaAudio[] | und
     if (session.key && userId) await saveAudioProjection(session.key, userId, media);
     if (!session.active) throw new DOMException("编辑目标已改变", "AbortError");
   }, [api, session, userId]);
-  return { api, completed, portals: mounts.map(({ id, dom, node, media }) => createPortal(<AudioPlayer media={media}>{audioLabel(node)}</AudioPlayer>, dom, String(id))) };
+  return { api, completed, portals: mounts.map(({ id, dom, node, media }) => createPortal(<AudioPlayer media={media} showDownload={false}>{audioLabel(node)}</AudioPlayer>, dom, String(id))) };
 }

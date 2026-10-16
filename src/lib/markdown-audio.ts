@@ -36,11 +36,17 @@ function supportedLabel(node: AudioAstNode): boolean {
 export function remarkMediaAudio(mappings?: readonly MarkdownMediaAudio[]) {
   return () => (tree: AudioAstNode) => {
     for (const paragraph of tree.children ?? []) {
-      const link = paragraph.children?.[0];
-      if (paragraph.type !== "paragraph" || paragraph.children?.length !== 1 || link?.type !== "link"
+      if (paragraph.type !== "paragraph" || paragraph.children?.length !== 1) continue;
+      let link = paragraph.children[0];
+      let labelParent: AudioAstNode = paragraph;
+      // 外层格式与 link 内 marks 语义相同，只展开单子节点链，不接纳混排或多个链接。
+      while (["strong", "emphasis", "delete"].includes(link.type) && link.children?.length === 1) {
+        labelParent = link; link = link.children[0];
+      }
+      if (link.type !== "link"
         || link.title != null || !link.children?.every(supportedLabel) || !link.url || !findMediaAudio(link.url, mappings)) continue;
       paragraph.data = { ...paragraph.data, hName: "div", hProperties: { "data-audio-source": link.url } };
-      paragraph.children = link.children;
+      labelParent.children = link.children;
     }
   };
 }
