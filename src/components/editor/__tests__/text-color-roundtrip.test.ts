@@ -9,17 +9,15 @@ import { afterAll, expect, test } from "vitest";
 import fixtures from "../../../../contracts/markdown-text-color-v1-fixtures.json";
 import { createDiceInlineEditorPlugins } from "../dice-inline-plugin";
 import { editorTextColorSchema, editorTextColorAtomicPolicy } from "../editor-text-color";
-import { configureEditorMarkdownSerializer, editorBoundaryTextSchema, editorAttentionBoundaryParser, prepareEditorMarkdown, serializeEditorMarkdown } from "../milkdown-markdown-codec";
+import { editorSoftBreakParser, editorBoundaryTextSchema, editorAttentionBoundaryParser, prepareEditorMarkdown, serializeEditorMarkdown } from "../milkdown-markdown-codec";
 
-function semanticJson(value: unknown): unknown {
-  return JSON.parse(JSON.stringify(value, (key, item) => key === "marker" ? undefined : item));
-}
+import { configureTextColorTestEditor, textColorSemanticJson as semanticJson } from "@/test/rich-text/text-color-editor";
 const exported: { source: string; saved: string }[] = [];
 afterAll(async () => { if (process.env.WENYOU_TEXT_COLOR_EXPORT) writeFileSync(process.env.WENYOU_TEXT_COLOR_EXPORT, JSON.stringify(exported, null, 2)); await new Promise((resolve) => setTimeout(resolve, 3100)); });
 test.each(fixtures.validCases)("实际 Milkdown 颜色契约 $id 保存重开不丢失", async ({ source }) => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -37,7 +35,7 @@ test.each(fixtures.validCases)("实际 Milkdown 颜色契约 $id 保存重开不
 test("颜色范围与粗体交叉时外置颜色并保留继续的格式", async () => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: "**左中右**" });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -53,7 +51,7 @@ test("颜色范围与粗体交叉时外置颜色并保留继续的格式", async
 test("全部32种共同格式、emoji和组合字符与RGB按字符保存，颜色进入失败保护", async () => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: "" });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser);
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -82,7 +80,7 @@ test("全部32种共同格式、emoji和组合字符与RGB按字符保存，颜�
 test("阅读复制、编辑粘贴、只移除颜色及单步撤销重做保留其他格式", async () => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: "" });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorMarkdownPastePlugin);
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorMarkdownPastePlugin);
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -118,7 +116,7 @@ test("阅读复制、编辑粘贴、只移除颜色及单步撤销重做保留�
 test("彩色文字内新增换行、提及与传送门自动跳过颜色，普通链接和代码保持颜色", async () => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: "" });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema)
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema)
     .use(editorBoundaryTextSchema).use(editorTextColorAtomicPolicy);
   try {
     await crepe.create();
@@ -153,7 +151,7 @@ test("彩色文字内新增换行、提及与传送门自动跳过颜色，普�
 test("编码器丢失颜色时禁止成功保存并保留编辑文档", async () => {
   const root = document.createElement("div"); document.body.append(root);
   const crepe = new CrepeBuilder({ root, defaultValue: '<span data-wenyou-color-v1="#D14343">原文</span>' });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema);
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema);
   try {
     await crepe.create();
     crepe.editor.action((ctx) => {
@@ -175,7 +173,7 @@ test.each(escapedLiterals)("转义字面 %s 在实际骰子插件、复制粘贴
   const root = document.createElement("div"); document.body.append(root);
   const source = `<span data-wenyou-color-v1="#D14343">**${literal}**</span> 末尾`;
   const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
-  crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema)
+  crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema)
     .use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorTextColorAtomicPolicy)
     .use(editorMarkdownPastePlugin);
   const dice = createDiceInlineEditorPlugins();
@@ -206,15 +204,17 @@ test.each(escapedLiterals)("转义字面 %s 在实际骰子插件、复制粘贴
   } finally { await crepe.destroy(); root.remove(); }
 });
 
-// 跨端联验只读取测试内容产物；本入口使用与实际编辑器相同的解析、插件和保存一致性检查。
+// 跨端联验只读取测试内容产物；使用生产对齐、颜色和软换行入口，并执行保存一致性检查。
 if (process.env.WENYOU_TEXT_COLOR_IMPORT) {
-  const artifacts = JSON.parse(readFileSync(process.env.WENYOU_TEXT_COLOR_IMPORT, "utf8")) as { source: string; saved?: string }[];
+  const imported = JSON.parse(readFileSync(process.env.WENYOU_TEXT_COLOR_IMPORT, "utf8")) as
+    { source: string; saved?: string }[] | { cases: { source: string; saved?: string }[] };
+  const artifacts = Array.isArray(imported) ? imported : imported.cases;
   test.each(artifacts)("App 编码产物经实际 Web 编辑器再保存：%#", async ({ source, saved }) => {
     const root = document.createElement("div"); document.body.append(root);
     const input = saved ?? source;
     const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(input) });
-    crepe.editor.config(configureEditorMarkdownSerializer).use(editorTextColorSchema)
-      .use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorTextColorAtomicPolicy);
+    crepe.editor.config(configureTextColorTestEditor).use(editorTextColorSchema)
+      .use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorSoftBreakParser).use(editorTextColorAtomicPolicy);
     const dice = createDiceInlineEditorPlugins();
     crepe.editor.use(dice.remarkDiceInline).use(dice.diceInlineSchema).use(dice.clonePastedDice);
     try {
