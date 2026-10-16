@@ -496,7 +496,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expectBlockAlignment(heading, "center");
 
     await selectAlignment(listParagraph, toolbar, "center");
-    await toolbar.getByRole("button", { name: "无序列表" }).click();
+    await page.keyboard.press("ControlOrMeta+Alt+8");
     const listItem = editor.locator("li p").filter({ hasText: LIST_TEXT });
     await expect(listItem).not.toHaveAttribute("data-wenyou-align");
     await expect(listItem).not.toHaveCSS("text-align", "center");
@@ -643,7 +643,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
       })),
     }));
     expect(menuMetrics.width).toBeLessThanOrEqual(320);
-    expect(menuMetrics.buttons.length).toBe(5);
+    expect(menuMetrics.buttons.length).toBe(3);
     expect(menuMetrics.buttons.every(({ label }) => Boolean(label))).toBe(true);
     expect(menuMetrics.buttons.every(({ tabIndex }) => tabIndex === -1)).toBe(true);
     expect(Math.min(...menuMetrics.buttons.map(({ width }) => width)))
@@ -690,8 +690,8 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     );
     await expect(menu.getByRole("menuitem", { name: "行内代码" })).toBeVisible();
     await expect(menu.getByRole("menuitem", { name: "引用" })).toBeVisible();
-    await expect(menu.getByRole("menuitem", { name: "无序列表" })).toBeVisible();
-    await expect(menu.getByRole("menuitem", { name: "有序列表" })).toBeVisible();
+    await expect(menu.getByRole("menuitem", { name: "无序列表" })).toHaveCount(0);
+    await expect(menu.getByRole("menuitem", { name: "有序列表" })).toHaveCount(0);
     await expect(menu.getByRole("menuitem", { name: "分隔线" })).toBeVisible();
     await expect(menu.getByRole("menuitem", { name: "骰子" })).toBeVisible();
   });

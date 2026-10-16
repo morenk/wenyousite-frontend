@@ -1,3 +1,4 @@
+import { EDITOR_TOOLBAR_STORAGE_KEY, saveEditorToolbarPreference } from "@/lib/editor-toolbar-preference";
 import { createRef } from "react";
 import type { EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -111,6 +112,7 @@ async function makeToolbarStandard(toolbar: HTMLElement) {
 
 afterEach(() => {
   cleanup();
+  localStorage.removeItem(EDITOR_TOOLBAR_STORAGE_KEY);
   vi.restoreAllMocks();
 });
 
@@ -226,8 +228,6 @@ describe("MilkdownEditor 能力分层", () => {
       "斜体",
       "删除线",
       "行内代码",
-      "无序列表",
-      "有序列表",
       "链接",
       "图片",
       "引用",
@@ -237,7 +237,7 @@ describe("MilkdownEditor 能力分层", () => {
       expect(within(toolbar).getByRole("button", { name: label })).toBeInTheDocument();
     }
     expect(within(toolbar).queryByRole("button", { name: "更多" })).toBeNull();
-    for (const label of ["任务列表", "代码块", "表格"]) {
+    for (const label of ["无序列表", "有序列表", "任务列表", "代码块", "表格"]) {
       expect(within(toolbar).queryByRole("button", { name: label })).toBeNull();
     }
     expect(
@@ -344,7 +344,7 @@ describe("MilkdownEditor 能力分层", () => {
     });
 
     await user.click(paragraph);
-    await user.click(screen.getByRole("button", { name: "无序列表" }));
+    fireEvent.keyDown(editor, { key: "8", code: "Digit8", ctrlKey: true, altKey: true });
     await waitFor(() => {
       expect(editor.querySelector("li p")).not.toHaveAttribute(
         "data-wenyou-align",
@@ -402,10 +402,10 @@ describe("MilkdownEditor 能力分层", () => {
     const more = within(toolbar).getByRole("button", { name: "更多" });
     fireEvent.pointerDown(more);
     const menu = await screen.findByRole("menu", { name: "更多正文格式" });
-    for (const label of ["链接", "行内代码", "引用", "无序列表", "有序列表", "分隔线", "骰子"]) {
+    for (const label of ["链接", "行内代码", "引用", "分隔线", "骰子"]) {
       expect(within(menu).getByRole("menuitem", { name: label })).toBeInTheDocument();
     }
-    for (const label of ["任务列表", "代码块", "表格"]) {
+    for (const label of ["无序列表", "有序列表", "任务列表", "代码块", "表格"]) {
       expect(within(menu).queryByRole("menuitem", { name: label })).toBeNull();
     }
     expect(more).toHaveAttribute("aria-expanded", "true");
@@ -465,10 +465,10 @@ describe("MilkdownEditor 能力分层", () => {
 
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
     const menu = await screen.findByRole("menu", { name: "更多正文格式" });
-    for (const label of ["链接", "无序列表", "有序列表"]) {
+    for (const label of ["链接"]) {
       expect(within(menu).getByRole("menuitem", { name: label })).toBeInTheDocument();
     }
-    for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
+    for (const label of ["行内代码", "引用", "分隔线", "骰子", "无序列表", "有序列表"]) {
       expect(within(menu).queryByRole("menuitem", { name: label })).toBeNull();
     }
   });
@@ -928,20 +928,16 @@ describe("MilkdownEditor 能力分层", () => {
     expect(editor.querySelector("h2")).toHaveTextContent("普通正文");
   });
 
-  test("更多菜单可创建无序列表并保持原选区", async () => {
+  test("宽栏不生成列表按钮或空列表分组，底层列表快捷键仍可用", async () => {
     const { container } = renderEditor("普通正文");
     const editor = await getEditor(container);
-    await userEvent.setup().click(editor);
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
-    await makeToolbarCompact(toolbar);
-    fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
-
-    await userEvent.setup().click(
-      await screen.findByRole("menuitem", { name: "无序列表" }),
-    );
-
+    await waitFor(() => expect(toolbar).toHaveAttribute("data-editor-density", "expanded"));
+    expect(toolbar.querySelector('[data-editor-tool="bullet-list"]')).toBeNull();
+    expect(toolbar.querySelector('[data-editor-tool="ordered-list"]')).toBeNull();
+    await userEvent.setup().click(editor);
+    fireEvent.keyDown(editor, { key: "8", code: "Digit8", ctrlKey: true, altKey: true });
     await waitFor(() => expect(editor.querySelector("ul")).toBeInTheDocument());
-    expect(document.activeElement).toBe(editor);
   });
 
   test("更多菜单可在空选区开启行内代码并继续输入", async () => {
@@ -959,18 +955,30 @@ describe("MilkdownEditor 能力分层", () => {
     expect(document.activeElement).toBe(editor);
   });
 
-  test("历史无序列表仍可解析和编辑", async () => {
+  test.each([
+    { name: "无序", source: "- 历史第一项\n- 历史第二项", selector: "ul", marker: /[-*] 历史第一项/u },
+    { name: "有序", source: "3. 历史第一项\n4. 历史第二项", selector: "ol", marker: /3\. 历史第一项/u },
+  ])("历史$name列表仍可编辑、保存并重新打开", async ({ source, selector, marker }) => {
     const user = userEvent.setup();
-    const { container } = renderEditor("- 历史第一项\n- 历史第二项");
-    const editor = await getEditor(container);
-    await waitFor(() => expect(editor.querySelectorAll("li")).toHaveLength(2));
-
-    await user.click(editor.querySelector("li")!);
-    await user.type(editor, "补充");
-
-    expect(editor.querySelectorAll("li")).toHaveLength(2);
-    expect(editor).toHaveTextContent("补充");
+    const onChange = vi.fn();
+    const first = renderEditor(source, undefined, onChange);
+    const editor = await getEditor(first.container);
+    await waitFor(() => expect(editor.querySelectorAll(`${selector} li`)).toHaveLength(2));
+    const firstItem = editor.querySelector("li p")!;
+    await user.click(firstItem);
+    await user.type(firstItem, "补充");
+    await waitFor(() => expect(onChange).toHaveBeenCalled());
+    const saved = onChange.mock.calls.at(-1)?.[0] as string;
+    expect(saved).toMatch(marker);
+    expect(saved).toContain("补充");
+    first.unmount();
+    const reopened = renderEditor(saved);
+    const reopenedEditor = await getEditor(reopened.container);
+    expect(reopenedEditor.querySelectorAll(`${selector} li`)).toHaveLength(2);
+    expect(reopenedEditor).toHaveTextContent("补充");
+    if (selector === "ol") expect(reopenedEditor.querySelector("ol")).toHaveAttribute("start", "3");
   });
+
 });
 
 test("编辑器展示完整WebP，映射更新不改模型和保存引用", async () => {
@@ -999,4 +1007,29 @@ test("行内表情只改变NodeView展示，复制模型与刷新仍保留资产
   await waitFor(() => expect(view.container.querySelector(".ProseMirror img.sticker-inline")).toHaveAttribute("src", display.url));
   expect(editorRef.current?.flush()).toContain(sourceUrl);
   expect(editorRef.current?.flush()).not.toContain(display.url);
+});
+
+test("自定义工具排序与移动生效，表情只出现一次且恢复默认回到底部", async () => {
+  localStorage.setItem(EDITOR_TOOLBAR_STORAGE_KEY, JSON.stringify({ version: 1, primary: ["dice", "sticker", "bold"], more: [] }));
+  const { container } = renderEditor("正文");
+  const editor = await getEditor(container);
+  const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+  await waitFor(() => expect(toolbar).toHaveAttribute("data-editor-density", "custom"));
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("0");
+  expect((toolbar.querySelector('[data-editor-tool="sticker"]') as HTMLElement).style.order).toBe("2");
+  expect(container.querySelector('[data-slot="milkdown-editor-context-actions"] button')).toBeNull();
+  fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "表情包" }));
+  expect(await screen.findByRole("dialog", { name: "表情收藏" })).toBeInTheDocument();
+  fireEvent.keyDown(document, { key: "Escape" });
+  fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));
+  const menu = await screen.findByRole("dialog", { name: "更多正文格式" });
+  expect(within(menu).getByRole("button", { name: "图片" })).toBeInTheDocument();
+  expect(within(menu).getByRole("button", { name: "正文样式" })).toBeInTheDocument();
+  expect(within(menu).queryByRole("button", { name: "无序列表" })).toBeNull();
+  fireEvent.keyDown(document, { key: "Escape" });
+  saveEditorToolbarPreference(null);
+  await waitFor(() => expect(toolbar).toHaveAttribute("data-editor-density", "expanded"));
+  expect(container.querySelector('[data-slot="milkdown-editor-context-actions"] button')).toHaveTextContent("表情");
+  expect(within(toolbar).queryByRole("button", { name: "表情包" })).toBeNull();
+  expect(await getEditor(container)).toBe(editor);
 });

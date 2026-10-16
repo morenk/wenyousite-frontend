@@ -36,7 +36,9 @@ vi.mock("@/api/hooks/use-mention-candidates", () => ({
 }));
 
 vi.mock("@/components/sticker/sticker-picker-popover", () => ({
-  StickerPickerPopover: ({ disabled }: { disabled?: boolean }) => (
+  StickerPickerPopover: ({ disabled, externalAnchor }: {
+    disabled?: boolean; externalAnchor?: HTMLElement | null;
+  }) => externalAnchor !== undefined ? null : (
     <button type="button" disabled={disabled}>测试表情</button>
   ),
 }));
@@ -533,7 +535,9 @@ describe("Milkdown 段落对齐兼容性", () => {
       });
     }
 
-    fireEvent.pointerDown(screen.getByRole("button", { name: "无序列表" }));
+    // 入口已隐藏；保留的快捷键仍需正确清除列表不支持的对齐属性。
+    editor.focus();
+    fireEvent.keyDown(editor, { key: "8", code: "Digit8", ctrlKey: true, altKey: true });
     await waitFor(() => {
       expect(editor.querySelector("li p")).not.toHaveAttribute("data-wenyou-align");
       expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align");

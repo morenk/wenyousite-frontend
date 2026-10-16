@@ -2,6 +2,8 @@ import { describe, expect, test, vi } from "vitest";
 import {
   applyMilkdownToolbarDensity,
   fitMilkdownToolbar,
+  fitDefaultMilkdownToolbar,
+  fitCustomMilkdownToolbar,
   getMilkdownMoreCapabilities,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
@@ -295,23 +297,39 @@ describe("syncMilkdownToolbarVisibility", () => {
     buttons.forEach((button) => expect(button).toHaveAttribute("hidden"));
   });
 
+  test("所有密度都隐藏列表入口，同时保留共享列表能力", () => {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = '<button data-editor-tool="bullet-list"></button><button data-editor-tool="ordered-list"></button>';
+    for (const density of EDITOR_DENSITY_ORDER) {
+      applyMilkdownToolbarDensity(toolbar, density);
+      for (const button of toolbar.querySelectorAll("button")) {
+        expect(button).toHaveAttribute("hidden");
+      }
+      expect(getMilkdownMoreCapabilities(density, true)).not.toContain("bullet-list");
+      expect(getMilkdownMoreCapabilities(density, true)).not.toContain("ordered-list");
+    }
+    expect(EDITOR_WEB_CAPABILITIES).toHaveProperty("bullet-list");
+    expect(EDITOR_WEB_CAPABILITIES).toHaveProperty("ordered-list");
+  });
+
   test("更多菜单按工具栏密度只返回当前隐藏能力", () => {
     expect(getMilkdownMoreCapabilities("with-more", true)).toEqual([
       "link",
-      "bullet-list",
-      "ordered-list",
       "alignment",
     ]);
     expect(getMilkdownMoreCapabilities("without-draft", true)).toEqual([
       "link",
-      "bullet-list",
-      "ordered-list",
       "alignment",
       "draft",
     ]);
     expect(getMilkdownMoreCapabilities("compact", true)).toEqual([
       "strikethrough",
-      ...EDITOR_MORE_FALLBACK,
+      "link",
+      "inline-code",
+      "quote",
+      "alignment",
+      "hr",
+      "dice",
       "draft",
     ]);
   });
@@ -381,5 +399,67 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(dropdown.dataset.editorFloating).toBe("true");
     expect(dropdown.style.left).toBe("192px");
     expect(dropdown.style.top).toBe("64px");
+  });
+});
+
+test("自定义顺序从末尾收纳并随宽度恢复，更多固定且可键盘访问", () => {
+  const toolbar = document.createElement("div");
+  toolbar.innerHTML = '<div class="top-bar-inner"><button data-editor-tool="bold"></button><button data-editor-tool="image"></button><button data-editor-tool="dice"></button><button data-editor-tool="sticker"></button><button data-editor-tool="more"></button></div>';
+  Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 100 });
+  Object.defineProperty(toolbar, "scrollWidth", { configurable: true, get: () => toolbar.querySelectorAll("button:not([hidden])").length * 40 });
+  const preference = { version: 1 as const, primary: ["dice", "image", "bold"] as const, more: ["sticker"] as const };
+  const available = new Set(["dice", "image", "bold", "sticker"] as const);
+  const fit = () => fitCustomMilkdownToolbar(toolbar, { ...preference, primary: [...preference.primary], more: [...preference.more] }, available);
+  expect(fit()).toEqual(["image", "bold", "sticker"]);
+  const observer = new MutationObserver(() => {});
+  observer.observe(toolbar, { childList: true, subtree: true });
+  expect(fit()).toEqual(["image", "bold", "sticker"]);
+  expect(observer.takeRecords()).toEqual([]);
+  observer.disconnect();
+  expect(toolbar.querySelector('[data-editor-tool="dice"]')).not.toHaveAttribute("hidden");
+  expect(toolbar.querySelector('[data-editor-tool="more"]')).toHaveAttribute("tabindex", "0");
+  Object.defineProperty(toolbar, "clientWidth", { configurable: true, value: 300 });
+  expect(fit()).toEqual(["sticker"]);
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("0");
+  expect((toolbar.querySelector('[data-editor-tool="bold"]') as HTMLElement).style.order).toBe("4");
+  fitMilkdownToolbar(toolbar);
+  expect((toolbar.querySelector('[data-editor-tool="dice"]') as HTMLElement).style.order).toBe("");
+  expect(toolbar.querySelector('[data-editor-tool="sticker"]')).toHaveAttribute("hidden");
+});
+
+
+describe("默认工具栏极窄回退", () => {
+  test("继续按测量收纳并传给 More，变宽恢复标题容器和分隔线", () => {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = `<div class="top-bar-inner">
+      <span class="top-bar-heading-selector"><button data-editor-tool="heading"></button></span>
+      <span class="top-bar-divider"></span><button data-editor-tool="bold"></button><button data-editor-tool="italic"></button>
+      <span class="top-bar-divider"></span><button data-editor-tool="image"></button>
+      <span class="top-bar-divider"></span><button data-editor-tool="more"></button>
+    </div>`;
+    let width = 221;
+    Object.defineProperty(toolbar, "clientWidth", { get: () => width });
+    Object.defineProperty(toolbar, "scrollWidth", { get: () => {
+      const children = Array.from(toolbar.firstElementChild!.children) as HTMLElement[];
+      return 24 + children.reduce((sum, child) => sum + (child.hidden ? 0 : child.classList.contains("top-bar-heading-selector")
+        ? 82 : child.classList.contains("top-bar-divider") ? 13 : 40), 0);
+    } });
+    const more = fitDefaultMilkdownToolbar(toolbar);
+    expect(more.slice(0, 2)).toEqual(["italic", "image"]);
+    expect(toolbar.scrollWidth).toBeLessThanOrEqual(width);
+    expect(toolbar.querySelector('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
+    width = 64;
+    const tinyMore = fitDefaultMilkdownToolbar(toolbar);
+    expect(tinyMore.slice(0, 4)).toEqual(["heading", "bold", "italic", "image"]);
+    expect(toolbar.querySelector(".top-bar-heading-selector")).toHaveAttribute("hidden");
+    expect(toolbar.scrollWidth).toBeLessThanOrEqual(width);
+    const before = toolbar.innerHTML;
+    fitDefaultMilkdownToolbar(toolbar);
+    expect(toolbar.innerHTML).toBe(before);
+    width = 800;
+    expect(fitDefaultMilkdownToolbar(toolbar)).toEqual([]);
+    expect(toolbar.querySelector(".top-bar-heading-selector")).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="italic"]')).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector(".top-bar-divider")).not.toHaveAttribute("hidden");
   });
 });

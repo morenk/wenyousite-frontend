@@ -2,9 +2,12 @@ import {
   EDITOR_DENSITY_ORDER,
   EDITOR_MORE_BY_DENSITY,
   EDITOR_PRIMARY_BY_DENSITY,
+  isEditorToolbarCapabilityVisible,
   type EditorCapabilityId,
   type EditorToolbarDensity,
 } from "@/lib/editor-capabilities";
+
+import { isEditorToolbarTool, type EditorToolbarPreference, type EditorToolbarTool } from "./editor-toolbar-preference";
 
 /** 将 Crepe 顶栏的内联可见性与编辑器只读状态保持一致。 */
 export function syncMilkdownToolbarVisibility(
@@ -16,6 +19,12 @@ export function syncMilkdownToolbarVisibility(
   });
 }
 
+const originalToolbarChildren = new WeakMap<HTMLElement, HTMLElement[]>();
+function reorderToolbarChildren(inner: HTMLElement, ordered: HTMLElement[]) {
+  ordered.forEach((child, index) => {
+    if (inner.children[index] !== child) inner.insertBefore(child, inner.children[index] ?? null);
+  });
+}
 const TOOLBAR_VIEWPORT_GAP = 8;
 const TOOLBAR_POPOVER_GAP = 6;
 
@@ -52,7 +61,7 @@ export function syncMilkdownToolbarItems(
     topBar
       .querySelectorAll<HTMLButtonElement>(".top-bar-item")
       .forEach((button, index) => {
-        const item = items[index];
+        const item = items.find((candidate) => candidate.key === button.dataset.editorTool) ?? items[index];
         if (!item) return;
         button.title = item.label;
         button.setAttribute("aria-label", item.label);
@@ -62,7 +71,7 @@ export function syncMilkdownToolbarItems(
           button.setAttribute("aria-pressed", String(button.classList.contains("active")));
         }
         if (item.key === "more") {
-          button.setAttribute("aria-haspopup", "menu");
+          button.setAttribute("aria-haspopup", topBar.getAttribute("data-editor-density") === "custom" ? "dialog" : "menu");
           if (!button.hasAttribute("aria-expanded")) {
             button.setAttribute("aria-expanded", "false");
           }
@@ -97,7 +106,9 @@ export function applyMilkdownToolbarDensity(
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
     const capability = tool === "align-center" || tool === "align-right" ? "alignment" : tool;
-    item.hidden = !primary.has(capability) || (capability === "alignment" && !alignmentEnabled);
+    item.hidden = !primary.has(capability)
+      || !isEditorToolbarCapabilityVisible(capability)
+      || (capability === "alignment" && !alignmentEnabled);
   });
 
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
@@ -127,7 +138,8 @@ export function getMilkdownMoreCapabilities(
 
   return EDITOR_MORE_BY_DENSITY[density].filter(
     (capability): capability is EditorCapabilityId =>
-      (capability !== "draft" || hasDraft)
+      isEditorToolbarCapabilityVisible(capability)
+      && (capability !== "draft" || hasDraft)
       && (capability !== "alignment" || alignmentEnabled),
   );
 }
@@ -137,12 +149,51 @@ export function fitMilkdownToolbar(
   topBar: HTMLElement,
   alignmentEnabled = true,
 ): MilkdownToolbarDensity {
+  topBar.querySelectorAll<HTMLElement>("[data-editor-toolbar-order]").forEach((item) => {
+    item.style.order = "";
+    item.hidden = false;
+    delete item.dataset.editorToolbarOrder;
+  });
   const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
+  const original = originalToolbarChildren.get(topBar);
+  if (inner && original?.every((child) => child.parentElement === inner)) reorderToolbarChildren(inner, original);
   for (const density of EDITOR_DENSITY_ORDER) {
     applyMilkdownToolbarDensity(topBar, density, alignmentEnabled);
     if (!inner || topBar.scrollWidth <= topBar.clientWidth) return density;
   }
   return "compact";
+}
+
+/** 最低默认密度仍放不下时，继续按实际宽度收纳末尾工具，并把动态结果交给 More。 */
+export function fitDefaultMilkdownToolbar(
+  topBar: HTMLElement,
+  hasDraft = true,
+  alignmentEnabled = true,
+): EditorCapabilityId[] {
+  const density = fitMilkdownToolbar(topBar, alignmentEnabled);
+  const more = getMilkdownMoreCapabilities(density, hasDraft, alignmentEnabled);
+  if (topBar.scrollWidth <= topBar.clientWidth) return more;
+  const primary = EDITOR_PRIMARY_BY_DENSITY[density].filter((id) => id !== "more" && isEditorToolbarCapabilityVisible(id));
+  const overflow: EditorCapabilityId[] = [];
+  while (primary.length && topBar.scrollWidth > topBar.clientWidth) {
+    const id = primary.pop()!;
+    overflow.unshift(id);
+    topBar.querySelectorAll<HTMLElement>(`[data-editor-tool="${id}"]`).forEach((button) => {
+      const element = id === "heading" ? button.closest<HTMLElement>(".top-bar-heading-selector") ?? button : button;
+      element.hidden = true;
+      element.dataset.editorToolbarOrder = "true";
+    });
+    const children = Array.from(topBar.querySelector(".top-bar-inner")?.children ?? []) as HTMLElement[];
+    children.forEach((child, index) => {
+      if (!child.classList.contains("top-bar-divider")) return;
+      const nextDivider = children.slice(index + 1).findIndex((item) => item.classList.contains("top-bar-divider"));
+      const end = nextDivider === -1 ? children.length : index + 1 + nextDivider;
+      const groupVisible = children.slice(index + 1, end).some((item) => !item.hidden);
+      const priorVisible = children.slice(0, index).some((item) => !item.hidden && !item.classList.contains("top-bar-divider"));
+      child.hidden = !groupVisible || !priorVisible;
+    });
+  }
+  return [...overflow, ...more];
 }
 
 export function syncMilkdownMoreMenuState(
@@ -152,7 +203,7 @@ export function syncMilkdownMoreMenuState(
   root
     .querySelectorAll<HTMLElement>('[data-editor-tool="more"]')
     .forEach((trigger) => {
-      trigger.setAttribute("aria-haspopup", "menu");
+      trigger.setAttribute("aria-haspopup", trigger.closest(".milkdown-top-bar")?.getAttribute("data-editor-density") === "custom" ? "dialog" : "menu");
       trigger.setAttribute("aria-expanded", String(open));
     });
 }
@@ -214,4 +265,77 @@ export function positionMilkdownHeadingDropdowns(
         Math.min(maxLeft, triggerRect.left),
       )}px`;
     });
+}
+
+/** 用户排序仅调整呈现顺序，不重挂载编辑器；溢出时从主栏末尾稳定收纳。 */
+export function fitCustomMilkdownToolbar(
+  topBar: HTMLElement,
+  preference: EditorToolbarPreference,
+  available: ReadonlySet<EditorToolbarTool>,
+): EditorToolbarTool[] {
+  topBar.dataset.editorDensity = "custom";
+  const buttons = Array.from(topBar.querySelectorAll<HTMLElement>("[data-editor-tool]"));
+  const toolFor = (item: HTMLElement) => {
+    const key = item.dataset.editorTool;
+    return key === "align-center" || key === "align-right" ? "alignment" : key;
+  };
+  const elementFor = (item: HTMLElement) => item.dataset.editorTool === "heading"
+    ? item.closest<HTMLElement>(".top-bar-heading-selector") ?? item : item;
+  const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
+  if (inner && !originalToolbarChildren.get(topBar)?.every((child) => child.parentElement === inner)) originalToolbarChildren.set(topBar, Array.from(inner.children) as HTMLElement[]);
+  const primary = preference.primary.filter((id) => available.has(id));
+  const more = preference.more.filter((id) => available.has(id));
+  const apply = () => {
+    for (const button of buttons) {
+      const id = toolFor(button);
+      const element = elementFor(button);
+      button.hidden = false;
+      element.hidden = id !== "more" && (!isEditorToolbarTool(id) || !primary.includes(id));
+      element.dataset.editorToolbarOrder = "true";
+      element.style.order = String(id === "more" ? primary.length * 2 + 1
+        : isEditorToolbarTool(id) ? primary.indexOf(id) * 2 + (button.dataset.editorTool === "align-right" ? 1 : 0) : -1);
+      button.tabIndex = element.hidden ? -1 : 0;
+      if (id === "more") button.setAttribute("aria-haspopup", "dialog");
+    }
+    topBar.querySelectorAll<HTMLElement>(".top-bar-divider").forEach((divider) => { divider.hidden = true; });
+  };
+  apply();
+  const overflow: EditorToolbarTool[] = [];
+  while (primary.length && topBar.scrollWidth > topBar.clientWidth) {
+    overflow.unshift(primary.pop()!);
+    apply();
+  }
+  if (inner) {
+    const ordered = (Array.from(inner.children) as HTMLElement[]).sort((a, b) => {
+        if (a.hidden !== b.hidden) return a.hidden ? 1 : -1;
+        return Number(a.style.order || 0) - Number(b.style.order || 0);
+      });
+    reorderToolbarChildren(inner, ordered);
+  }
+  return [...overflow, ...more];
+}
+
+/** 自定义主栏按实际 DOM 顺序支持键盘，复用 Crepe 的原命令和选区。 */
+export function handleCustomToolbarKeyDown(event: KeyboardEvent): void {
+  const target = event.target instanceof HTMLElement ? event.target : null;
+  const toolbar = target?.closest<HTMLElement>('.milkdown-top-bar[data-editor-density="custom"]');
+  if (!target || !toolbar || !target.matches("button")) return;
+  if (event.key === "Enter" || event.key === " ") {
+    event.preventDefault();
+    target.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
+    return;
+  }
+  const options = toolbar.querySelector<HTMLElement>(".top-bar-heading-dropdown");
+  const scope = options && target.closest(".top-bar-heading-dropdown") ? options : toolbar;
+  const buttons = Array.from(scope.querySelectorAll<HTMLButtonElement>("button")).filter((button) => !button.closest("[hidden]") && !button.disabled
+    && (scope !== toolbar || !button.closest(".top-bar-heading-dropdown")));
+  const index = buttons.indexOf(target as HTMLButtonElement);
+  let next = index;
+  if (event.key === "ArrowRight" || event.key === "ArrowDown") next = (index + 1) % buttons.length;
+  else if (event.key === "ArrowLeft" || event.key === "ArrowUp") next = (index - 1 + buttons.length) % buttons.length;
+  else if (event.key === "Home") next = 0;
+  else if (event.key === "End") next = buttons.length - 1;
+  else return;
+  event.preventDefault();
+  buttons[next]?.focus();
 }

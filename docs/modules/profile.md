@@ -8,11 +8,12 @@
 - `/users/[id]` 用户资料使用路由分组共享 Layout 承载资料头部与吸顶 Tab；Tab 路由主动预取，切换时只替换内容区且资料头不卸载，慢速切换只显示局部骨架；概览展示创作活动汇总和允许公开的最近回复，动态列表只留在动态 Tab，未激活内容不挂载查询
 - 关注/取消关注、拉黑/取消拉黑（仅登录，用户主页操作）
 - 草稿箱：未发布帖列表（进入 `/threads/create` 草稿列表查看，可跳转继续编辑或删除）
-- `/me` 为统一设置首页，按个人资料、隐私与关系、账号与安全分组展示摘要；头像、用户名、简介、背景归于个人资料，公开范围与黑名单归于隐私与关系，等级与创作激励、注销账号各自保留独立入口；分组名称位于容器外，整行进入编辑，行高至少 64px，组内分隔线统一缩进。首页不展示表单、保存栏或危险确认框；简介摘要最多两行。
+- `/me` 为统一设置首页，按个人资料、隐私与关系、偏好设置、账号与安全分组展示摘要；头像、用户名、简介、背景归于个人资料，公开范围与黑名单归于隐私与关系，等级与创作激励、注销账号各自保留独立入口；分组名称位于容器外，整行进入编辑，行高至少 64px，组内分隔线统一缩进。首页不展示表单、保存栏或危险确认框；简介摘要最多两行。
 - 账户入口、本人主页入口与页面标题统一为“设置”。设置首页取消横向分区导航；头像、用户名、简介、背景、公开范围、登录终端、黑名单与等级均按需打开统一 Dialog。图片查看与裁剪在同一弹窗内切换；登录终端、黑名单仅打开时挂载查询。
 - `/me/password` 修改密码页：当前密码/新密码/确认新密码（显示/隐藏切换 + 需求提示），成功后登出跳登录
 - `/me/email` 更换邮箱页：当前密码二次认证 → 新邮箱 → 6 位验证码，成功后仅标记 me 缓存失效，清空已被后端撤销的登录态；重新登录后返回 `/me#security`
 - `/me/security` 兼容跳转到 `/me#security`；`/me/appearance`、`/me/privacy` 与旧 `/me#profile-appearance` 保留并定位到相应设置行。密码、邮箱仍为独立页面，返回入口指向统一首页账号分组。
+- 偏好设置的“编辑器工具栏”复用真实编辑器的默认/自定义收纳函数、主栏尺寸和展开托盘锚点；默认分隔线、底部表情及自定义空页脚与实际使用保持一致。弹窗预览按 Foundation 编辑器框架宽度和视口可用空间测量，主栏不横向滚动，保存的主栏项放不下时直接进入展开托盘。鼠标拖动或触屏长按时图标抬起、其他项实时腾位，松手后才修改表单；取消恢复原布局，点击或打开/关闭设置不修改偏好。键盘可用空格提起/放下、左右键排序、上下键跨栏和 Escape 取消。无区域标题、操作提示、模式切换或常驻位置操作按钮；More 固定，对齐双图标作为整体，表情可从原页脚拖入工具栏。排序保存到本浏览器 localStorage（`wenyousite-web-editor-toolbar-v1`），与 App 分别设置，不写账号 API；恢复默认后使用原自适应布局。无序/有序列表不属于候选。
 - 登录终端的跨端安全约束见 `docs/modules/auth.md`
 - 参与列表排除自建帖：只有被授予玩家身份（`playerMarked=true`）的帖子才计入，仅回复过而生成的候选成员关系不计入；本人可按“全部 / 公开帖 / 私密帖”分类，他人仅可见公开帖
 
@@ -238,6 +239,7 @@
 | 我的资料 | `GET /users/me` | TanStack Query `useQuery` |
 | 草稿列表 | `GET /threads/draft` | TanStack Query `useQuery`（`queryKeys.threadDrafts`） |
 | 关注/拉黑状态 | 用户资料中的 isFollowing/isBlocked | 领域 mutation hook 统一更新/失效用户资料 |
+| 编辑器工具栏 | 本机 localStorage | 版本化工具白名单；同页通知与跨标签页 storage 事件同步，坏值回退默认，未知/重复值过滤，新工具追加展开栏 |
 | 登录终端 | `GET /auth/sessions` | `queryKeys.auth.sessions(userId)`；`staleTime=0`，退出成功后按稳定终端 ID 从缓存移除 |
 | 黑名单 | `GET /users/me/blocks` | `queryKeys.users.blocks(userId)`，取消拉黑后失效缓存 |
 
@@ -265,6 +267,7 @@
 | DraftList | `src/components/user/draft-list.tsx` | 草稿箱列表（标题/分类/更新时间/继续编辑/删除） |
 | SettingsShell | `src/components/user/settings-shell.tsx` | 设置首页内容宽度与功能标题；密码、邮箱子页使用窄表单和返回设置入口 |
 | ProfileEditForm | `src/components/user/profile-edit-form.tsx` | 统一设置分组与摘要，按需挂载独立编辑器，一次打开一个编辑弹窗 |
+| EditorToolbarSettings | `src/components/user/editor-toolbar-settings.tsx` | 主栏/展开栏排序与区域移动，保存本机偏好或恢复默认，不发送资料写入 |
 | UsernameEdit | `src/components/user/username-edit.tsx` | 用户名编辑弹窗，未改动不提交，保留修改冷却与服务端错误 |
 | AvatarUploader | `src/components/user/avatar-uploader.tsx` | 头像上传器：预览（512×512 WebP 母版/首字母占位）→ 文件选择校验（仅 jpg/png/webp，排除 svg）→ 共享 Dialog 内用 react-easy-crop 1:1 裁剪 → canvas 优先导出 512×512 WebP，Safari 编码回退时按真实 PNG/JPEG 上传 → 预签名直传（真实字节进度、可取消、同 ID 恢复）→ `PATCH /me/avatar` 立即生效；绑定失败重试复用已上传 mediaId；「移除头像」调 `DELETE /me/avatar` |
 | ProfileCoverUploader | `src/components/user/profile-cover-uploader.tsx` | 双画幅背景上传器：同一原图分别调整 Web 3:1 与移动端 2:1 取景框 → 并行生成 1920×640 / 1600×800 高质量图片（优先 WebP，按浏览器真实 PNG/JPEG 回退）→ 并行上传并聚合进度 → 原子绑定；支持失败续传、取消、更换和同时移除 |

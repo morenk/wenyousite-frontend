@@ -30,6 +30,7 @@ interface EditorMoreMenuProps {
   onSelect: (id: EditorCapabilityId, anchor: DOMRect) => void;
   onSelectAlignment: (alignment: Exclude<WenyouTextAlignment, "left">) => void;
   onClose: () => void;
+  keyboardAccessible?: boolean;
 }
 
 const ALIGNMENTS = ["center", "right"] as const;
@@ -40,7 +41,7 @@ const iconButtonClassName = cn(
   "hover:bg-accent/60 hover:text-accent-foreground focus-visible:bg-accent focus-visible:text-accent-foreground focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.96]",
 );
 
-/** PC 编辑器的纯图标次级工具托盘；工具仅接受指针选择，文字名称在悬浮时出现。 */
+/** PC 编辑器的纯图标次级工具托盘；自定义布局支持键盘，文字名称在悬浮时出现。 */
 export function EditorMoreMenu({
   anchor,
   items,
@@ -48,6 +49,7 @@ export function EditorMoreMenu({
   onSelect,
   onSelectAlignment,
   onClose,
+  keyboardAccessible = false,
 }: EditorMoreMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   if (!anchor) return null;
@@ -68,6 +70,7 @@ export function EditorMoreMenu({
           eventDetails.cancel();
           return;
         }
+        if (keyboardAccessible && event instanceof KeyboardEvent && event.key === "Escape") anchor.focus();
         onClose();
       }}
     >
@@ -85,7 +88,7 @@ export function EditorMoreMenu({
           <Popover.Popup
             ref={menuRef}
             data-editor-more-menu
-            role="menu"
+            role={keyboardAccessible ? "dialog" : "menu"}
             aria-label="更多正文格式"
             tabIndex={-1}
             initialFocus={menuRef}
@@ -109,16 +112,18 @@ export function EditorMoreMenu({
                           <Tooltip key={option} content={label}>
                             <button
                               type="button"
-                              tabIndex={-1}
-                              role="menuitemcheckbox"
+                              tabIndex={keyboardAccessible ? 0 : -1}
+                              role={keyboardAccessible ? undefined : "menuitemcheckbox"}
                               aria-label={label}
-                              aria-checked={alignment === option}
+                              aria-checked={keyboardAccessible ? undefined : alignment === option}
+                              aria-pressed={keyboardAccessible ? alignment === option : undefined}
                               data-editor-alignment-option={option}
                               className={cn(
                                 "inline-flex size-9 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground outline-none",
                                 "transition-[background-color,color,box-shadow,transform] duration-[var(--motion-fast)] ease-[var(--ease-standard)]",
                                 "hover:bg-popover hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring/30 active:scale-[0.96]",
                                 "aria-checked:bg-accent aria-checked:text-accent-foreground aria-checked:ring-1 aria-checked:ring-primary/70 aria-checked:ring-inset",
+                                "aria-pressed:bg-accent aria-pressed:text-accent-foreground aria-pressed:ring-1 aria-pressed:ring-primary/70 aria-pressed:ring-inset",
                               )}
                               onClick={() => onSelectAlignment(option)}
                             >
@@ -139,8 +144,8 @@ export function EditorMoreMenu({
                   <Tooltip key={item.id} content={item.label}>
                     <button
                       type="button"
-                      tabIndex={-1}
-                      role="menuitem"
+                      tabIndex={keyboardAccessible ? 0 : -1}
+                      role={keyboardAccessible ? undefined : "menuitem"}
                       aria-label={item.label}
                       data-editor-more-item={item.id}
                       className={iconButtonClassName}

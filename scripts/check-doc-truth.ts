@@ -13,6 +13,7 @@ import {
   EDITOR_PRIMARY_NARROW,
   EDITOR_PRIMARY_WIDE,
   editorCapabilityLabels,
+  isEditorToolbarCapabilityVisible,
 } from "../src/lib/editor-capabilities";
 
 const root = process.cwd();
@@ -271,7 +272,7 @@ function operation(method: string, apiPath: string) {
   }
 
   const capabilityRow = (ids: Parameters<typeof editorCapabilityLabels>[0]) =>
-    editorCapabilityLabels(ids).join("、");
+    editorCapabilityLabels(ids.filter(isEditorToolbarCapabilityVisible)).join("、");
   const editorCapabilityBlock = [
     "<!-- editor-capabilities:start -->",
     "| 层级 | 能力 |",

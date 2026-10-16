@@ -30,9 +30,11 @@ vi.mock("@/api/hooks/use-mention-candidates", () => ({
 vi.mock("@/components/sticker/sticker-picker-popover", () => ({
   StickerPickerPopover: ({
     onSelect,
+    externalAnchor,
   }: {
+    externalAnchor?: HTMLElement | null;
     onSelect: (sticker: { asset: { id: string; url: string } }) => unknown;
-  }) => (
+  }) => externalAnchor !== undefined ? null : (
     <button
       type="button"
       onClick={() => onSelect({

@@ -2,6 +2,10 @@
 
 "use client";
 
+import { useEditorToolbarPreference } from "./use-editor-toolbar-preference";
+import { EditorHeadingMenu } from "./editor-heading-menu";
+import { EDITOR_TOOLBAR_TOOLS, type EditorToolbarTool } from "@/lib/editor-toolbar-preference";
+import type { Ctx } from "@milkdown/kit/ctx";
 import { editorTextColorSchema, editorTextColorAtomicPolicy } from "./editor-text-color";
 import type { MentionIdentity } from "@/lib/thread-identity";
 
@@ -85,15 +89,15 @@ import {
   type DiceExpressionInput,
 } from "@/lib/dice";
 import {
-  fitMilkdownToolbar,
-  getMilkdownMoreCapabilities,
+  fitDefaultMilkdownToolbar,
+  fitCustomMilkdownToolbar,
+  handleCustomToolbarKeyDown,
   positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
   syncMilkdownToolbarSemantics,
   syncMilkdownToolbarItems,
   syncMilkdownToolbarVisibility,
-  type MilkdownToolbarDensity,
   type MilkdownToolbarItemMetadata,
 } from "@/lib/milkdown-toolbar";
 import { getApiErrorMessage } from "@/api/errors";
@@ -280,6 +284,11 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   ariaLabel,
 }: MilkdownEditorHostProps) {
   const [loading] = useInstance();
+  const toolbarPreference = useEditorToolbarPreference();
+  const toolbarActionsRef = useRef(new Map<string, (ctx: Ctx) => void>());
+  const [customMore, setCustomMore] = useState<EditorToolbarTool[]>([]);
+  const [stickerAnchor, setStickerAnchor] = useState<HTMLElement | null>(null);
+  const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
   const capabilityReady = true;
   const alignmentEnabled = markdownContractVersion >= 4;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
@@ -306,7 +315,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const diceSelectionRef = useRef<{ from: number; to: number } | null>(null);
   const [dicePopover, setDicePopover] = useState<{ top: number; left: number } | null>(null);
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<HTMLElement | null>(null);
-  const [toolbarDensity, setToolbarDensity] = useState<MilkdownToolbarDensity>("expanded");
+  const [defaultMore, setDefaultMore] = useState<EditorCapabilityId[]>([]);
   const [currentAlignment, setCurrentAlignment] = useState<WenyouTextAlignment>("left");
   const [diceNodeCount, setDiceNodeCount] = useState(
     () => parseInlineDiceNodes(initialValue).length,
@@ -501,7 +510,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           commands.call(toggleStrikethroughCommand.key);
           break;
         default:
-          return;
+          toolbarActionsRef.current.get(capability)?.(ctx);
+          break;
       }
       const view = ctx.get(editorViewCtx);
       view.focus();
@@ -510,18 +520,23 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   }, []);
 
   const moreMenuItems = useMemo<EditorMoreMenuItem[]>(() => {
-    return getMilkdownMoreCapabilities(
-      toolbarDensity,
-      Boolean(onOpenDrafts),
-      alignmentEnabled,
-    )
+    return (toolbarPreference ? customMore : defaultMore)
       .map((id) => ({
         id,
         label: id === "alignment" ? "段落对齐" : EDITOR_CAPABILITY_LABELS[id],
       }));
-  }, [alignmentEnabled, onOpenDrafts, toolbarDensity]);
+  }, [customMore, defaultMore, toolbarPreference]);
 
   const handleMoreSelect = useCallback((capability: EditorCapabilityId, anchor: DOMRect) => {
+    if (capability === "sticker" || capability === "heading") {
+      const trigger = hostRef.current?.querySelector<HTMLElement>('[data-editor-tool="more"]');
+      setMoreMenuAnchor(null);
+      if (trigger) {
+        if (capability === "sticker") setStickerAnchor(trigger);
+        else setHeadingMenuAnchor(trigger);
+      }
+      return;
+    }
     if (capability === "dice") {
       const view = crepeRef.current?.editor.action((ctx) => ctx.get(editorViewCtx));
       if (view) handleOpenDice(view, anchor);
@@ -660,16 +675,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         imageIcon: editorIconSvg("image"),
         quoteIcon: editorIconSvg("quote"),
         hrIcon: editorIconSvg("hr"),
-        bulletListIcon: editorIconSvg("bullet-list"),
-        orderedListIcon: editorIconSvg("ordered-list"),
         chevronDownIcon: editorChevronDownSvg(),
         buildTopBar: (builder) => {
           const formatting = builder.getGroup("formatting").group;
           formatting.items = formatting.items.filter((item) =>
             ["bold", "italic", "strikethrough", "code"].includes(item.key),
           );
-          const list = builder.getGroup("list").group;
-          list.items = list.items.filter((item) => item.key !== "task-list");
           const insert = builder.getGroup("insert").group;
           const imageItem = insert.items.find((item) => item.key === "image");
           const block = builder.getGroup("block").group;
@@ -713,7 +724,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
               alignmentGroup,
             );
           }
-          for (const groupKey of ["block"]) {
+          for (const groupKey of ["block", "list"]) {
             const index = groups.findIndex((group) => group.key === groupKey);
             if (index !== -1) groups.splice(index, 1);
           }
@@ -757,11 +768,22 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
               onRun: () => onOpenDrafts(),
             });
           }
+          builder.addGroup("sticker", "表情").addItem("sticker", {
+            icon: editorIconSvg("sticker"),
+            active: () => false,
+            onRun: () => {
+              const trigger = hostRef.current?.querySelector<HTMLElement>('[data-editor-tool="sticker"]');
+              if (trigger) setStickerAnchor(trigger);
+            },
+          });
           builder.addGroup("more-menu", "更多").addItem("more", {
             icon: editorIconSvg("more"),
             active: () => false,
             onRun: handleOpenMore,
           });
+          toolbarActionsRef.current = new Map(builder.build().flatMap((group) =>
+            group.items.filter((item) => item.onRun).map((item) => [item.key === "code" ? "inline-code" : item.key, item.onRun!] as const),
+          ));
           toolbarItemsRef.current = builder.build().flatMap((group) =>
             group.items
               .filter((item) => item.key !== "heading-selector")
@@ -902,7 +924,17 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         layoutFrame = null;
         const topBar = host.querySelector<HTMLElement>(".milkdown-top-bar");
         if (!topBar) return;
-        setToolbarDensity(fitMilkdownToolbar(topBar, alignmentEnabled));
+        if (toolbarPreference) {
+          const available = new Set(EDITOR_TOOLBAR_TOOLS.filter((id) =>
+            (id !== "alignment" || alignmentEnabled)
+            && (id !== "draft" || Boolean(onOpenDrafts))
+            && (id !== "image" || Boolean(onUploadImage))));
+          const next = fitCustomMilkdownToolbar(topBar, toolbarPreference, available);
+          setCustomMore((previous) => previous.join() === next.join() ? previous : next);
+        } else {
+          const next = fitDefaultMilkdownToolbar(topBar, Boolean(onOpenDrafts), alignmentEnabled);
+          setDefaultMore((previous) => previous.join() === next.join() ? previous : next);
+        }
       });
     };
     const syncEditorSemantics = () => {
@@ -913,6 +945,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       syncMilkdownToolbarItems(host, toolbarItemsRef.current);
       syncAlignmentToolbarState(host, currentAlignment);
       syncMilkdownHeadingOptions(host, CREATABLE_HEADING_LABELS);
+      if (toolbarPreference) host.querySelectorAll<HTMLButtonElement>(".top-bar-heading-option:not([hidden])").forEach((button) => { button.tabIndex = 0; });
       syncMilkdownToolbarVisibility(host, disabled ?? false);
       syncMilkdownToolbarSemantics(host);
       scheduleDropdownPosition();
@@ -928,6 +961,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (!onlyContentChanged) syncTopBar();
     });
     observer.observe(host, { childList: true, subtree: true });
+    host.addEventListener("keydown", handleCustomToolbarKeyDown);
     syncEditorSemantics();
     window.addEventListener("resize", scheduleToolbarLayout);
     window.addEventListener("resize", scheduleDropdownPosition);
@@ -964,6 +998,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     return () => {
       clearInterval(interval);
       observer.disconnect();
+      host.removeEventListener("keydown", handleCustomToolbarKeyDown);
       resizeObserver?.disconnect();
       window.removeEventListener("resize", scheduleToolbarLayout);
       window.removeEventListener("resize", scheduleDropdownPosition);
@@ -971,7 +1006,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
-  }, [alignmentEnabled, ariaLabel, currentAlignment, disabled]);
+  }, [alignmentEnabled, ariaLabel, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);
 
   useEffect(() => {
     if (hostRef.current) {
@@ -1005,6 +1040,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           onInsert={handleInsertDice}
         />
         <EditorMoreMenu
+          keyboardAccessible={Boolean(toolbarPreference)}
           anchor={moreMenuAnchor}
           items={moreMenuItems}
           alignment={currentAlignment}
@@ -1023,12 +1059,20 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           onSelect={handleMentionSelect}
         />
       </div>
+      <EditorHeadingMenu anchor={headingMenuAnchor} onClose={() => setHeadingMenuAnchor(null)} onSelect={(level) => {
+        crepeRef.current?.editor.action((ctx) => {
+          if (!setSelectedEditorHeading(ctx, level || null)) ctx.get(commandsCtx).call(wrapInHeadingCommand.key, level);
+          ctx.get(editorViewCtx).focus();
+        });
+        setHeadingMenuAnchor(null);
+      }} />
+      {!loading ? <StickerPickerPopover externalAnchor={stickerAnchor} onExternalClose={() => setStickerAnchor(null)} onSelect={handleInsertSticker} disabled={disabled} align="end" /> : null}
       <div
         data-slot="milkdown-editor-footer"
         className="flex items-center justify-between gap-3 border-t border-border px-3 py-2"
       >
         <div data-slot="milkdown-editor-context-actions" className="flex min-w-0 items-center">
-          {!loading ? (
+          {!loading && !toolbarPreference ? (
             <StickerPickerPopover
               disabled={disabled}
               label="表情"
