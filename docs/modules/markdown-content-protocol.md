@@ -186,4 +186,6 @@ HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source
 
 站内 clipboard v2 只保留通过校验的颜色属性；选区复制恢复颜色祖先，剪切/粘贴和单步撤销使用同一文档模型。v1 与无本站 envelope 的外部粘贴仍按既有兼容/可见文字规则，不从 CSS 猜颜色。共享语料为 [颜色 fixtures](../../contracts/markdown-text-color-v1-fixtures.json) 和 [schema](../../contracts/markdown-text-color-v1.schema.json)，受控代码、字符转义、恶意属性、边缘空白、邻接格式和关闭新写均纳入回归。实际 App 系统剪贴板保持纯文本；App 内部保色和保存后的跨端往返由对应消费者验证。
 
-跨端编码联验使用实际 Milkdown 入口：设置 `WENYOU_TEXT_COLOR_IMPORT` 为另一端的 `{source, saved?}[]` 测试内容产物，运行 `pnpm test src/components/editor/__tests__/text-color-roundtrip.test.ts`；`WENYOU_TEXT_COLOR_EXPORT` 输出本次真实解析和保存结果。产物与精确消费者 SHA、fixture SHA 分开登记，不传递未提交源码。转义的全体提及、骰子和站内地址是普通彩色字面，真实原子节点仍不能着色。
+跨端编码联验使用实际 Milkdown 入口：设置 `WENYOU_TEXT_COLOR_IMPORT` 为另一端的 `{source, saved?}[]` 或 `{cases: [{source, saved?}]}` 测试内容产物，运行 `pnpm test src/components/editor/__tests__/text-color-roundtrip.test.ts`；`WENYOU_TEXT_COLOR_EXPORT` 输出本次真实解析和保存结果。产物与精确消费者 SHA、fixture SHA 分开登记，不传递未提交源码。转义的全体提及、骰子和站内地址是普通彩色字面，真实原子节点仍不能着色。
+
+对齐与颜色的消费者回归使用生产顺序的 alignment parser/schema，再配置颜色序列化；跨端导入入口也使用该配置。永久矩阵覆盖左/中/右对齐、P/H2/H3、八种行内组合及相邻无空行边界。编辑器和阅读组件分别与独立声明的文字、RGB、全部格式及链接属性比较；见[对齐与颜色回归记录](../verification/text-color-alignment-regressions.md)。可设置 `WENYOU_TEXT_COLOR_ALIGNMENT_EXPORT` 并运行 `pnpm test src/components/editor/__tests__/text-color-alignment.test.tsx` 导出 78 个合法输入的实际保存结果，供 App 复读；产物记录 HEAD 和工作区是否干净，不能用脏树的 HEAD 冒充已提交候选。
