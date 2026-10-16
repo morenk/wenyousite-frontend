@@ -4,8 +4,9 @@ import { type QueryClient, useQuery, useQueryClient } from "@tanstack/react-quer
 import { useEffect, useRef, useState } from "react";
 
 import { apiClient } from "@/api/client";
+import { headAndroidDownload } from "@/api/app-download-file";
 import { queryKeys } from "@/api/query-keys";
-import { AppDownloadError, androidDownloadPath, matchesAndroidDownload, retryDeadline, validateAndroidDownloadInfo } from "@/lib/app-download";
+import { AppDownloadError, androidDownloadUrl, matchesAndroidDownload, retryDeadline, validateAndroidDownloadInfo } from "@/lib/app-download";
 
 /** 到期只开放手动重试，不自动读取信息或下载文件。 */
 function useRetryGate(deadline: number | null) {
@@ -30,7 +31,7 @@ export function useAppDownload(queryClient?: QueryClient) {
   const query = useQuery({
     queryKey: queryKeys.appDownloads.android,
     queryFn: async ({ signal }) => {
-      const { data, response } = await apiClient.GET("/api/v1/app-downloads/android", {
+      const { data, response } = await apiClient.GET("/api/v1/mobile-releases/android/download", {
         signal, cache: "no-store", redirect: "error", credentials: "same-origin",
       });
       if (!response.ok) throw AppDownloadError.fromResponse(response);
@@ -49,7 +50,7 @@ export function useAppDownload(queryClient?: QueryClient) {
   const [attempted, setAttempted] = useState(false);
   const [fileError, setFileError] = useState<unknown>(null);
   const [handedOff, setHandedOff] = useState(false);
-  const [downloads, setDownloads] = useState<{ id: number; path: string }[]>([]);
+  const [downloads, setDownloads] = useState<{ id: number; url: string }[]>([]);
   const active = useRef<AbortController | null>(null);
   const completed = useRef(false);
   const nextId = useRef(0);
@@ -76,12 +77,9 @@ export function useAppDownload(queryClient?: QueryClient) {
       const data = result.data;
       if (data.info.status !== "available" || !data.info.release || (data.retryAt !== null && data.retryAt > Date.now())) return;
       const release = data.info.release;
-      const path = androidDownloadPath(release);
+      const url = androidDownloadUrl(release);
       setPhase("preflight");
-      const { response } = await apiClient.HEAD("/api/v1/app-downloads/android/{buildNumber}/file", {
-        params: { path: { buildNumber: release.buildNumber } },
-        signal: controller.signal, cache: "no-store", redirect: "error", credentials: "same-origin",
-      });
+      const response = await headAndroidDownload(release, controller.signal);
       if (!response.ok) throw AppDownloadError.fromResponse(response);
       if (!matchesAndroidDownload(response, release)) throw new AppDownloadError(503);
       const current = client.getQueryState(queryKeys.appDownloads.android);
@@ -93,7 +91,7 @@ export function useAppDownload(queryClient?: QueryClient) {
       setHandedOff(true);
       // 应用级容器持有每次交接；重开菜单、切换路由或再次点击不移除旧下载载体。
       const id = ++nextId.current;
-      setDownloads((current) => [...current, { id, path }]);
+      setDownloads((current) => [...current, { id, url }]);
     } catch (error) {
       if (!controller.signal.aborted) setFileError(error);
     } finally {

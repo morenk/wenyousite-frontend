@@ -16,43 +16,33 @@ Android 提示纵向排列两个等宽、等高的按钮：“下载 APP”为�
 
 ## 信息状态与重试
 
-应用级 `AppDownloadProvider` 持有独立的匿名 QueryClient 和下载控制器，位于登录身份缓存之外。`useAppDownload` 使用已有 Query Key，经 `apiClient` 读取 `GET /api/v1/app-downloads/android`，直接消费生成 DTO。菜单与移动提示共享 pending、结果及重试状态。
+应用级 `AppDownloadProvider` 持有独立匿名 QueryClient 和下载控制器，位于登录身份缓存之外。`useAppDownload` 使用已有 Query Key，经 `apiClient` 读取 `GET /api/v1/mobile-releases/android/download`，直接消费生成 DTO。菜单与移动提示共享 pending、结果及重试状态。
 
-查询默认禁用；只在明确点击“下载 APP”或“重试下载”时重新获取当前信息。`available` 才可继续；`no_release`、`withdrawn`、`paused`、`unavailable` 在入口附近分别显示无推荐、撤回、暂停和暂不可用。缺字段、不一致状态或不可信地址作为失败处理，不推断无发布。
+查询默认禁用，只在用户明确点击“下载 APP”或“重试下载”时获取推荐版本。新入口仅接受 `available`、`no_release`、`unavailable`，且 `retryAfterSeconds` 为 null；仅 available 携带有效 release。缺字段、不一致状态、旧网关或其他不可信地址均失败，不从历史版本猜测推荐。
 
-信息或文件预检失败可原地重试，不沿用旧版本继续下载。请求不自动重试，不在重新聚焦、联网恢复或等待结束时发请求。`retryAfterSeconds` 与可读取的 `Retry-After` 暂时禁用操作；等待到期只开放手动重试。进行中操作不可重复激活；菜单在交接后禁用原下载按钮并提供单独重试，弹窗在原位改为“重试下载”。再次传输均须明确手动激活重试。
-
-## 每日次数与 Cookie
-
-服务端默认同一浏览器标识每日 3 次、同一 IP 每日合计 10 次，跨构建累计，于北京时间零点重置。计的是获准传输的 GET 尝试，每个合法 Range GET 也算一次；HEAD、信息读取和预占前拒绝不计次数，预占后中断或主动重试不退回。HEAD 只预检、不预占，最终 GET 仍可能因竞争被拒绝。信息端点的发布状态保持全局语义，不把访客次数耗尽变成全局暂停。
-
-Cookie 为服务端签发的 `__Host-wenyou-download-device`（Path=/、HttpOnly、SameSite=Lax、Secure，无 Domain）；预览专用 HTTP Cookie 已退役，普通开发不放宽这些属性。它是可清除的随机浏览器标识，不是硬件身份。Web 的信息与 HEAD 请求显式采用 `credentials: same-origin`，原生 iframe 同源发送，浏览器自动接收和携带 Cookie；应用不读写标识，不生成指纹，不在 localStorage/sessionStorage 保存额度。无有效 Cookie 仍可请求，并由服务端 IP 总次数限制兜底，旧 APP 的无 Cookie HEAD/GET 保持兼容。
-
-可读取的 429 通过 `X-Download-Limit-Reason` 区分 `device_daily_limit` 与 `ip_daily_limit`，分别提示此浏览器或当前 IP 今日下载次数已用完、明日（北京时间）重试。设备指浏览器标识，UI 不声称识别物理设备。其余已知原因 `byte_budget`、`request_rate`、`concurrency`、`bandwidth`，以及未知或缺失原因，沿用通用限流反馈；503 不根据原因头伪装成每日限次。
-
-错误正文可以为空，状态、原因与等待时间来自响应头。`Retry-After` 决定手动重试何时开放；到期仅提示可手动重试，不自动查询或下载，不据本机日期推算额度已经恢复。原因头明确但缺少有效等待时间时保留手动入口，不构造本地安全限制。原生 GET 的原因头仍不可可靠回传，HEAD→GET 竞争继续使用通用交接与恢复提示，不冒称已识别 GET 的每日拒绝。
+读取或预检失败在原入口反馈。请求不自动重试，不在聚焦、联网恢复或等待结束时发请求。HTTP 429 显示通用限流；可读取的 `Retry-After` 只决定何时开放手动重试。新流程不消费网关设备/IP 每日次数、Cookie、字节预算和带宽限制，旧原因头不改变文案。进行中禁止重复激活；菜单交接后保留单独重试，弹窗原位改为“重试下载”。
 
 ## 下载触发与制品绑定
 
-菜单挂载、打开、悬停、键盘聚焦和移动提示不请求文件端点。用户激活后按顺序读取信息、通过 `apiClient.HEAD` 预检固定构建。状态、大小、摘要、包名、版本和构建号必须与该次信息一致，无 Range、无重定向。只有查询仍有效且未发生并行刷新或目标变化，才交接同源固定路径。
+菜单挂载、打开、悬停、聚焦和移动提示不查询信息或文件。用户激活后先读新 JSON，核对 Android 包名、版本、构建号、大小和 SHA-256。文件名必须为 `wenyou-<versionName>-<buildNumber>.apk`，URL 必须精确为 `https://wenyou-apk.cn-nb1.rains3.com/mobile/android/<fileName>`，版本说明仍为本站对应构建地址。禁止其他主机、协议、路径、查询参数、片段及重定向别名。
 
-应用级容器为每次交接保留隐藏的受限 iframe，仅允许下载和同源访问，不允许脚本或顶层导航。浏览器原生保存文件，不用 fetch/blob 缓存整个 APK，不回退桶 URL。关闭菜单、关闭提示、SPA 路由切换及登录身份缓存切换不会移除载体或取消预检；显式重试也保留之前的载体，不打断已交接的固定构建。整页卸载则终止应用控制器的预检。
+`src/api/app-download-file.ts` 对已校验地址发起 `HEAD`，显式 `credentials: omit`、`redirect: error`、`mode: cors` 和 `referrerPolicy: no-referrer`。桶请求不经过本站认证中间件，不带本站 Cookie、Authorization、客户端或 Markdown 请求头，不发 Range。只有状态 200、APK Content-Type、Content-Length、Content-Disposition 文件名和四项 `x-amz-meta-apk-sha256/application-id/version-name/version-code` 均匹配，且当前查询未变化，才交接完全相同的 URL。
 
-预检 429 显示限流并尊重等待时间；502、503、未知构建或元数据不匹配保留重试入口。空正文错误按 HTTP 状态与 Retry-After 处理。结构化暂停可能来自运维或额度不足，Web 不推测恢复时刻。推荐信息变化拒绝旧预检交接，需手动重试。
+应用级容器保留隐藏受限 iframe，sandbox 仅允许下载，不允许脚本、同源权限或顶层导航。浏览器原生 GET 保存文件，不 fetch/blob 整包、不后台预取、不猜 URL、不回退网关。关闭菜单或弹窗、SPA 路由和登录缓存变化不移除下载载体；整页卸载取消尚未完成的预检。固定版本文件可由桶缓存和 Range 支持，Web 不维护正文缓存。
 
-HEAD 成功不保证后续 GET 有足够正文额度。浏览器接管后仅显示“已交给浏览器下载，请在下载列表查看。若未开始，可重试下载。”；原生 GET 的结果、HTTP 状态和 Retry-After 无法可靠回传。GET 429（JSON 或空正文）、503、502 不导航顶层页面；恢复入口重新获取信息、重新 HEAD 后才再次交接。页面不伪造下载完成、校验通过、已安装或不可观察的倒计时。HEAD 身份比对不替代 Android 安装校验。
+HEAD 成功不能保证之后对象与网络不变化，浏览器接管后只反馈交接，不声称下载完成、摘要已计算或已安装。原生 GET 的 HTTP 错误不能可靠回传；隐藏载体保留原页面，用户重试必须重新读信息和 HEAD。HEAD 比对元数据不替代安装时的包校验。
 
 ## 契约与发布边界
 
-契约同步见 [API 契约](api-contract.md#公开-app-下载)。跨端语义和 42 项稳定验收场景来自 [Foundation 已提交说明](https://github.com/morenk/wenyousite-foundation/blob/69d455a9e6ebaf403376938f23c2805959a9712e/docs/app-downloads.md)。运行时仍使用 `v7.2.1`，不新增 Token 或包版本。每日限次 HTTP 契约固定为 Backend `10b7819ad4a15777490dad5ab9abb7ae961422fc`（`5.32.0-dev.20261003.1`），从该提交同步快照、媒体夹具和生成类型。
+固定 Backend 契约提交为 `882889c5d8dc4a47893cb4fe913a0f68e536ce2f`（`5.37.0-dev.20261015.1`），经现有同步脚本和类型生成器同步；[后端直连说明](https://github.com/morenk/wenyousite-backend/blob/882889c5d8dc4a47893cb4fe913a0f68e536ce2f/docs/android-direct-download.md) 是切换事实源。[API 契约](api-contract.md#公开-app-下载) 和[弃用登记](../deprecation-register.md#公开-app-下载) 保留兼容边界。
 
-兼容网关和发布工具先行，预热后才启用消费端；旧 APP 验收后，APK 公共读清理由独立审批处理。Web 不预热、不配置预算或云权限，不合并、部署或正式发包。回滚见 [弃用登记](../deprecation-register.md#公开-app-下载)。
+需先合并并由管理入口部署兼容 Backend，再通过已提交的受限晋级流程将推荐策略切回固定桶地址，最后启用已合并 Web。策略仍指向网关时新入口返回 unavailable，Web 不回退。桶必须允许站点 Origin 的 HEAD 并暴露上述身份头；CORS、公开对象及缓存响应在切换时重新核验。本任务不改桶权限、不预热、不合并部署。
+
+CSP 仅为 `connect-src` 与 `frame-src` 新增精确桶的 `/mobile/android/` 路径，其他脚本、图片、媒体与全站安全策略不放宽。旧网关端点、下载 Cookie、审计与账本继续服务历史客户端；移除协议须独立满足清理证据，恢复直连不代表能撤销已发出的公开对象 URL。
 
 ## 验证
 
-实际预览与覆盖边界见 [视觉候选记录](../app-download-validation.md)。
-
-- `app-download.test.ts` 核验同源路径、制品身份、状态和等待时间；设备识别测试区分 Android、iOS/iPad、其他移动平台与桌面。
-- Hook 与入口组件测试覆盖挂载零请求、一次激活、信息状态、空正文错误、目标变化、手动恢复、菜单卸载后交接、会话去重及存储失败。样本由生成 DTO 约束。
-- `e2e/app-download.spec.ts` 继承隔离 fixture，覆盖匿名键盘、明暗与窄屏、Android/iOS UA 提示、焦点与无障碍扫描、浏览器保存样本、菜单/路由切换保留框架以及 GET 错误不离开原页面。Cookie 自动收发、每日拒绝与空正文头部恢复使用同源 HTTP 契约夹具验证；真实签名、原子计次、跨构建与无 Cookie 的 IP 限次由固定 Backend 的隔离专项验证，不能将 Web 夹具当成服务端额度证明。移动平台由 Chromium 模拟，不代表真机 Safari 或正式 APK 安装。
-- 日常视觉反馈使用 [普通开发入口](development.md)，显式配置 Backend 目标并记录源码摘要、视口与截图时间。实际下载会写入限额账本，自动化验证继续使用一次性隔离 E2E 或内存契约夹具，不对真实服务自动执行下载；不再使用快照、consumer 或专用预览代理。退役 Cookie 语义固定到 [Backend 已提交说明](https://github.com/morenk/wenyousite-backend/blob/1fa648e04d576f8d52198b4f959204a744b4a0e2/docs/app-download-gateway.md)，不改变业务 OpenAPI 与既有下载校验。
+- 下载纯函数、Hook、入口与安全配置定向测试覆盖固定桶身份、全部必需响应头、零预取、单次激活、无凭据 HEAD、失败手动恢复、状态变化、菜单/弹窗和路由生命周期。
+- `e2e/app-download.spec.ts` 的浏览器样本已改为拦截固定桶域，补充 CORS、重定向、凭据隔离和原生交接场景；未匹配的桶路径必须 abort，不能落到真实 APK。实际执行仍继承隔离 fixture。
+- 按负责人要求，明确合并前只运行相关定向验证；本次未运行全量测试、门禁、构建或完整 E2E。未读取真实 APK 正文，未启动线上测试或修改真实业务数据。
+- 入口布局未调整，本次没有新的实际浏览器画面；[视觉候选记录](../app-download-validation.md) 的旧网关截图仅用于历史追溯，不能当作直连浏览器验收。真实 CORS、浏览器原生下载与 Android 安装仍待切换后的负责人验收。

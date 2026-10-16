@@ -2,9 +2,11 @@
 
 ## 公开 APP 下载
 
-每日限次契约固定 Backend `10b7819ad4a15777490dad5ab9abb7ae961422fc`，版本 `5.32.0-dev.20261003.1`。新增签名浏览器 Cookie、默认浏览器 3 次/IP 10 次的北京时间每日累计限制，以及 429 原因头；信息/HEAD 不消费次数，旧 APP 无 Cookie 仍可 HEAD/GET 并受 IP 限制。Web 保留无原因头和空正文的错误恢复，不读取 HttpOnly 标识，不以本地计数代替服务端原子预占。先升级兼容网关及账本再启用消费者；回滚须保留已用次数、字节账本及 Cookie 签名状态，不通过删除账本或恢复旧快照解除限额。
+新 Web 下载流程固定 Backend `882889c5d8dc4a47893cb4fe913a0f68e536ce2f`（`5.37.0-dev.20261015.1`），改读 `/mobile-releases/android/download` 并校验后直连固定 RainS3 桶；不调用旧 `/app-downloads` 信息与文件端点，不回退旧网关，也不依赖每日次数、下载 Cookie、SQLite 字节预算或 4 Mbps 限制。菜单与移动提示入口、当前页错误恢复保留。
 
-新增外观菜单直接下载和移动设备提示，消费下载信息 GET 与固定构建文件 HEAD/GET；候选中的独立下载页与二维码已取消，未作为已发布兼容路径。旧 APP 的 `/meta.mobileCompatibility.android.updateUrl` 字段结构与强制更新策略保留，Web 不产生更新资格、不删除旧字段、不回退公开桶。发布顺序为兼容网关与发布工具 → 预热 → meta/Web → 旧 APP 验证 → 独立评审关闭 APK 公共读；不得提前关闭旧兼容路径或修改图片桶权限。Web 回滚只撤销下载入口与提示，不变更历史制品、发布策略或流量账本。行为与已提交来源见 [APP 下载](modules/app-download.md) 和 [API 契约](modules/api-contract.md#公开-app-下载)。
+历史每日限次契约 `10b7819ad4a15777490dad5ab9abb7ae961422fc` 的端点、Cookie、账本、签名和审计继续保留给旧客户端，本次只迁移新 Web 消费者，不执行协议清理。必须先部署兼容 Backend，经管理入口使用已提交受限晋级流程切回桶推荐，再启用已合并 Web；不修改图片桶或提前停旧服务。旧 APP 的 `/meta.mobileCompatibility.android.updateUrl` 与强制更新结构不变。
+
+桶公开对象和缓存不能由取消推荐召回；实际 CORS 与对象可达性须切换时核验。回滚经既有受限发布流程，保留历史制品、说明确认 revision、流量账本与审计，不能为回滚清空计次或恢复旧快照。后续清理须独立 PR 并具备无消费者、数据已迁移、回归覆盖、回滚路径四项证据。行为与固定来源见 [APP 下载](modules/app-download.md) 和 [API 契约](modules/api-contract.md#公开-app-下载)。
 
 收藏夹管理新增能力继续使用独立的主题帖和动态目录端点，既有共享目录兼容协议不在本次清理范围。Web 不新增该协议消费者，也不修改 Foundation 或数据库迁移。
 

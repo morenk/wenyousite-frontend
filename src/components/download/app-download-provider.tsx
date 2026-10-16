@@ -14,6 +14,6 @@ export function AppDownloadProvider({ children }: { children: ReactNode }) {
   return <AppDownloadContext.Provider value={download}>
     {children}
     <MobileDownloadPrompt />
-    {download.downloads.map(({ id, path }) => <iframe key={id} title={`Android 安装包下载 ${id}`} src={path} sandbox="allow-downloads allow-same-origin" hidden />)}
+    {download.downloads.map(({ id, url }) => <iframe key={id} title={`Android 安装包下载 ${id}`} src={url} sandbox="allow-downloads" referrerPolicy="no-referrer" hidden />)}
   </AppDownloadContext.Provider>;
 }

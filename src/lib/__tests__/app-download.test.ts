@@ -1,63 +1,62 @@
 import { describe, expect, test } from "vitest";
 import {
-  AppDownloadError, androidDownloadPath, matchesAndroidDownload,
+  AppDownloadError, androidDownloadUrl, matchesAndroidDownload,
   retryAfterDeadline, retryDeadline, validateAndroidDownloadInfo,
 } from "@/lib/app-download";
 import { availableDownload, downloadHeaders, downloadRelease } from "@/test/app-download";
 
 describe("下载制品身份与等待时间", () => {
-  test.each(["device_daily_limit", "ip_daily_limit", "byte_budget", "request_rate", "concurrency", "bandwidth"])("429 的 %s 原因来自响应头，空正文仍保留等待时间", (reason) => {
+  test("429 只采用通用状态与 Retry-After，不消费旧网关每日额度原因", () => {
     const before = Date.now();
     const error = AppDownloadError.fromResponse(new Response(null, { status: 429, headers: {
-      "X-Download-Limit-Reason": reason, "Retry-After": "86400",
+      "X-Download-Limit-Reason": "device_daily_limit", "Retry-After": "60",
     } }));
-    expect(error).toMatchObject({ status: 429, limitReason: reason });
-    expect(error.retryAt).toBeGreaterThanOrEqual(before + 86_400_000);
-    expect(error.retryAt).toBeLessThanOrEqual(Date.now() + 86_400_000);
+    expect(error.status).toBe(429);
+    expect(error).not.toHaveProperty("limitReason");
+    expect(error.retryAt).toBeGreaterThanOrEqual(before + 60_000);
   });
 
-  test.each([[429, "future_limit"], [429, ""], [503, "device_daily_limit"]] as const)("%s / %s 不推断每日限制，仍尊重 Retry-After", (status, reason) => {
-    const error = AppDownloadError.fromResponse(new Response(null, { status, headers: {
-      ...(reason ? { "X-Download-Limit-Reason": reason } : {}), "Retry-After": "60",
-    } }));
-    expect(error).toMatchObject({ status, limitReason: null });
-    expect(error.retryAt).not.toBeNull();
-  });
-
-  test("只接受同一构建的本站地址，不回退公开桶或临时地址", () => {
+  test("只接受同一制品的固定桶地址，拒绝旧网关、注入与临时地址", () => {
     const release = downloadRelease();
-    expect(androidDownloadPath(release)).toBe("/api/v1/app-downloads/android/42/file");
-    for (const downloadUrl of ["https://bucket.example/a.apk", "javascript:alert(1)", "/api/v1/app-downloads/android/42/file",
+    expect(androidDownloadUrl(release)).toBe(release.downloadUrl);
+    for (const downloadUrl of ["https://bucket.example/a.apk", "https://wenyou.site/api/v1/app-downloads/android/42/file", "javascript:alert(1)", "/api/v1/app-downloads/android/42/file",
       `${release.downloadUrl}?token=x`, `${release.downloadUrl}#x`, release.downloadUrl.replace("42", "43"),
-      release.downloadUrl.replace("https:", "http:"), release.downloadUrl.replace("wenyou.site", "wenyou.site.evil")]) {
-      expect(() => androidDownloadPath({ ...release, downloadUrl })).toThrow();
+      release.downloadUrl.replace("https:", "http:"), release.downloadUrl.replace("wenyou-apk.cn-nb1.rains3.com", "wenyou-apk.cn-nb1.rains3.com.evil"),
+      release.downloadUrl.replace("/wenyou-", "/../wenyou-"), release.downloadUrl.replace("https://", "https://user@")]) {
+      expect(() => androidDownloadUrl({ ...release, downloadUrl })).toThrow();
     }
     for (const patch of [{ buildNumber: 0 }, { buildNumber: 2.5 }, { buildNumber: 2_100_000_001 },
       { sizeBytes: 0 }, { sizeBytes: 536_870_913 }, { sizeBytes: 2.2 }, { sha256: "bad" },
-      { applicationId: "other.app" }, { platform: "ios" as "android" }, { versionName: " " }]) {
-      expect(() => androidDownloadPath({ ...release, ...patch })).toThrow();
+      { applicationId: "other.app" }, { platform: "ios" as "android" }, { versionName: " " }, { versionName: "../evil" }, { versionName: "a".repeat(65) },
+      { fileName: "other.apk" }, { releaseNotesUrl: "https://evil.test/notes" }]) {
+      expect(() => androidDownloadUrl({ ...release, ...patch })).toThrow();
     }
   });
 
   test("明确状态决定是否有制品，不从空字段猜测无发布", () => {
     expect(validateAndroidDownloadInfo(availableDownload())).toEqual(availableDownload());
-    for (const status of ["no_release", "withdrawn", "paused", "unavailable"] as const) {
-      const info = { status, release: null, retryAfterSeconds: 30 };
+    for (const status of ["no_release", "unavailable"] as const) {
+      const info = { status, release: null, retryAfterSeconds: null };
       expect(validateAndroidDownloadInfo(info)).toBe(info);
       expect(() => validateAndroidDownloadInfo({ ...info, release: downloadRelease() })).toThrow();
     }
     expect(() => validateAndroidDownloadInfo({ ...availableDownload(), release: null })).toThrow();
-    for (const retryAfterSeconds of [0, -1, 1.5, Infinity]) {
+    for (const retryAfterSeconds of [0, 1, 30, -1, 1.5, Infinity]) {
       expect(() => validateAndroidDownloadInfo({ ...availableDownload(), retryAfterSeconds })).toThrow();
     }
-    expect(() => validateAndroidDownloadInfo({ ...availableDownload(), status: "unknown" as "available" })).toThrow();
+    for (const status of ["unknown", "withdrawn", "paused"]) {
+      expect(() => validateAndroidDownloadInfo({ ...availableDownload(), status: status as "available" })).toThrow();
+    }
   });
 
-  test("HEAD 必须对应同一大小、摘要、版本、包名和构建号", () => {
+  test("HEAD 必须对应同一大小、文件名、摘要、版本、包名和构建号", () => {
     const headers = downloadHeaders();
     expect(matchesAndroidDownload(new Response(null, { headers }), downloadRelease())).toBe(true);
     expect(matchesAndroidDownload(new Response(null, { status: 206, headers }), downloadRelease())).toBe(false);
-    for (const key of Object.keys(headers).filter((name) => name !== "content-disposition")) {
+    for (const disposition of ['inline; filename="wenyou-0.3.0-dev.42-42.apk"', 'attachment; filename="other.apk"', 'attachment; filename="wenyou-0.3.0-dev.42-42.apk"; filename*=UTF-8\'\'other.apk']) {
+      expect(matchesAndroidDownload(new Response(null, { headers: { ...headers, "content-disposition": disposition } }), downloadRelease())).toBe(false);
+    }
+    for (const key of Object.keys(headers)) {
       expect(matchesAndroidDownload(new Response(null, { headers: { ...headers, [key]: "wrong" } }), downloadRelease())).toBe(false);
       const missing = { ...headers }; delete missing[key];
       expect(matchesAndroidDownload(new Response(null, { headers: missing }), downloadRelease())).toBe(false);

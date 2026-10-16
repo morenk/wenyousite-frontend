@@ -1,12 +1,12 @@
 import type { AndroidDownloadInfo, AndroidDownloadRelease } from "@/lib/app-download";
 
-/** 隔离消费者样本；不对应线上 APK，也不包含存储位置。 */
+/** 隔离消费者样本；不对应线上 APK，所有桶请求必须由测试拦截。 */
 export function downloadRelease(buildNumber = 42): AndroidDownloadRelease {
   return {
     platform: "android", applicationId: "site.wenyou.app", versionName: `0.3.0-dev.${buildNumber}`,
     buildNumber, sizeBytes: 33_554_432, sha256: "a".repeat(64),
     fileName: `wenyou-0.3.0-dev.${buildNumber}-${buildNumber}.apk`, publishedAt: "2026-10-02T12:00:00.000Z",
-    downloadUrl: `https://wenyou.site/api/v1/app-downloads/android/${buildNumber}/file`,
+    downloadUrl: `https://wenyou-apk.cn-nb1.rains3.com/mobile/android/wenyou-0.3.0-dev.${buildNumber}-${buildNumber}.apk`,
     releaseNotesUrl: `https://wenyou.site/api/v1/mobile-releases/android/${buildNumber}`,
   };
 }

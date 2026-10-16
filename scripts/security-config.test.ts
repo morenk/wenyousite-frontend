@@ -19,8 +19,10 @@ describe("Next.js 安全响应头", () => {
       "img-src 'self' data: blob: https://cn-nb1.rains3.com",
     );
     expect(csp).toContain(
-      "connect-src 'self' https://cn-nb1.rains3.com",
+      "connect-src 'self' https://cn-nb1.rains3.com https://wenyou-apk.cn-nb1.rains3.com/mobile/android/",
     );
+    expect(csp).toContain("frame-src 'self' https://wenyou-apk.cn-nb1.rains3.com/mobile/android/");
+    expect(csp).not.toContain("*.rains3.com");
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("Permissions-Policy")).toContain("camera=()");

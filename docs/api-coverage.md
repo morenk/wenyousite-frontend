@@ -3,12 +3,12 @@
 ## 审计结论
 
 - 事实来源：仓库内固定且与后端已审核产物一致的 `contracts/openapi.json`
-- 后端总量：194 个路径、247 个操作
-- 固定 OpenAPI 包含 HEAD 时共 248 个操作；本页继续按 GET/POST/PUT/PATCH/DELETE 审计，HEAD 预检单列说明
+- 后端总量：195 个路径、248 个操作
+- 固定 OpenAPI 包含 HEAD 时共 249 个操作；本页继续按 GET/POST/PUT/PATCH/DELETE 审计，HEAD 预检单列说明
 - 用户端范围外：举报 1 个操作、管理后台 58 个操作
-- 用户端审计范围：188 个操作
+- 用户端审计范围：189 个操作
 - Web 源码直接引用：216 个操作（用户端 166 个，举报/站务 50 个）
-- 未直接引用：用户端 22 个、举报/站务 9 个；这些操作由聚合响应、等价端点、兼容入口、受限凭据流程、浏览器原生下载或原生移动端覆盖，不构成缺失的 Web 功能
+- 未直接引用：用户端 23 个、举报/站务 9 个；这些操作由聚合响应、等价端点、兼容入口、受限凭据流程、浏览器原生下载或原生移动端覆盖，不构成缺失的 Web 功能
 
 上面的“用户端范围外”是审计分组，不代表缺少 Web 界面：举报和管理后台现由独立 PC Web 路由消费，并与社区用户端分开统计。其余覆盖结论由固定契约与前端调用源码实时推导，不以某次审计日期或发布版本为准。
 
@@ -18,7 +18,8 @@
 
 | 操作 | 不单独调用的原因 | 当前覆盖方式 |
 |------|------------------|--------------|
-| `GET /api/v1/app-downloads/android/{buildNumber}/file` | APK 正文由浏览器原生保存，不用 apiClient 读取完整 blob | 下载按钮激活后先 HEAD 核对制品，再交给同源固定文件地址 |
+| `GET /api/v1/app-downloads/android` | 历史网关信息兼容入口 | 新 Web 消费 `/mobile-releases/android/download`，旧端点保留给历史客户端 |
+| `GET /api/v1/app-downloads/android/{buildNumber}/file` | 历史网关正文兼容入口 | 新 Web 校验固定桶 HEAD 后原生 GET 同一桶 URL，旧端点保留 |
 | `GET /api/v1/image-gallery` | 跨楼层图集当前仅由原生移动端接入 | Web 同步固定契约和类型，现有查看器仍消费内容图片列表 |
 | `GET /api/v1/mobile-releases` | 公开移动端版本历史由 Flutter 关于页展示 | Web 消费独立管理列表并维护版本说明 |
 | `GET /api/v1/mobile-releases/{platform}/{buildNumber}` | 安装后当前版本说明由 Flutter 展示 | Web 管理详情包含草稿、确认及公开快照 |
@@ -43,7 +44,7 @@
 
 `POST /api/v1/auth/refresh` 由 `src/api/client.ts` 的原生 fetch 包装器调用，以避免拦截器递归。`pnpm docs:check` 会读取固定 OpenAPI、扫描生产源码中的 `apiClient` 调用，并校验本页数字和上表集合；新增端点或调用方式变化不能只改文字绕过。
 
-该计数沿用 GET/POST/PUT/PATCH/DELETE 口径；下载文件的 HEAD 预检由 `useAppDownload` 通过 `apiClient.HEAD` 调用，正文 GET 使用浏览器导航，不计入 apiClient 直接引用。
+该计数沿用 GET/POST/PUT/PATCH/DELETE 口径；历史网关 HEAD 仍在固定契约中；新下载的 HEAD 由 `src/api/app-download-file.ts` 向精确桶 URL 发送无凭据请求，正文 GET 使用浏览器原生交接，不计入本站 apiClient 直接引用。
 
 ## 范围边界
 

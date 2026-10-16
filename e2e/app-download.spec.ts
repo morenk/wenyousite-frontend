@@ -8,6 +8,11 @@ import { availableDownload, downloadHeaders } from "../src/test/app-download";
 const android = "Mozilla/5.0 (Linux; Android 14; Pixel 8) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Mobile Safari/537.36";
 const ios = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
 const handoff = "已交给浏览器下载，请在下载列表查看。若未开始，可重试下载。";
+const bucketFile = "https://wenyou-apk.cn-nb1.rains3.com/mobile/android/*.apk";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Expose-Headers": "Content-Type, Content-Length, Content-Disposition, x-amz-meta-apk-sha256, x-amz-meta-application-id, x-amz-meta-version-name, x-amz-meta-version-code, Retry-After",
+};
 const frame = 'iframe[title^="Android 安装包下载"]';
 
 async function anonymous(page: Page) {
@@ -21,19 +26,21 @@ async function menu(page: Page) {
 }
 async function fixture(page: Page) {
   await anonymous(page);
+  // 严格拦截桶域；任何遗漏路径也不能实际下载线上 APK。
+  await page.route("https://wenyou-apk.cn-nb1.rains3.com/**", (route) => route.abort());
   const body = Buffer.from("isolated-download-fixture");
   const info = availableDownload();
   info.release!.sizeBytes = body.length;
   info.release!.sha256 = createHash("sha256").update(body).digest("hex");
   const requests: string[] = [];
-  await page.route("**/api/v1/app-downloads/android", (route) => {
+  await page.route("**/api/v1/mobile-releases/android/download", (route) => {
     requests.push("information");
     return route.fulfill({ json: { code: 0, message: "ok", data: info } });
   });
-  await page.route("**/api/v1/app-downloads/android/*/file", (route) => {
+  await page.route("https://wenyou-apk.cn-nb1.rains3.com/mobile/android/*.apk", (route) => {
     const method = route.request().method(); requests.push(method);
     return route.fulfill({ status: 200, headers: {
-      ...downloadHeaders(info.release!), "X-Frame-Options": "DENY", "Content-Security-Policy": "frame-ancestors 'none'",
+      ...corsHeaders, ...downloadHeaders(info.release!), "X-Frame-Options": "DENY", "Content-Security-Policy": "frame-ancestors 'none'",
     }, body: method === "HEAD" ? undefined : body });
   });
   return { requests, info, body };
@@ -93,9 +100,9 @@ test("download-browser-handoff 键盘一次激活保存文件，菜单和 SPA �
 test("download-rate-limited / download-service-unavailable 等待结束不自动重试", async ({ page }) => {
   const { requests } = await fixture(page);
   let status = 429;
-  await page.route("**/api/v1/app-downloads/android/*/file", (route) => {
+  await page.route("https://wenyou-apk.cn-nb1.rains3.com/mobile/android/*.apk", (route) => {
     requests.push(route.request().method());
-    return route.fulfill({ status, headers: status === 429 ? { "Retry-After": "1" } : {} });
+    return route.fulfill({ status, headers: { ...corsHeaders, ...(status === 429 ? { "Retry-After": "1" } : {}) } });
   });
   await page.goto("/login");
   await (await menu(page)).click();
@@ -118,23 +125,23 @@ for (const failure of [
 ]) {
   test(`HEAD 成功后 GET ${failure.status} ${failure.body ? "JSON" : "空正文"} 留在原页面且可重试`, async ({ page }) => {
     const { requests } = await fixture(page);
-    await page.route("**/api/v1/app-downloads/android/*/file", (route) => {
+    await page.route("https://wenyou-apk.cn-nb1.rains3.com/mobile/android/*.apk", (route) => {
       const method = route.request().method(); requests.push(method);
       return method === "HEAD"
-        ? route.fulfill({ status: 200, headers: downloadHeaders() })
+        ? route.fulfill({ status: 200, headers: { ...corsHeaders, ...downloadHeaders() } })
         : route.fulfill({ status: failure.status, body: failure.body, headers: {
-          "Retry-After": "60", "Content-Type": "application/json",
+          ...corsHeaders, "Retry-After": "60", "Content-Type": "application/json",
           ...(failure.reason ? { "X-Download-Limit-Reason": failure.reason } : {}),
           "Content-Security-Policy": "frame-ancestors 'none'", "X-Frame-Options": "DENY",
         } });
     });
     // 与 HEAD 使用相同的制品元数据。
-    await page.route("**/api/v1/app-downloads/android", (route) => {
+    await page.route("**/api/v1/mobile-releases/android/download", (route) => {
       requests.push("information");
       return route.fulfill({ json: { code: 0, message: "ok", data: availableDownload() } });
     });
     await page.goto("/login");
-    const failedGet = () => page.waitForResponse((response) => response.request().method() === "GET" && response.url().endsWith("/42/file"));
+    const failedGet = () => page.waitForResponse((response) => response.request().method() === "GET" && response.url() === availableDownload().release!.downloadUrl);
     const first = failedGet();
     await (await menu(page)).click();
     expect((await first).status()).toBe(failure.status);
@@ -187,10 +194,10 @@ for (const platform of ["android", "ios"] as const) {
         const { requests, body, info } = await fixture(page);
         let finishHead!: () => void;
         const headGate = new Promise<void>((resolve) => { finishHead = resolve; });
-        await page.route("**/api/v1/app-downloads/android/*/file", async (route) => {
+        await page.route("https://wenyou-apk.cn-nb1.rains3.com/mobile/android/*.apk", async (route) => {
           const method = route.request().method(); requests.push(method);
           if (method === "HEAD") await headGate;
-          return route.fulfill({ headers: downloadHeaders(info.release!), body: method === "HEAD" ? undefined : body });
+          return route.fulfill({ headers: { ...corsHeaders, ...downloadHeaders(info.release!) }, body: method === "HEAD" ? undefined : body });
         });
         await page.goto("/login");
         await page.getByRole("dialog").getByRole("button", { name: "下载 APP", exact: true }).click();
@@ -212,79 +219,38 @@ for (const platform of ["android", "ios"] as const) {
   });
 }
 
-// 同源 HTTP 契约夹具只验证浏览器收发 Cookie；真实配额事务由 Backend 的隔离用例验证。
-for (const issuedBy of ["information", "HEAD", "GET"] as const) {
-  test(`download-device-cookie：${issuedBy} 签发的 HttpOnly 标识由信息、HEAD 与原生 GET 自动携带`, async ({ page }) => {
-    const { info, body } = await fixture(page);
-    const cookieName = `preview-${process.env.E2E_RUN_ID!.replace(/^e2e_/, "preview_")}-download-device`;
-    const setCookie = `${cookieName}=isolated-browser-transport; Path=/; HttpOnly; SameSite=Lax`;
-    const observed: { method: string; cookiePresent: boolean }[] = [];
-    const observe = async (method: string, request: import("@playwright/test").Request) => {
-      const headers = await request.allHeaders();
-      observed.push({ method, cookiePresent: (headers.cookie ?? "").split(";").some((part) => part.trim().startsWith(`${cookieName}=`)) });
-    };
-    await page.route("**/api/v1/app-downloads/android", async (route) => {
-      await observe("information", route.request());
-      return route.fulfill({ json: { code: 0, message: "ok", data: info }, headers: issuedBy === "information" ? { "Set-Cookie": setCookie } : {} });
-    });
-    await page.route("**/api/v1/app-downloads/android/*/file", async (route) => {
-      const method = route.request().method(); await observe(method, route.request());
-      return route.fulfill({ headers: { ...downloadHeaders(info.release!), ...(method === issuedBy ? { "Set-Cookie": setCookie } : {}) }, body: method === "HEAD" ? undefined : body });
-    });
-    await page.goto("/login"); const entry = await menu(page);
-    expect(observed).toEqual([]);
-    await expectSaved(page, () => entry.click(), body);
-    expect(observed).toEqual([
-      { method: "information", cookiePresent: false },
-      { method: "HEAD", cookiePresent: issuedBy === "information" },
-      { method: "GET", cookiePresent: issuedBy !== "GET" },
-    ]);
-    expect(await page.evaluate((name) => document.cookie.split(";").some((part) => part.trim().startsWith(`${name}=`)), cookieName)).toBe(false);
-    await expectSaved(page, () => page.getByRole("button", { name: "重试下载" }).click(), body);
-    expect(observed.slice(3)).toEqual([
-      { method: "information", cookiePresent: true }, { method: "HEAD", cookiePresent: true }, { method: "GET", cookiePresent: true },
-    ]);
+test("桶 HEAD 与原生 GET 不携带本站凭据，保留原生下载与精确地址", async ({ page, context }) => {
+  const { info, body } = await fixture(page);
+  await page.goto("/login");
+  await context.addCookies([{ name: "isolated-site-session", value: "fixture-only", url: page.url(), httpOnly: true, sameSite: "Lax" }]);
+  const observed: { method: string; url: string; cookie?: string; authorization?: string; client?: string }[] = [];
+  await page.route(bucketFile, async (route) => {
+    const request = route.request();
+    const headers = await request.allHeaders();
+    observed.push({ method: request.method(), url: request.url(), cookie: headers.cookie, authorization: headers.authorization, client: headers["x-client-platform"] });
+    return route.fulfill({ headers: { ...corsHeaders, ...downloadHeaders(info.release!) }, body: request.method() === "HEAD" ? undefined : body });
   });
-}
-
-for (const source of ["information", "HEAD"] as const) {
-  for (const [reason, message] of [
-    ["device_daily_limit", "此浏览器今日下载次数已用完，请明日（北京时间）重试。"],
-    ["ip_daily_limit", "当前 IP 今日下载次数已用完，请明日（北京时间）重试。"],
-  ] as const) {
-    test(`daily-download-denied：${source} 空 429 / ${reason} 尊重服务端等待且不发 GET`, async ({ page }) => {
-      const { requests } = await fixture(page);
-      const denied = () => ({ status: 429, headers: { "X-Download-Limit-Reason": reason, "Retry-After": "86400" } });
-      if (source === "information") await page.route("**/api/v1/app-downloads/android", (route) => { requests.push("information"); return route.fulfill(denied()); });
-      else await page.route("**/api/v1/app-downloads/android/*/file", (route) => { requests.push(route.request().method()); return route.fulfill(denied()); });
-      await page.goto("/login"); await (await menu(page)).click();
-      await expect(page.getByText(message)).toBeVisible();
-      await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
-      await page.keyboard.press("Escape"); await menu(page);
-      await expect(page.getByText(message)).toBeVisible();
-      await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
-      expect(requests).toEqual(source === "information" ? ["information"] : ["information", "HEAD"]);
-      await expect(page.locator(frame)).toHaveCount(0);
-    });
-  }
-}
-
-test("no-cookie-compatibility：未收到标识仍可 HEAD/GET，随后 IP 拒绝保留恢复提示", async ({ page }) => {
-  const { body, info, requests } = await fixture(page);
-  let refused = false;
-  const cookiePresent: boolean[] = [];
-  await page.route("**/api/v1/app-downloads/android/*/file", async (route) => {
-    const method = route.request().method(); requests.push(method);
-    cookiePresent.push((await route.request().allHeaders()).cookie?.includes("download-device=") ?? false);
-    if (refused) return route.fulfill({ status: 429, headers: { "X-Download-Limit-Reason": "ip_daily_limit", "Retry-After": "86400" } });
-    return route.fulfill({ headers: downloadHeaders(info.release!), body: method === "HEAD" ? undefined : body });
-  });
-  await page.goto("/login"); const entry = await menu(page);
-  await expectSaved(page, () => entry.click(), body);
-  refused = true;
-  await page.getByRole("button", { name: "重试下载" }).click();
-  await expect(page.getByText("当前 IP 今日下载次数已用完，请明日（北京时间）重试。")).toBeVisible();
-  await expect(page.getByRole("button", { name: "重试下载" })).toBeDisabled();
-  expect(cookiePresent).toEqual([false, false, false]);
-  expect(requests).toEqual(["information", "HEAD", "GET", "information", "HEAD"]);
+  await expectSaved(page, async () => (await menu(page)).click(), body);
+  expect(observed).toEqual(["HEAD", "GET"].map((method) => ({ method, url: info.release!.downloadUrl, cookie: undefined, authorization: undefined, client: undefined })));
+  await expect(page.locator(frame)).toHaveAttribute("sandbox", "allow-downloads");
+  await expect(page.locator(frame)).toHaveAttribute("referrerpolicy", "no-referrer");
 });
+
+for (const fault of ["cors", "metadata", "redirect", "network"] as const) {
+  test(`桶 ${fault} 失败不发 GET、不回退网关，保留手动恢复`, async ({ page }) => {
+    const { requests, info } = await fixture(page);
+    await page.route(bucketFile, (route) => {
+      requests.push(route.request().method());
+      if (fault === "network") return route.abort();
+      if (fault === "redirect") return route.fulfill({ status: 302, headers: { ...corsHeaders, Location: "https://wenyou.site/api/v1/app-downloads/android/42/file" } });
+      const headers = { ...downloadHeaders(info.release!), ...(fault === "cors" ? {} : corsHeaders), ...(fault === "metadata" ? { "Content-Disposition": "attachment; filename=other.apk" } : {}) };
+      return route.fulfill({ headers });
+    });
+    await page.goto("/login");
+    await (await menu(page)).click();
+    await expect(page.getByText("暂时无法下载，请重试。")).toBeVisible();
+    await expect(page.getByRole("button", { name: "重试下载" })).toBeEnabled();
+    await expect(page.locator(frame)).toHaveCount(0);
+    expect(requests).toEqual(["information", "HEAD"]);
+  });
+}
