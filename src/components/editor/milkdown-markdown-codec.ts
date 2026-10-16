@@ -1,7 +1,10 @@
+import type { Unsafe } from "mdast-util-to-markdown";
+import { hoistTextColors, normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
   remarkStringifyOptionsCtx,
   remarkPluginsCtx,
   serializerCtx,
+  parserCtx,
 } from "@milkdown/core";
 import { linkSchema, paragraphAttr, textSchema } from "@milkdown/kit/preset/commonmark";
 import type { Ctx } from "@milkdown/kit/ctx";
@@ -23,6 +26,12 @@ import { normalizeSerializedAlignmentMarkers } from "@/lib/markdown-alignment";
 import { canonicalizeEditorEmptyRows, documentWithExplicitEmptyRows, handlePlainNewline } from "./editor-plain-newline";
 import { adoptEditedTrailingParagraphs, configureEditorTrailingParagraph, withoutAutomaticTrailingParagraph } from "./editor-trailing-paragraph";
 
+declare module "mdast-util-to-markdown" {
+  interface ConstructNameMap {
+    wenyouTextColor: "wenyouTextColor";
+  }
+}
+
 type DiceMarkdownNode = {
   nodeId?: unknown;
   notation?: unknown;
@@ -32,6 +41,7 @@ type EditorMarkdownNode = {
   type?: string;
   value?: string;
   url?: string;
+  color?: string;
   data?: Record<string, unknown>;
   children?: EditorMarkdownNode[];
 };
@@ -78,6 +88,7 @@ export interface EditorMarkdownBridgeOptions {
   onValid?: () => void;
   onReady?: (flush: (() => string | null) | null) => void;
   markdownContractVersion?: number;
+  textColorVersion?: 1;
 }
 
 export class EditorMarkdownCodecError extends Error {
@@ -318,348 +329,4 @@ function standaloneSourceLinkParagraph(paragraph: EditorMarkdownNode): EditorMar
  */
 export function configureEditorMarkdownSerializer(ctx: Ctx) {
   configureEditorTrailingParagraph(ctx);
-  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkStandaloneSourceLinks, options: {} }, { plugin: remarkCanonicalMentions, options: {} }]);
-  ctx.update(linkSchema.key, (previous) => (schemaCtx) => {
-    const base = previous(schemaCtx);
-    return { ...base,
-      attrs: { ...base.attrs, sourceLinkBoundary: { default: null }, sourceLinkStandalone: { default: false } },
-      parseMarkdown: { ...base.parseMarkdown, runner: (state, node, markType) => {
-        state.openMark(markType, { href: node.url, title: node.title, sourceLinkBoundary: (node.data as Record<string, unknown> | undefined)?.wenyouSourceLinkBoundary ?? null, sourceLinkStandalone: (node.data as Record<string, unknown> | undefined)?.wenyouStandaloneLink === true });
-        state.next(node.children); state.closeMark(markType);
-      } },
-      toDOM: (mark, inline) => {
-        const output = base.toDOM!(mark, inline);
-        if (Array.isArray(output) && output[1] && typeof output[1] === "object") {
-          const attributes = { ...output[1] } as Record<string, unknown>;
-          delete attributes.sourceLinkBoundary;
-          delete attributes.sourceLinkStandalone;
-          return [output[0], attributes, ...output.slice(2)] as typeof output;
-        }
-        return output;
-      },
-      toMarkdown: { ...base.toMarkdown, runner: (state, mark, node) => {
-      const target = parseMentionTarget(mark.attrs.href as string, node.text);
-      if (target && target.mode !== "LEGACY") {
-        state.withMark(mark, "wenyouMention", undefined, { url: target.sourceHref });
-        return;
-      }
-      // 内部 AST 身份阻止相邻同 URL 的不同来源链接合并；Markdown 不写此属性。
-      state.withMark(mark, "link", undefined, {
-        title: mark.attrs.title, url: mark.attrs.href,
-        data: { wenyouSourceLinkBoundary: mark.attrs.sourceLinkBoundary, wenyouStandaloneLink: mark.attrs.sourceLinkStandalone },
-      });
-    } } };
-  });
-
-  ctx.update(paragraphAttr.key, (previous) => (node) => ({
-    ...previous(node),
-    ...(node.content.size === 0 ? { "data-wenyou-empty-row": "true" } : {}),
-  }));
-  const textHandler: MarkdownHandler = (nodeValue, _parent, stateValue, infoValue) => {
-    const node = nodeValue as { value: string };
-    const state = stateValue as SerializerState;
-    const safe = state.safe(node.value, { ...infoValue as SerializerInfo, encode: [] });
-    return node.value.endsWith(" ")
-      ? safe.replace(/(?:&#x20;)+$/u, (tail) => " ".repeat(tail.length / 6)) : safe;
-  };
-  ctx.update(remarkStringifyOptionsCtx, (options) => ({
-    ...options,
-    rule: "-" as const,
-    ruleRepetition: 3,
-    ruleSpaces: false,
-    unsafe: [...(options.unsafe ?? []), { character: ">" }],
-    handlers: {
-      ...options.handlers,
-      // Milkdown 的尾随空白捷径会漏转义行首 >；所有文字均经标准安全输出。
-      text: textHandler,
-      wenyouBoundaryText: textHandler,
-      break: () => "\n",
-      paragraph: (node, _parent, state, info) => {
-        // 仅保留原顶层独立链接形态，不改变既有 v7 普通组合的嵌套顺序。
-        node = standaloneSourceLinkParagraph(node) as typeof node;
-        const exit = state.enter("paragraph");
-        const subexit = state.enter("phrasing");
-        let value = state.containerPhrasing(node, info);
-        subexit();
-        exit();
-        // CommonMark 会裁剪段落两端空格；只编码已有边界字符，不增加可见内容。
-        if (/^[\t ]/u.test(value)) value = encodeFirstCodePoint(value);
-        if (/[\t ]$/u.test(value)) value = encodeLastCodePoint(value);
-        return value;
-      },
-      delete: safeDeleteMarkdownHandler,
-      wenyouMention: (nodeValue: unknown, _parent: unknown, stateValue: unknown, infoValue: unknown) => {
-        const node = nodeValue as EditorMarkdownNode;
-        const textOf = (child: EditorMarkdownNode): string => child.value ?? child.children?.map(textOf).join("") ?? "";
-        const atom: EditorMarkdownNode = { type: "wenyouMentionAtom", value: "[" + textOf(node) + "](" + node.url + ")" };
-        // 原子范围的共同格式外置；昵称原字符不交给 Markdown 的文字转义器。
-        const wrap = (child: EditorMarkdownNode): EditorMarkdownNode => {
-          if (child.children?.length === 1 && ["strong", "emphasis", "delete"].includes(child.type ?? "")) {
-            return { ...child, children: [wrap(child.children[0]!)] };
-          }
-          return atom;
-        };
-        const child = node.children?.length === 1 ? wrap(node.children[0]!) : atom;
-        return (stateValue as SerializerState).containerPhrasing({ children: [child] }, infoValue as SerializerInfo);
-      },
-      wenyouMentionAtom: (node: { value: string }) => node.value,
-      diceInline: (node: DiceMarkdownNode) => serializeDiceMarkdownNode(node),
-      emphasis: safeEmphasisMarkdownHandler,
-      strong: safeStrongMarkdownHandler,
-    } as NonNullable<typeof options.handlers>,
-  }));
-}
-
-function isEmptyParagraph(node: ProseNode | null | undefined): boolean {
-  return node?.type.name === "paragraph" && node.content.size === 0;
-}
-
-/** 共享组合契约：非代码片段的边界空白外置，代码里的空白及全部 marks 原样保留。 */
-function normalizeInlineBoundaryWhitespace(node: ProseNode): ProseNode {
-  if (node.isLeaf) return node;
-  const children: ProseNode[] = [];
-  node.forEach((child, _offset, index) => {
-    if (!child.isText || !child.marks.length || child.marks.some((mark) => mark.type.name === "inlineCode")) {
-      children.push(normalizeInlineBoundaryWhitespace(child));
-      return;
-    }
-    const text = child.text!;
-    const leading = /^\p{White_Space}*/u.exec(text)![0];
-    const trailing = /\p{White_Space}*$/u.exec(text)![0];
-    const core = text.slice(leading.length, Math.max(leading.length, text.length - trailing.length));
-    const sharedBefore = child.marks.filter((mark) => node.maybeChild(index - 1)?.marks.some((other) => mark.eq(other)));
-    const sharedAfter = child.marks.filter((mark) => node.maybeChild(index + 1)?.marks.some((other) => mark.eq(other)));
-    if (!core) {
-      children.push(child.mark(sharedBefore.filter((mark) => sharedAfter.some((other) => mark.eq(other)))));
-      return;
-    }
-    // 子节点分片不等于格式范围边界：保留跨越相邻节点的共同 marks。
-    if (leading) children.push(node.type.schema.text(leading, sharedBefore));
-    children.push(node.type.schema.text(core, child.marks));
-    if (trailing) children.push(node.type.schema.text(trailing, sharedAfter));
-  });
-  return node.copy(Fragment.fromArray(children));
-}
-
-/** 只规范化编辑器自身的合法输出；这里禁止调用任何字面降级净化器。 */
-export function serializeEditorMarkdown(
-  ctx: Ctx,
-  doc: ProseNode,
-  options: MarkdownValidationOptions = {},
-): string {
-  doc = normalizeInlineBoundaryWhitespace(documentWithExplicitEmptyRows(withoutAutomaticTrailingParagraph(doc)));
-  let markdown = normalizeSerializedAlignmentMarkers(
-    canonicalizeEditorEmptyRows(
-      sanitizeEmptyImages(
-        ctx.get(serializerCtx)(doc).replace(/\r\n?/gu, "\n"),
-      ),
-    ),
-  );
-
-  if (doc.childCount === 1 && isEmptyParagraph(doc.lastChild)) {
-    markdown = "";
-  } else if (isEmptyParagraph(doc.lastChild)) {
-    let trailingRows = 0;
-    for (let index = doc.childCount - 1; index >= 0 && isEmptyParagraph(doc.child(index)); index--) trailingRows++;
-    const lines = markdown.split("\n");
-    while (lines.length > 0 && (lines.at(-1) === "" || lines.at(-1) === "<br />")) lines.pop();
-    // A root empty row after a structural block still needs its Markdown
-    // boundary. Plain text rows do not need that source-only separator.
-    const precedingIndex = doc.childCount - trailingRows - 1;
-    if (precedingIndex >= 0 && doc.child(precedingIndex).type.name !== "paragraph") lines.push("");
-    markdown = [...lines, ...Array.from({ length: trailingRows }, () => "<br />")].join("\n");
-  } else {
-    // remark-stringify 固定附加一个格式化换行，它不属于用户正文。
-    markdown = markdown.replace(/\n$/u, "");
-  }
-
-  if (options.markdownContractVersion !== 6 && parseInlineMentionNodes(markdown).some((node) => node.type === "mention" && node.sourceHref)) {
-    throw new EditorMarkdownCodecError("当前服务尚不支持此提及格式，正文已保留");
-  }
-  const unsupported = findUnsupportedMarkdownFormats(markdown, options);
-  if (unsupported.length > 0) {
-    const first = unsupported[0]!;
-    throw new EditorMarkdownCodecError(
-      `编辑器生成了协议外 Markdown：${first.type}（第 ${first.startLine + 1} 行）`,
-    );
-  }
-  return markdown;
-}
-
-/**
- * 唯一的文档变更出口：120ms 静默合并，连续输入最长 500ms；组合输入暂停。
- * 松键、失焦和显式 flush 均同步当前文档，保存入口不会读到父表单旧值。
- */
-export function createEditorMarkdownBridge({
-  onChange,
-  onDocumentChange,
-  onCompositionChange,
-  onError,
-  onReady,
-  onValid,
-  onSyncErrorChange,
-  markdownContractVersion,
-}: EditorMarkdownBridgeOptions) {
-  return $prose((ctx) => {
-    let previousMarkdown: string | undefined;
-    let repeatingDelete = false;
-    let deletionPending = false;
-    let composing = false;
-    let maximumSync: ReturnType<typeof setTimeout> | undefined;
-    let compositionEnd: ReturnType<typeof setTimeout> | undefined;
-    let schedulePending: (() => void) | undefined;
-    let pendingSync: ReturnType<typeof setTimeout> | undefined;
-    let flushPending: (() => void) | undefined;
-    const cancelPending = () => {
-      clearTimeout(pendingSync);
-      pendingSync = undefined;
-      clearTimeout(maximumSync);
-      maximumSync = undefined;
-    };
-    const finishDeletion = () => {
-      if (!deletionPending) return;
-      deletionPending = false;
-      repeatingDelete = false;
-      if (pendingSync !== undefined) flushPending?.();
-    };
-    return new Plugin({
-      key: new PluginKey("wenyousite-editor-markdown-bridge"),
-      appendTransaction: (transactions, _previous, state) => transactions.some((tr) => tr.docChanged)
-        ? adoptEditedTrailingParagraphs(state) : null,
-      props: {
-        handleDOMEvents: {
-          keydown: (view, event) => {
-            if (event.isComposing || view.composing) return false;
-            if (event.key === "Backspace" || event.key === "Delete") {
-              deletionPending = true;
-              repeatingDelete = event.repeat;
-            } else {
-              finishDeletion();
-            }
-            // 保留浏览器/ProseMirror 原生删除、字素和撤销语义。
-            return false;
-          },
-          keyup: (_view, event) => {
-            if (event.key === "Backspace" || event.key === "Delete") finishDeletion();
-            return false;
-          },
-          blur: () => { if (!composing) flushPending?.(); return false; },
-          compositionstart: () => {
-            cancelPending();
-            clearTimeout(compositionEnd);
-            repeatingDelete = false;
-            deletionPending = false;
-            composing = true;
-            onCompositionChange?.(true);
-            return false;
-          },
-          compositionend: () => {
-            // 让 ProseMirror 先接收最后一次组合事务，再恢复辅助同步。
-            clearTimeout(compositionEnd);
-            compositionEnd = setTimeout(() => {
-              composing = false;
-              onCompositionChange?.(false);
-              schedulePending?.();
-            }, 0);
-            return false;
-          },
-        },
-        handleKeyDown: (nextView, event) => {
-          if (handlePlainNewline(nextView, event)) return true;
-          if (
-            event.key !== " "
-            || event.isComposing
-            || event.ctrlKey
-            || event.metaKey
-            || event.altKey
-          ) return false;
-
-          const { state } = nextView;
-          const { selection } = state;
-          if (selection.empty === false) return false;
-
-          const activeMarks = state.storedMarks ?? selection.$from.marks();
-          const beforeMarks = selection.$from.nodeBefore?.marks ?? [];
-          const afterMarks = selection.$from.nodeAfter?.marks ?? [];
-          const atFormatBoundary = beforeMarks.some((before) =>
-            INLINE_FORMAT_MARK_NAMES.has(before.type.name)
-            && !afterMarks.some((after) => after.type === before.type),
-          );
-          if (!atFormatBoundary) return false;
-
-          nextView.dispatch(
-            state.tr
-              .setStoredMarks([])
-              .insertText(" ", selection.from)
-              .setStoredMarks(activeMarks),
-          );
-          return true;
-        },
-      },
-      view: (view) => {
-        let failed = false;
-        let documentRevision = 0;
-        let synchronizedRevision = -1;
-        let encodedDoc: ProseNode | undefined;
-        let encodedMarkdown: string | undefined;
-        const flush = (notify = true) => {
-          cancelPending();
-          if (composing || view.composing) return null;
-          try {
-            // 文档为不可变对象；契约版本绑定本插件生命周期，选区/重复 flush 复用已验证结果。
-            const markdown = view.state.doc === encodedDoc && encodedMarkdown !== undefined
-              ? encodedMarkdown
-              : serializeEditorMarkdown(ctx, view.state.doc, { markdownContractVersion });
-            encodedDoc = view.state.doc;
-            encodedMarkdown = markdown;
-            const changed = failed || documentRevision !== synchronizedRevision;
-            synchronizedRevision = documentRevision;
-            const initialized = previousMarkdown !== undefined;
-            previousMarkdown = markdown;
-            const recovered = failed;
-            failed = false;
-            if (recovered || !initialized) onSyncErrorChange?.(false);
-            if (changed || !notify) onValid?.();
-            if (changed && notify) onChange(markdown);
-            return markdown;
-          } catch (error) {
-            failed = true;
-            onSyncErrorChange?.(true);
-            onError?.(error);
-            return null;
-          }
-        };
-        flushPending = () => { flush(); };
-        schedulePending = () => {
-          if (composing || view.composing) return;
-          clearTimeout(pendingSync);
-          pendingSync = setTimeout(() => { flush(); }, 120);
-          if (repeatingDelete) {
-            clearTimeout(maximumSync);
-            maximumSync = undefined;
-          } else if (maximumSync === undefined) {
-            maximumSync = setTimeout(() => { flush(); }, 500);
-          }
-        };
-        flush(false);
-        onReady?.(() => flush());
-        return {
-          update: (nextView, previousState) => {
-            if (nextView.state.doc === previousState.doc) return;
-            documentRevision++;
-            onDocumentChange?.();
-            schedulePending?.();
-          },
-          destroy: () => {
-            cancelPending();
-            repeatingDelete = false;
-            clearTimeout(compositionEnd);
-            schedulePending = undefined;
-            flushPending = undefined;
-            onReady?.(null);
-          },
-        };
-      },
-    });
-  });
-}
+  ctx.update(remarkPluginsCtx, (plugins) => [...plugins, { plugin: remarkTextColor, options: {} }, { plugin: remarkStandaloneSourceLinks, options: {} }, { plugin: remarkCanonicalMentions, options: {} }]);

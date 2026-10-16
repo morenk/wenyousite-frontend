@@ -1,3 +1,5 @@
+import { parseInternalReference } from "@/lib/internal-reference";
+import { normalizeTextColor, TEXT_COLOR_ATTRIBUTE } from "@/lib/markdown-text-color";
 import { parseMentionTarget, MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE } from "@/lib/mention";
 import { parseDiceNotation } from "@/lib/dice";
 import {
@@ -152,6 +154,25 @@ function containsProjectedRegularImage(source: Element): boolean {
     });
 }
 
+/** 颜色只包裹普通行内文字；伪造的站内片段不能给原子节点或跨行范围着色。 */
+function canPreserveClipboardColor(element: Element): boolean {
+  for (const node of Array.from(element.childNodes)) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent ?? "";
+      if (/[\r\n]/u.test(text)) return false;
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      const child = node as Element;
+      if (!["B", "STRONG", "I", "EM", "S", "DEL", "STRIKE", "A", "CODE"].includes(child.tagName)) return false;
+      if (child.tagName === "A" && (parseMentionTarget(child.getAttribute("href"), child.textContent)
+        || parseInternalReference(child.getAttribute("href") ?? "") || child.hasAttribute(MENTION_SOURCE_HREF_ATTRIBUTE))) return false;
+      // 行内代码的字面协议串不是原子节点。
+      if (child.tagName !== "CODE" && !canPreserveClipboardColor(child)) return false;
+      if (child.tagName === "CODE" && /[\r\n]/u.test(child.textContent ?? "")) return false;
+    }
+  }
+  return Boolean(element.textContent?.length);
+}
+
 function appendNormalizedNode(
   source: Node,
   target: Node,
@@ -228,6 +249,15 @@ function appendNormalizedNode(
     if (display && mentionTarget) anchor.textContent = display;
     else appendChildren(element, anchor, clipboardSource, preserveAlignment);
     target.appendChild(anchor);
+    return;
+  }
+
+  const color = tagName === "SPAN" ? normalizeTextColor(element.getAttribute(TEXT_COLOR_ATTRIBUTE)) : null;
+  if (color && preserveAlignment && canPreserveClipboardColor(element)) {
+    const span = document.createElement("span");
+    span.setAttribute(TEXT_COLOR_ATTRIBUTE, color);
+    appendChildren(element, span, clipboardSource, preserveAlignment);
+    target.appendChild(span);
     return;
   }
 
@@ -446,7 +476,8 @@ function restoreSharedSelectionAncestors(
     const alignment = ancestor.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
     const alignedBlock = (tagName === "P" || tagName === "H2" || tagName === "H3")
       && isStoredWenyouTextAlignment(alignment);
-    if (INLINE_SELECTION_WRAPPER_TAGS.has(tagName) || alignedBlock) {
+    const coloredInline = tagName === "SPAN" && normalizeTextColor(ancestor.getAttribute(TEXT_COLOR_ATTRIBUTE));
+    if (INLINE_SELECTION_WRAPPER_TAGS.has(tagName) || alignedBlock || coloredInline) {
       const wrapper = ancestor.cloneNode(false) as Element;
       wrapper.appendChild(wrapped);
       wrapped = wrapper;

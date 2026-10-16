@@ -89,6 +89,8 @@ function EditorCore({
     handleValidityChange,
     markdownContractVersion,
     advertisedMarkdownContractVersion,
+    textColorSupported,
+    advertisedTextColorSupported,
     user,
     restoredValue,
     restoredMediaDisplays,
@@ -116,18 +118,18 @@ function EditorCore({
     onSyncErrorChange,
   });
 
-  const writeAssessmentRef = useRef<{ content: string; version: number; allowed: boolean } | null>(null);
+  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
     if (hostRef.current?.hasPendingUpload?.()) { toast.error("请先完成或移除音频上传"); return null; }
     const content = flush();
     if (content === null) return null;
     const cached = writeAssessmentRef.current;
-    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion) {
-      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, allowed: assessEditorInput(content, advertisedMarkdownContractVersion).edit };
+    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion || cached.color !== advertisedTextColorSupported) {
+      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, color: advertisedTextColorSupported, allowed: assessEditorInput(content, advertisedMarkdownContractVersion, advertisedTextColorSupported).edit };
     }
     return writeAssessmentRef.current!.allowed ? content : null;
-  }, [advertisedMarkdownContractVersion, flush, isComposing]);
+  }, [advertisedMarkdownContractVersion, advertisedTextColorSupported, flush, isComposing]);
 
   const handleValidity = useCallback((valid: boolean) => {
     setInvalid(!valid);
@@ -141,119 +143,5 @@ function EditorCore({
     return () => window.removeEventListener("beforeunload", preventLoss);
   }, [invalid]);
 
-  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion).edit, [contractVersionReady, restoredValue, markdownContractVersion]);
+  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported]);
   useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
-  useEffect(() => {
-    if (protectedContent) {
-      handleValidityChange(false);
-      onValidityChange?.(false);
-    }
-  }, [handleValidityChange, onValidityChange, protectedContent]);
-
-  useEffect(() => {
-    const wrapper = wrapperRef.current;
-    if (!wrapper) return;
-    const findFooter = () => setFooterTarget(wrapper.querySelector('[data-slot="milkdown-editor-footer-status"]'));
-    findFooter();
-    const observer = new MutationObserver(findFooter);
-    observer.observe(wrapper, { childList: true });
-    return () => observer.disconnect();
-  }, [version, contractVersionReady, protectedContent]);
-  const charCount = useMemo(() => Array.from(currentContent).length, [currentContent]);
-  const editorAriaLabel = ariaLabel ?? placeholder ?? "正文编辑器";
-  const charWarning = charCount > MAX_CHARS * 0.9
-    ? "text-destructive"
-    : charCount > MAX_CHARS * 0.7
-      ? "text-warning"
-      : "text-muted-foreground";
-
-  return (
-    <div
-      ref={wrapperRef}
-      className={cn(
-        "rounded-[var(--radius-control)] border border-border bg-background overflow-hidden",
-        disabled && "opacity-60 pointer-events-none",
-      )}
-      style={{
-        "--editor-min-height": `${minHeight}px`,
-        "--editor-max-height": `${maxHeight}px`,
-      } as React.CSSProperties}
-    >
-      {contractVersionReady && !protectedContent && (
-        <MilkdownEditorHost mentionIdentities={mentionIdentities}
-          audioDraftKey={audioDraftKey} audioUserId={user?.id}
-          key={`${version}-${user?.id ?? "guest"}`}
-          initialValue={restoredValue ?? ""}
-          mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
-          mediaAudios={restoredMediaAudios ?? mediaAudios}
-          markdownContractVersion={markdownContractVersion}
-          editorRef={hostRef}
-          onValidityChange={handleValidity}
-          onChange={handleChange}
-          onDocumentChange={handleDocumentChange}
-          onCompositionChange={handleCompositionChange}
-          onSyncErrorChange={handleSyncError}
-          onUploadImage={onUploadImage ? upload : undefined}
-          placeholder={placeholder}
-          disabled={disabled}
-          onOpenDrafts={user ? handleOpenDrafts : undefined}
-          maxHeight={maxHeight}
-          minHeight={minHeight}
-          threadId={threadId}
-          diceRolls={diceRolls}
-          autoFocus={autoFocus}
-          ariaLabel={editorAriaLabel}
-        />
-      )}
-      {footerTarget && createPortal(
-          <div className="flex items-center gap-3">
-            {(autoSaveEnabled || autoSaveStatus === "error") && (
-              <span className={cn(
-                "text-xs",
-                autoSaveStatus === "error" ? "text-destructive" : "text-muted-foreground",
-              )}>
-                自动草稿：
-                {autoSaveStatus === "saving"
-                  ? "保存中"
-                  : autoSaveStatus === "saved"
-                    ? "已保存"
-                    : autoSaveStatus === "error"
-                      ? "保存失败"
-                      : "等待编辑"}
-              </span>
-            )}
-            <span className={cn("text-xs tabular-nums", charWarning)}>
-              {charCount}/{MAX_CHARS}
-            </span>
-          </div>, footerTarget)}
-      {protectedContent && (
-        <div className="space-y-2 p-3">
-          <p role="alert" className="text-sm text-destructive">此正文包含当前版本无法安全编辑的内容，原文已保留。请使用兼容版本继续编辑。</p>
-          <pre className="whitespace-pre-wrap break-words text-sm">{currentContent}</pre>
-        </div>
-      )}
-      {invalid && !protectedContent && <p role="alert" className="px-3 py-2 text-sm text-destructive">{EDITOR_SYNC_ERROR}</p>}
-      {draftOpen && (
-        <ContentDraftsPanel
-          open
-          onClose={() => setDraftOpen(false)}
-          onRestore={handleRestore}
-          initialContent={currentContent}
-          flush={flushForWrite}
-          saveDisabled={syncError}
-          autoSaveEnabled={autoSaveEnabled}
-          autoSaveStatus={autoSaveStatus}
-          onAutoSaveChange={handleAutoSaveChange}
-        />
-      )}
-    </div>
-  );
-}
-
-export function MilkdownEditor(props: MilkdownEditorProps) {
-  return (
-    <MilkdownProvider>
-      <EditorCore {...props} />
-    </MilkdownProvider>
-  );
-}

@@ -16,7 +16,8 @@ try {
   const args = process.argv.slice(2);
   const discussionFixtures = process.env.WENYOUSITE_E2E_DISCUSSION_FIXTURES === "true" || args.includes("e2e/discussion-navigation.spec.ts");
   const roleMentionsV6 = args.length === 0 || args.includes("e2e/role-mentions.spec.ts") || process.env.WENYOUSITE_E2E_ROLE_MENTIONS_V6 === "true";
-  const runner = backendRunner(process.env, discussionFixtures, roleMentionsV6);
+  const textColorV1 = args.length === 0 || args.includes("e2e/text-color.spec.ts") || process.env.WENYOUSITE_E2E_TEXT_COLOR_V1 === "true";
+  const runner = backendRunner(process.env, discussionFixtures, roleMentionsV6, textColorV1);
   const { backend, revision, env } = runner;
   const reports = join(frontend, ".e2e-results");
   mkdirSync(reports, { recursive: true, mode: 0o700 });
@@ -33,6 +34,7 @@ try {
   const events = output.split("\n").flatMap((line) => { try { return [JSON.parse(line)]; } catch { return []; } });
   const ready = events.find((event) => event.event === "ready");
   const passed = events.find((event) => event.event === "passed" && event.runId === ready?.runId && event.resourcesCleaned === true);
+  const cleanupEvent = events.find((event) => event.event === "resources-cleaned" && event.runId === ready?.runId && event.resourcesCleaned === true && event.resourcesVerified === true);
   const report = existsSync(reportPath) ? JSON.parse(readFileSync(reportPath, "utf8")) : { status: "failed", tests: [] };
   let residualCleanup = false;
   if (ready?.manifestPath && !passed && existsSync(dirname(ready.manifestPath))) {
@@ -49,7 +51,7 @@ try {
   }
   const cleaned = ready?.manifestPath && !existsSync(dirname(ready.manifestPath));
   const success = !interrupted && code === 0 && passed && cleaned && report.status === "passed" && report.runId === ready.runId;
-  writeFileSync(reportPath, JSON.stringify({ ...report, backendSha: revision, residualCleanup, resourcesRemoved: Boolean(cleaned), cleanupVerified: Boolean(cleaned && passed), status: success ? "passed" : "failed" }), { mode: 0o600 });
+  writeFileSync(reportPath, JSON.stringify({ ...report, backendSha: revision, residualCleanup, resourcesRemoved: Boolean(cleaned), cleanupVerified: Boolean(cleaned && passed), cleanupEventVerified: Boolean(cleaned && cleanupEvent), status: success ? "passed" : "failed" }), { mode: 0o600 });
   console.log(JSON.stringify({ status: success ? "passed" : "failed", runId: ready?.runId, tests: report.tests.length,
     failed: report.tests.filter((test) => !["passed", "skipped"].includes(test.status)).map((test) => test.title),
     resourcesCleaned: Boolean(cleaned && passed), reportPath }));

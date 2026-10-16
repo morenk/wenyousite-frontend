@@ -174,4 +174,16 @@ HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source
 
 ## 普通链接音频投影
 
-音频以无 title 的顶层独立 `[音频](URL)` 保存，编辑态与旧端保持普通链接；仅服务端有效 mediaAudios 投影精确匹配才在阅读态升级播放器。保留自定义 label/marks 和相邻独立链接边界，不把内联、列表、引用、图片标签或无效投影升级。共享16正文/5无效投影语料随 Backend 已提交契约同步，详情见[音频模块](audio.md)。
+音频以无 title 的顶层独立 `[原文件名](URL)` 保存，文档模型与旧端保持普通链接；仅有效 mediaAudios 投影精确匹配才在编辑态和阅读态显示播放器。保留自定义 label/marks 和相邻独立链接边界，不把内联、列表、引用、图片标签或无效投影升级。共享16正文/5无效投影语料随 Backend 已提交契约同步，详情见[音频模块](audio.md)。
+
+## 文本颜色 v1
+
+主题正文、子贴正文、楼层与回复使用独立的文本颜色 v1，不改变全局 Markdown5 或角色提及 v6。受控标记为 <code>&lt;span data-wenyou-color-v1="#RRGGBB"&gt;文字&lt;/span&gt;</code>，仅接受不透明六位 RGB，规范化为大写。Web 无取色控件，读取、编辑和站内剪贴板保留已有颜色；动态、私信、标题不开放创建。默认文字仍由主题决定，自定义 RGB 在明暗主题保持原值，颜色内的粗体、链接和代码继承该前景，背景和下划线不变。
+
+颜色范围必须在单个物理行内、位于其他行内格式外层，不包含图片、贴纸、骰子、提及或传送门。解析只识别受控属性；不接纳任意 HTML、style 或事件属性，损坏标记沿既有安全字面降级。Milkdown 将交叉的颜色和其他格式拆为平衡范围，颜色边缘空白保留；保存前将实际文档与重新解析的彩色字符、RGB、共同格式及链接属性比较，失败则保留输入并阻止保存。源码定界符等价变化不代表格式丢失。
+
+所有 API 请求独立声明读取颜色能力，正文写入只在 meta 支持时发送 textColorVersion=1，包括删除全部颜色。缺失支持时原稿只读保留；能力变化重新核验当前正文，草稿恢复和自动保存也受同一保护。新写开关关闭仍声明可保源，真正改字、改色、改格式或复制新范围由后端门禁拒绝，输入留在编辑器。关闭期间等价转义、定界符和紧邻同色范围的拆合可保存。
+
+站内 clipboard v2 只保留通过校验的颜色属性；选区复制恢复颜色祖先，剪切/粘贴和单步撤销使用同一文档模型。v1 与无本站 envelope 的外部粘贴仍按既有兼容/可见文字规则，不从 CSS 猜颜色。共享语料为 [颜色 fixtures](../../contracts/markdown-text-color-v1-fixtures.json) 和 [schema](../../contracts/markdown-text-color-v1.schema.json)，受控代码、字符转义、恶意属性、边缘空白、邻接格式和关闭新写均纳入回归。实际 App 系统剪贴板保持纯文本；App 内部保色和保存后的跨端往返由对应消费者验证。
+
+跨端编码联验使用实际 Milkdown 入口：设置 `WENYOU_TEXT_COLOR_IMPORT` 为另一端的 `{source, saved?}[]` 测试内容产物，运行 `pnpm test src/components/editor/__tests__/text-color-roundtrip.test.ts`；`WENYOU_TEXT_COLOR_EXPORT` 输出本次真实解析和保存结果。产物与精确消费者 SHA、fixture SHA 分开登记，不传递未提交源码。转义的全体提及、骰子和站内地址是普通彩色字面，真实原子节点仍不能着色。

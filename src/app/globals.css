@@ -870,3 +870,8 @@ img.sticker-display {
 [data-toolbox-surface][data-embedded] [data-tool-panels] :where(div, fieldset, textarea, input, button) { min-width: 0; }
 [data-toolbox-surface][data-embedded] :where(input, textarea, [data-slot="select-trigger"]) { font-size: 16px; }
 [data-toolbox-surface][data-embedded] :where(input, button, [data-slot="select-trigger"]) { min-height: 44px; }
+
+/* 原样 RGB：内层组合格式不覆盖已声明的文字颜色。 */
+.wenyou-prose span[data-wenyou-color-v1] :is(strong, em, del, s, a, code) {
+  color: inherit;
+}

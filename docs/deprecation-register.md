@@ -66,4 +66,8 @@ Backend `6d1228cd8c128f24860ef99747aa923c461a595a` / API5.36 增加可选能力�
 
 ## 音频文件兼容
 
-Backend `cb44acaeb7fbc735fb569276aef00435bf24efe5` / API `5.37.0-dev.20261016.1` 兼容新增媒体 purpose、能力与可选投影，Web 消费 Foundation 正式 v7.3.0。普通无 title Markdown 链接为持久格式，旧端、缺失/无效投影、内联/列表/引用仍保持链接；关闭新上传不禁用已存在合法投影阅读。先兼容 Backend，后 Web/Mobile；回滚消费者只撤销上传/播放增强，不改历史数据与媒体 URL。没有旧协议满足清理四项证据，本次不清理兼容。详见[音频模块](modules/audio.md)。
+Backend `78685f48f0eeabf358fb4a6f5a4b0bca6b068a12` / API `5.39.0-dev.20261017.1` 兼容新增媒体 purpose、能力与可选投影，Web 消费 Foundation 正式 v7.4.0。普通无 title Markdown 链接为持久格式，旧端、缺失/无效投影、内联/列表/引用仍保持链接；关闭新上传不禁用已存在合法投影阅读。先兼容 Backend，后 Web/Mobile；回滚消费者只撤销上传/播放增强，不改历史数据与媒体 URL。没有旧协议满足清理四项证据，本次不清理兼容。详见[音频模块](modules/audio.md)。
+
+## 文本颜色 v1 保源兼容
+
+颜色为独立受控 Markdown 扩展，全局 Markdown5、角色提及 v6 和 clipboard v2 均继续保留。兼容 Backend 为无能力端返回安全去色副本并拒绝覆盖存有颜色的原文；Web 声明颜色能力，读取、编辑与草稿始终保源，没有取色入口。旧客户端不能作为新正文的无损编辑回退目标。回滚优先关闭新增颜色，保留支持读取与覆盖保护的兼容后端和消费者；没有历史数据迁移或旧协议清理。能力字段、错误与发布顺序见[API 契约](modules/api-contract.md#文本颜色-v1-能力协商)，格式见[正文协议](modules/markdown-content-protocol.md#文本颜色-v1)。

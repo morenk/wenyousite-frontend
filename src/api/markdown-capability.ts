@@ -6,5 +6,8 @@ import { queryKeys } from "./query-keys";
 export function markdownWriteCapability(client: QueryClient) {
   const meta = client.getQueryData<components["schemas"]["ApiMetaResponseDto"]>(queryKeys.meta);
   // undefined 也保留为自有字段，冻结请求可覆盖重试时新加载的能力；JSON 仍省略它。
-  return meta?.capabilities?.roleMentionsV6Supported ? { markdownContractVersion: 6 as const } : { markdownContractVersion: undefined };
+  return {
+    markdownContractVersion: meta?.capabilities?.roleMentionsV6Supported ? 6 as const : undefined,
+    textColorVersion: meta?.capabilities?.textColorV1Supported ? 1 as const : undefined,
+  };
 }

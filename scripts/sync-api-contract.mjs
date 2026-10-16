@@ -42,6 +42,10 @@ if (combinations.contract !== "wenyousite-markdown-inline-combinations" || combi
 if (JSON.parse(source.read(inlineCombinationFiles[1])).$schema !== "http://json-schema.org/draft-07/schema#") {
   throw new Error("后端行内格式组合 schema 无效");
 }
+const textColorFiles = ["markdown-text-color-v1-fixtures.json", "markdown-text-color-v1.schema.json"];
+const textColors = JSON.parse(source.read(textColorFiles[0]));
+if (textColors.version !== 1 || !Array.isArray(textColors.validCases) || !Array.isArray(textColors.invalidSources)) throw new Error("后端字体颜色契约不是 v1");
+if (JSON.parse(source.read(textColorFiles[1])).$schema !== "https://json-schema.org/draft/2020-12/schema") throw new Error("后端字体颜色 schema 无效");
 const behaviorFiles = ["rich-text-behavior-v1-fixtures.json", "rich-text-behavior-v1.schema.json", "rich-text-behavior-results-v1.schema.json"];
 for (const name of behaviorFiles) {
   const value = JSON.parse(source.read(name));
@@ -79,10 +83,4 @@ if (audio.version !== 1 || audio.markdownContractVersion !== 5 || !Array.isArray
   || !Array.isArray(audio.invalidProjectionCases)) throw new Error("后端音频契约不是 audio v1");
 if (JSON.parse(source.read(audioFiles[1])).$schema !== "https://json-schema.org/draft/2020-12/schema") throw new Error("后端音频 schema 无效");
 const names = [profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...audioFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
-// 在写入前读取全部内容，来源缺失时不留下半套契约。
-const contents = names.map((name) => [name, source.read(name)]);
-mkdirSync(target, { recursive: true });
-for (const [name, body] of contents) writeFileSync(resolve(target, name), body);
-for (const name of readdirSync(target).filter(isMarkdown)) if (!markdownFiles.includes(name)) unlinkSync(resolve(target, name));
-console.log("Synced API contract " + contract.info.version + " from " + source.description);
+  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...audioFiles, ...textColorFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];

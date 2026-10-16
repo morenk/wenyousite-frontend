@@ -135,7 +135,7 @@ describe("createAuthenticatedFetch", () => {
     const authenticatedFetch = createAuthenticatedFetch(fetchImpl);
     const response = await authenticatedFetch(
       new Request("https://wenyou.site/api/v1/notifications", {
-        headers: { Authorization: "Bearer old-token", "X-Markdown-Contract-Version": "6" },
+        headers: { Authorization: "Bearer old-token", "X-Markdown-Contract-Version": "6", "X-Text-Color-Version": "1" },
       }),
     );
 
@@ -147,6 +147,7 @@ describe("createAuthenticatedFetch", () => {
     const retriedRequest = new Request(fetchImpl.mock.calls[2][0]);
     expect(retriedRequest.headers.get("Authorization")).toBe("Bearer new-token");
     expect(retriedRequest.headers.get("X-Markdown-Contract-Version")).toBe("6");
+    expect(retriedRequest.headers.get("X-Text-Color-Version")).toBe("1");
     expect(getAuthAccessToken()).toBe("new-token");
     expect(getAuthSnapshot().user?.username).toBe("新用户");
     expect(localStorage.getItem("accessToken")).toBeNull();
@@ -345,5 +346,8 @@ test.each([false, true])("所有API读取包含Markdown6能力，SSR=%s也不被
   await apiClient.GET("/api/v1/meta", { baseUrl: "http://localhost" });
   await apiClient.POST("/api/v1/threads/{id}/export", { baseUrl: "http://localhost", params: { path: { id: "t1" } }, body: { format: "BOTH", includeAuthors: true, includeTimestamps: true, includeFloorNumbers: true, includeReplyTargets: true, includeSourceLinks: true, includeMedia: false } });
   expect(sent).toHaveLength(2);
-  for (const request of sent) expect(request.headers.get("X-Markdown-Contract-Version")).toBe("6");
+  for (const request of sent) {
+    expect(request.headers.get("X-Markdown-Contract-Version")).toBe("6");
+    expect(request.headers.get("X-Text-Color-Version")).toBe("1");
+  }
 });
