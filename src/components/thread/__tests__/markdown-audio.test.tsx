@@ -189,3 +189,13 @@ test("嵌套内外marks与前后段落兼容，阅读复制到编辑再阅读保
   view.rerender(<MarkdownContent content={content} mediaAudios={[media]} />); expect(view.container.querySelector("audio")).toBeNull();
  }
 });
+
+test.each(["after", "before", "both"])("独占br空段与音频 %s 相邻时保留原空段而不降级", (placement) => {
+ const media = fixture.cases[0].mediaAudios[0]; const link = `**[录音.wav](${media.sourceUrl})**`;
+ const before = placement !== "after" ? "<br />\n" : ""; const after = placement !== "before" ? "\n<br />" : "";
+ const { container } = render(<MarkdownContent content={before + link + after} mediaAudios={[media]} />);
+ expect(container.querySelectorAll('[data-slot="audio-player"]')).toHaveLength(1);
+ expect(container.querySelectorAll('[data-wenyou-empty-row]')).toHaveLength(placement === "both" ? 2 : 1);
+ expect(container.querySelector('[data-slot="audio-label"] br')).toBeNull();
+ expect(container.querySelector("audio")).not.toHaveAttribute("src");
+});

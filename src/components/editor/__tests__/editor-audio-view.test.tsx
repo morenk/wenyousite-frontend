@@ -140,3 +140,16 @@ test("播放器控件手势不启动父卡片拖动，结束后恢复卡片移�
   input.dispatchEvent(new PointerEvent("pointercancel", { bubbles: true })); expect(card.draggable).toBe(true); expect(e.view.state.doc).toBe(doc);
  } finally { await e.destroy(); }
 });
+
+test("音频前后独占br空段在PM保持独立，投影及往返不吞空行", async () => {
+ const e = await editor(`<br />\n[录音.wav](${media.sourceUrl})\n<br />`);
+ try {
+  expect(e.audio.getMounts()).toHaveLength(1);
+  expect(e.view.state.doc.childCount).toBe(3);
+  expect(e.view.state.doc.firstChild!.textContent).toBe(""); expect(e.view.state.doc.lastChild!.textContent).toBe("");
+  expect(e.markdown().match(/<br \/>/g)).toHaveLength(2);
+  const reopened = await editor(e.markdown());
+  try { expect(reopened.audio.getMounts()).toHaveLength(1); expect(reopened.view.state.doc.childCount).toBe(3); expect(reopened.markdown()).toBe(e.markdown()); }
+  finally { await reopened.destroy(); }
+ } finally { await e.destroy(); }
+});

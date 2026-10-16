@@ -135,3 +135,18 @@
   .progress { grid-column: 1 / -1; grid-row: 3; }
   .feedback { grid-column: 1 / -1; }
 }
+
+.uploadActions { display: flex; align-items: center; gap: 0.25rem; }
+.uploadActions button { min-width: 40px; min-height: 40px; padding: 0 0.25rem; font-size: 0.875rem; white-space: nowrap; border-radius: var(--radius-control); }
+.uploadActions button:hover { background: var(--accent); }
+.uploadActions button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@container audio-player (max-width: 22rem) {
+  .uploadActions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; flex-wrap: wrap; }
+}
+@container audio-player (max-width: 8rem) {
+  .uploadActions { grid-row: 4; }
+}
+
+.uploadProgress { display: flex; align-items: center; width: 100%; min-width: 0; height: 40px; }
+.uploadTrack { display: block; width: 100%; height: 3px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--muted-foreground) 20%, transparent); }
+.uploadFill { display: block; height: 100%; border-radius: inherit; background: var(--brand-strong); }

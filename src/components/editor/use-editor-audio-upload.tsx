@@ -13,6 +13,7 @@ import { isValidMediaAudio, type MarkdownMediaAudio } from "@/lib/markdown-audio
 import { loadAudioDraft, saveAudioDraft, removeAudioDraft, type AudioDraftRecord } from "@/lib/audio-draft";
 import { createAudioUploadAnchor } from "./editor-audio-anchor";
 import { toast } from "sonner";
+import { AudioUploadCard } from "@/components/shared/audio-player";
 
 /** 可变上传会话属于外部任务状态，React 只持有其稳定身份与展示快照。 */
 class UploadScope {
@@ -175,15 +176,10 @@ export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, use
     open,
     hasPending: () => scope.restoring || scope.file !== null,
     placeholder: ui.target && ui.status !== "idle" ? createPortal(
-      <div role="status" className="flex items-center gap-2 rounded-[var(--radius-compact)] border border-border bg-card px-3 py-2 text-sm">
-        <div className="min-w-0 flex-1">
-          <span className="block truncate">{ui.fileName}</span>
-          <span className="text-xs text-muted-foreground">{ui.status === "failed" ? ui.error : ui.status === "paused" ? "已暂停" : ui.progress?.stage === "processing" ? "处理中…" : `上传中 ${ui.progress?.percent ?? 0}%`}</span>
-        </div>
-        {ui.status === "uploading" ? <button type="button" onClick={() => scope.controller?.abort()}>取消</button>
-          : <button type="button" onClick={() => { if (scope.file) void run(scope.file); }}>{ui.status === "paused" ? "继续" : "重试"}</button>}
-        <button type="button" aria-label="移除音频上传" onClick={() => void remove()}>移除</button>
-      </div>, ui.target,
+      <AudioUploadCard fileName={ui.fileName} status={ui.status} progress={ui.progress} error={ui.error}
+        onCancel={() => scope.controller?.abort()}
+        onResume={() => { if (scope.file) void run(scope.file); }}
+        onRemove={() => void remove()} />, ui.target,
     ) : null,
   };
 }

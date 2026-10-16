@@ -11,6 +11,44 @@ import { cn } from "@/lib/utils";
 import styles from "./audio-player.module.css";
 import { audioTime, claimAudioPlayback, ownsAudioPlayback, releaseAudioPlayback } from "@/lib/audio-playback";
 
+/** 上传占位复用音频卡片外观；没有音源或持久文档节点。 */
+export function AudioUploadCard({ fileName, status, progress, error, onCancel, onResume, onRemove }: {
+  fileName: string;
+  status: "uploading" | "paused" | "failed";
+  progress: { stage: "uploading" | "processing"; percent?: number | null } | null;
+  error: string;
+  onCancel: () => void;
+  onResume: () => void;
+  onRemove: () => void;
+}) {
+  const processing = progress?.stage === "processing";
+  const percent = processing ? 100 : Math.min(100, Math.max(0, progress?.percent ?? 0));
+  const message = status === "failed" ? error : status === "paused" ? "已暂停"
+    : processing ? "处理中…" : `上传中 ${percent}%`;
+  return <div role="status" data-slot="audio-upload-card" className={cn(styles.player, "not-prose my-3 grid w-full items-center gap-3 rounded-[var(--radius-compact)] border border-border/50 bg-card px-3 py-2 text-foreground")}>
+    <button type="button" disabled aria-label="播放" className={cn(styles.playButton, "flex size-10 shrink-0 items-center justify-center rounded-full text-accent-foreground opacity-50")}>
+      <span className={styles.playFace}><span className={styles.icon} data-visible="true"><WenyouIcon id="media.play" className="size-5" /></span></span>
+    </button>
+    <div className={cn(styles.body, "min-w-0 flex-1")}>
+      <div className={cn(styles.heading, "flex min-w-0 items-baseline gap-3")}>
+        <span data-slot="audio-label" className={cn(styles.label, "min-w-0 flex-1 truncate text-base leading-6 text-foreground")}>{fileName}</span>
+        {status !== "failed" ? <span className={cn(styles.time, "shrink-0 text-xs tabular-nums text-muted-foreground")}>{message}</span> : null}
+      </div>
+      <div className={cn(styles.progress, "flex items-center")}>
+        <div role="progressbar" aria-label="音频上传进度" aria-valuemin={0} aria-valuemax={100}
+          aria-valuenow={processing ? undefined : percent} aria-valuetext={message} className={styles.uploadProgress}>
+          <span className={styles.uploadTrack}><span className={styles.uploadFill} style={{ width: `${percent}%` }} /></span>
+        </div>
+      </div>
+      {status === "failed" ? <span role="alert" className={cn(styles.feedback, "text-xs text-destructive")}>{error}</span> : null}
+    </div>
+    <div className={styles.uploadActions}>
+      {status === "uploading" ? <button type="button" onClick={onCancel}>取消</button> : <button type="button" onClick={onResume}>{status === "paused" ? "继续" : "重试"}</button>}
+      <button type="button" aria-label="移除音频上传" onClick={onRemove}>移除</button>
+    </div>
+  </div>;
+}
+
 /** 不在挂载、滚动或 hover 时设置 src；浏览器直接读取桶的 Range 响应。 */
 export function AudioPlayer(props: { media: MarkdownMediaAudio; children: ReactNode; showDownload?: boolean }) {
   const pathname = usePathname();

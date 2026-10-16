@@ -98,3 +98,39 @@ test("重开已入文完成草稿先保留投影，才清理文件记录", async
  expect(received.mock.invocationCallOrder[0]).toBeLessThan(mocks.remove.mock.invocationCallOrder[0]);
  hook.rerender(); expect(received).toHaveBeenCalledTimes(1); expect(mocks.insert).not.toHaveBeenCalled();
 });
+
+test("选中文件立即显示原名音频占位卡，无链接/音源；处理、取消、失败重试沿原状态", async () => {
+ mocks.upload.mockImplementationOnce(({ options }) => new Promise((_resolve, reject) => options.signal.addEventListener("abort", () => reject(options.signal.reason), { once: true })));
+ function Harness() {
+  const upload = useEditorAudioUpload(editor, "user1", "reply:card", false);
+  return <><button onClick={upload.open}>选择音频</button>{upload.placeholder}</>;
+ }
+ const mounted = render(<Harness />);
+ await waitFor(() => expect(mocks.load).toHaveBeenCalledTimes(1));
+ await act(async () => { fireEvent.click(screen.getByRole("button", { name: "选择音频" })); });
+ await waitFor(() => expect(mocks.upload).toHaveBeenCalledTimes(1));
+ const card = document.querySelector('[data-slot="audio-upload-card"]')!;
+ expect(card).toHaveTextContent(file.name); expect(card.querySelector("a,audio")).toBeNull();
+ expect(screen.getByRole("button", { name: "播放" })).toBeDisabled(); expect(screen.queryByRole("slider")).toBeNull();
+ expect(screen.getByRole("progressbar", { name: "音频上传进度" })).toHaveAttribute("aria-valuenow", "0");
+ act(() => mocks.upload.mock.calls[0][0].options.onProgress({ stage: "uploading", percent: 37 }));
+ expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuenow", "37");
+ expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "上传中 37%");
+ expect(screen.queryByRole("button", { name: "保存到本地" })).toBeNull();
+ act(() => mocks.upload.mock.calls[0][0].options.onProgress({ stage: "processing", percent: null }));
+ expect(card).toHaveTextContent("处理中");
+ expect(screen.getByRole("progressbar")).not.toHaveAttribute("aria-valuenow");
+ expect(screen.getByRole("progressbar")).toHaveAttribute("aria-valuetext", "处理中…");
+ expect(card.querySelector("audio")).toBeNull();
+ await act(async () => { fireEvent.click(screen.getByRole("button", { name: "取消", exact: true })); });
+ expect(card).toHaveTextContent("已暂停");
+ mocks.upload.mockRejectedValueOnce(new Error("处理失败"));
+ await act(async () => { fireEvent.click(screen.getByRole("button", { name: "继续" })); });
+ expect(screen.getByRole("alert")).toHaveTextContent("处理失败");
+ expect(screen.queryByText("上传失败", { exact: true })).toBeNull();
+ mocks.upload.mockResolvedValueOnce(completed);
+ await act(async () => { fireEvent.click(screen.getByRole("button", { name: "重试" })); });
+ expect(mocks.insert).toHaveBeenCalledWith(view, completed.sourceUrl, file.name);
+ expect(document.querySelector('[data-slot="audio-upload-card"]')).toBeNull();
+ mounted.unmount();
+});
