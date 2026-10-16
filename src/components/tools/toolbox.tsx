@@ -33,7 +33,7 @@ export function Toolbox({ selected, embedded = false }: { selected?: ToolId; emb
         )}>
           <WenyouIcon id={item.icon} className="size-5 shrink-0 text-brand-strong" />
           <h2 className="text-sm font-medium">{item.title}</h2>
-          <WenyouIcon id="navigation.forward" className="ml-auto size-4 shrink-0 text-muted-foreground" />
+          <WenyouIcon id="navigation.next" className="ml-auto size-4 shrink-0 text-muted-foreground" />
         </NavigationLink>)}
       </StackList>}
     </PageShell>

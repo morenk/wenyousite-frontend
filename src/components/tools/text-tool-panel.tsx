@@ -45,7 +45,7 @@ export function TextToolPanel({ tool, embedded = false }: { tool: "morse" | "fan
       </div>
       {tool === "morse" && <>
         {!embedded && <Controller name="mode" control={form.control} render={({ field }) => <ToolSelect disabled={!ready} label="转换方向" value={field.value} onChange={field.onChange} options={[{ id: "encode", label: "文字 → 摩斯码" }, { id: "decode", label: "摩斯码 → 文字" }]} />} />}
-        {embedded ? <details className="group text-sm text-muted-foreground"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-medium"><WenyouIcon id="navigation.next" className="size-4 transition-transform group-open:rotate-90" />字符与分隔规则</summary><p className="pt-2 leading-relaxed">支持 A–Z、0–9、é 和 . , ? &apos; / ( ) : = + - &quot; @。字符用空格分隔，单词用 / 分隔；解码为大写。</p></details> : <p className="text-sm leading-relaxed text-muted-foreground">支持 A–Z、0–9、é 和 . , ? &apos; / ( ) : = + - &quot; @。字符用空格分隔，单词用 / 分隔；解码为大写。</p>}
+        {embedded ? <details className="group text-sm text-muted-foreground"><summary className="flex min-h-11 cursor-pointer items-center gap-2 font-medium"><WenyouIcon id="navigation.expand" className="size-4 group-open:hidden" /><WenyouIcon id="navigation.collapse" className="hidden size-4 group-open:block" />字符与分隔规则</summary><p className="pt-2 leading-relaxed">支持 A–Z、0–9、é 和 . , ? &apos; / ( ) : = + - &quot; @。字符用空格分隔，单词用 / 分隔；解码为大写。</p></details> : <p className="text-sm leading-relaxed text-muted-foreground">支持 A–Z、0–9、é 和 . , ? &apos; / ( ) : = + - &quot; @。字符用空格分隔，单词用 / 分隔；解码为大写。</p>}
       </>}
       {tool === "fancy" && <>
         <ToolSelect label="分类" value={category} options={FANCY_CATEGORIES} disabled={!ready} embedded={embedded}

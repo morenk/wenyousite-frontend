@@ -35,7 +35,7 @@ export function ToolSelect({ label, value, onChange, options, disabled, embedded
     </Select>
   </div>;
 }
-export function ToolResult({ text, onDownload, scrollStart, resultClassName, embedded = false, entries, hideHeading = false }: { text: string; hideHeading?: boolean; onDownload?: () => void; scrollStart?: "left" | "right"; resultClassName?: string; embedded?: boolean; entries?: readonly string[] }) {
+export function ToolResult({ text, scrollStart, resultClassName, embedded = false, entries, hideHeading = false }: { text: string; hideHeading?: boolean; scrollStart?: "left" | "right"; resultClassName?: string; embedded?: boolean; entries?: readonly string[] }) {
   const { message, copy } = useToolCopy();
   const result = useRef<HTMLTextAreaElement>(null);
   const panel = useRef<HTMLElement>(null);
@@ -52,10 +52,9 @@ export function ToolResult({ text, onDownload, scrollStart, resultClassName, emb
   if (embedded && !text) return null;
   return <section ref={panel} className="scroll-mt-3 grid gap-3 rounded-[var(--radius-card)] bg-card p-5 sm:p-6" aria-label="转换结果">
     <div className="flex flex-wrap items-center justify-between gap-3">{!hideHeading && <h2 className="text-base font-normal">生成结果</h2>}
-      <div className="flex flex-wrap gap-2"><Button type="button" variant="outline" disabled={!text} onClick={() => { void copy(text); }}>
+      <Button type="button" variant="outline" disabled={!text} onClick={() => { void copy(text); }}>
         <WenyouIcon id="action.copy" />复制全部
       </Button>
-      {onDownload && <Button type="button" variant="outline" disabled={!text} onClick={onDownload}>下载结果</Button>}</div>
     </div>
     {embedded && entries ? <ul className="divide-y divide-border">{entries.map((entry, index) => <li key={`${index}-${entry}`} className="flex min-w-0 items-center gap-2 py-1">
       <span className="min-w-0 flex-1 select-text break-words text-base">{entry}</span>

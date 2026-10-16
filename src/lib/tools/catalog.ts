@@ -1,8 +1,8 @@
 export const TOOLS = [
-  { id: "vertical", title: "文字竖排", icon: "editor.alignment" },
+  { id: "vertical", title: "文字竖排", icon: "action.sort" },
   { id: "morse", title: "摩斯编码", icon: "editor.inline-code" },
   { id: "fancy", title: "花体字", icon: "editor.italic" },
-  { id: "names", title: "起名工具", icon: "content.roleplay" },
+  { id: "names", title: "起名工具", icon: "identity.member" },
 ] as const;
 export type ToolId = (typeof TOOLS)[number]["id"];
 export function isToolId(value: string): value is ToolId {

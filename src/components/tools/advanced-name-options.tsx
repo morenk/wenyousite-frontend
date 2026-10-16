@@ -3,6 +3,7 @@ import { useId } from "react";
 import type { Country } from "@/lib/tools/names";
 import { chronologicalAdvancedStyles, type AdvancedNameData, type AdvancedNameOptions } from "@/lib/tools/advanced-names";
 import { Button } from "@/components/ui/button";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { ToolSelect } from "./tool-controls";
 
 export type AdvancedSelection = Pick<AdvancedNameOptions, "mode" | "styleId" | "structureId"> & { enabled: boolean };
@@ -23,7 +24,7 @@ export function AdvancedNameOptionsPanel({ country, data, selection, onChange, o
     <button type="button" disabled={disabled} aria-expanded={selection.enabled} aria-controls={id}
       className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-sm font-normal" onClick={onToggle}>
       <span>进阶选项</span>
-      <span aria-hidden="true" className="text-muted-foreground">{selection.enabled ? "−" : "+"}</span>
+      <WenyouIcon id={selection.enabled ? "navigation.collapse" : "navigation.expand"} className="size-4 text-muted-foreground" />
     </button>
     {selection.enabled && <div id={id} className="grid min-w-0 gap-3 pt-2">
       {loading && <p role="status" className="text-sm text-muted-foreground">正在加载词库…</p>}
