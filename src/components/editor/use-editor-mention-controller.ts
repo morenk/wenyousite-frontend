@@ -69,7 +69,8 @@ export function useEditorMentionController({
     if (!view || !range) return;
 
     if (item.isGroup) {
-      view.dispatch(view.state.tr.insertText("@全体玩家 ", range.from, range.to));
+      const marks = view.state.selection.$from.marks().filter((mark) => mark.type.name !== "wenyouTextColor");
+      view.dispatch(view.state.tr.replaceWith(range.from, range.to, view.state.schema.text("@全体玩家 ", marks)));
     } else {
       if (!item.username) return;
       const transaction = userMentionTransaction(view.state, range, item.username, item.mentionHref ?? "/users/" + item.id);

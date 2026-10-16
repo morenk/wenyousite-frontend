@@ -1,3 +1,4 @@
+import { hasTextColorSource } from "@/lib/markdown-text-color";
 import { parseInlineMentionNodes } from "@/lib/mention";
 import { findUnsupportedMarkdownFormats } from "@/lib/markdown";
 
@@ -23,6 +24,7 @@ function assess(markdown: string, profile: ContentProfile | undefined, lossless:
   if (findUnsupportedMarkdownFormats(markdown, { markdownContractVersion: 5 }).length > 0)
     return deny("unsupported-markdown");
   const required = new Set(["base"]);
+  if (hasTextColorSource(markdown)) required.add("text-color-v1");
   if (parseInlineMentionNodes(markdown).some((node) => node.type === "mention" && node.sourceHref)) required.add("role-mentions");
   if (/^\[wenyousite-align-v1-(?:center|right)\]: #$/mu.test(markdown)) required.add("block-alignment");
   if (/^\[wenyousite-align-v1-(?:center|right)\]: #\n!\[/mu.test(markdown)) required.add("image-alignment");
@@ -38,7 +40,7 @@ export function assessEditorCompatibility(markdown: string, profile: string, los
 }
 
 /** 当前 Web 具备读取和失效保护，写能力还必须满足已知服务端版本。 */
-export function assessEditorInput(markdown: string, markdownContractVersion: number) {
+export function assessEditorInput(markdown: string, markdownContractVersion: number, textColorSupported = false) {
   const profile = profiles[`legacy-v${markdownContractVersion}`];
-  return assess(markdown, profile ? { ...profile, features: [...profile.features, ...protection] } : undefined, true);
+  return assess(markdown, profile ? { ...profile, features: [...profile.features, ...protection, ...(textColorSupported ? ["text-color-v1"] : [])] } : undefined, true);
 }

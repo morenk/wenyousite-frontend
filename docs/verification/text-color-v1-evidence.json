@@ -1,0 +1,173 @@
+{
+  "backendContractCommit": "2cdedbcdecee4991634cf4b256aa0f547b06d88c",
+  "backendRunnerCommit": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+  "finalRuntimeCommit": "9848ae0819256428936130e30aecdf8e4774c9c6",
+  "runs": [
+    {
+      "status": "failed",
+      "stage": "build",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": false,
+      "label": "构建类型失败；零浏览器测试",
+      "counts": {}
+    },
+    {
+      "runId": "e2e_48736754a2e2ac69a801e24d",
+      "status": "failed",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": false,
+      "label": "原完整套件",
+      "counts": {
+        "passed": 236,
+        "skipped": 13,
+        "failed": 10
+      }
+    },
+    {
+      "runId": "e2e_162c7310e53a778c70cf9db0",
+      "status": "failed",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": false,
+      "cleanupEventVerified": true,
+      "label": "第一次六文件定向复验",
+      "counts": {
+        "passed": 19,
+        "failed": 7
+      }
+    },
+    {
+      "runId": "e2e_71f49dfe269fc9e1daa37fae",
+      "status": "passed",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": true,
+      "cleanupEventVerified": true,
+      "label": "六文件26条通过；旧暗色截图作废",
+      "counts": {
+        "passed": 26
+      }
+    },
+    {
+      "runId": "e2e_69c56ee55910133c88acc703",
+      "status": "failed",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": false,
+      "cleanupEventVerified": true,
+      "label": "主题菜单测试定位错误",
+      "counts": {
+        "timedOut": 1
+      }
+    },
+    {
+      "runId": "e2e_da5b6f5847832ba2942746ba",
+      "status": "passed",
+      "backendSha": "4c8970894e104ff51a45b6dbed965a3c786a3233",
+      "resourcesRemoved": true,
+      "cleanupVerified": true,
+      "cleanupEventVerified": true,
+      "label": "合并dev后的颜色与空白/对齐17条",
+      "counts": {
+        "passed": 17
+      }
+    }
+  ],
+  "visual": {
+    "runId": "e2e_da5b6f5847832ba2942746ba",
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "ownerAccepted": false,
+    "filesSha256": {
+      "e2e_da5b6f5847832ba2942746ba-text-color-light.png": "488551a38d59f8d821758ffe167b3a4570d8a68464fee64ca94b7ecd093d5730",
+      "e2e_da5b6f5847832ba2942746ba-text-color-dark.png": "1cc536427bf83592c7dac248e4c65e967bd861f1d9a66aad4c86cd856d7bd8eb",
+      "e2e_da5b6f5847832ba2942746ba-text-color-editor-light.png": "80dbcd80170a97e63625988284694cf4cd1f08b93e1d9d4e47dc8566cc12be05",
+      "e2e_da5b6f5847832ba2942746ba-text-color-editor-dark.png": "692ab433661911b4e985f08c1024b22e41fda8036ff1d1db79927dde26b1ed2a"
+    }
+  },
+  "snapshotCause": [
+    {
+      "name": "home-1024",
+      "comparatorPixels": 121,
+      "bbox": [
+        39,
+        255,
+        56,
+        272
+      ],
+      "outsideMax": 0,
+      "actualSha256": "50fde8913552e6f9f898edab628ac006be866a6a86216238ad7c9e558f780b2b"
+    },
+    {
+      "name": "workspace-messages-1440",
+      "comparatorPixels": 121,
+      "bbox": [
+        128,
+        323,
+        145,
+        340
+      ],
+      "outsideMax": 0,
+      "actualSha256": "e6f4521a896b49d6043b2b3f6fa40e3cb377df6fca105e50ddc4af9f7d576206"
+    },
+    {
+      "name": "workspace-create-1440",
+      "comparatorPixels": 121,
+      "bbox": [
+        128,
+        323,
+        145,
+        340
+      ],
+      "outsideMax": 0,
+      "actualSha256": "a00067d84d19766851e6d3036822bf820e7059102778c54e6544037550d051fe"
+    },
+    {
+      "name": "home-dark-1440",
+      "comparatorPixels": 120,
+      "bbox": [
+        128,
+        255,
+        145,
+        272
+      ],
+      "outsideMax": 0,
+      "actualSha256": "0f133e51b79bb435449d5f14ab2d9dcbdcc8a1413939ad569dfb1c8fab154345"
+    },
+    {
+      "name": "home-1920",
+      "comparatorPixels": 121,
+      "bbox": [
+        368,
+        255,
+        385,
+        272
+      ],
+      "outsideMax": 0,
+      "actualSha256": "764035f2fb5dc628695a6f5c32a38df0cd61875ce5f381123426e5d92de64f6b"
+    },
+    {
+      "name": "home-1440",
+      "comparatorPixels": 121,
+      "bbox": [
+        128,
+        255,
+        145,
+        272
+      ],
+      "outsideMax": 0,
+      "actualSha256": "db8ad298b7939518c1cdbd418a41cdb3251c46e4dce58957ca0846ad1bfe3719"
+    }
+  ],
+  "finalCheck": {
+    "command": "pnpm check",
+    "sourceCommit": "9848ae0819256428936130e30aecdf8e4774c9c6",
+    "exitCode": 0,
+    "testFilesPassed": 383,
+    "testsPassed": 5021
+  }
+}

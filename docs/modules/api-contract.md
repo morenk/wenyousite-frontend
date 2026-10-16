@@ -140,3 +140,11 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 新后端候选始终传 `includeIdentities=true`，即使新写关闭；空列表不得回退兼容主身份，`@全体玩家` 独立。显式 ACCOUNT 和各 RP 使用 `candidateKey`，插入 `mentionHref`/`mentionLabel`，不按账号合并同名角色。旧 bare 历史节点保留。`40014`/`40015` 保留草稿并刷新能力/候选。
 
 固定语料 `contracts/markdown-v6-role-mentions-fixtures.json` 随 OpenAPI 同步校验。源语法、复制与显示边界见[正文协议](markdown-content-protocol.md#平级角色提及-v6-扩展)。
+
+## 文本颜色 v1 能力协商
+
+Web 从 Backend 已提交 `2cdedbcdecee4991634cf4b256aa0f547b06d88c`（API5.38.0-dev.20261016.1）同步独立 textColorV1Supported / textColorV1WriteEnabled、正文及草稿 DTO 的可选 textColorVersion=1、40016/40017/40018 错误码，以及颜色和 clipboard v2 黄金用例。精确来源在本批 PR 交付记录中列出；同步与检查必须同时指定 WENYOUSITE_BACKEND_ROOT 和 BACKEND_CONTRACT_REF，沿 contract:sync / generate:api 生成，不手改类型。
+
+apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Color-Version: 1，保留既有角色提及头。supported 缺省为 false；支持时全部相关正文写入发送颜色版本，即使正文已去色。冻结请求保留“明确省略”状态，重试时不能因 meta 刷新自动改变请求能力。新写关闭不代表失去读取/保源能力；40016/40017 刷新 meta 并保留编辑输入。无能力读副本和覆盖拒绝由 Backend 实施，代理继续保留 Vary。
+
+发布顺序为兼容后端 → 可读保源消费者 → 显式批准开启新写。Web 锁定正式 Foundation v7.4.0；具体正文与复制规则见[正文协议](markdown-content-protocol.md#文本颜色-v1)，不删除现存协议或迁移历史数据。

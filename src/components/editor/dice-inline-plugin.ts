@@ -1,3 +1,4 @@
+import { TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import { $nodeSchema, $prose, $remark } from "@milkdown/kit/utils";
 import { Fragment, Slice, type Node as ProseNode } from "@milkdown/kit/prose/model";
 import { Plugin } from "@milkdown/kit/prose/state";
@@ -20,7 +21,7 @@ type MarkdownNode = {
 };
 
 function transformMarkdownTextNodes(node: MarkdownNode) {
-  if (!node.children) return;
+  if (!node.children || node.type === TEXT_COLOR_MARK) return;
   const matcher = new RegExp(DICE_INLINE_MARKER_SOURCE, "giu");
   const children: MarkdownNode[] = [];
 

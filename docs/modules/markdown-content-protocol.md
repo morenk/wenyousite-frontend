@@ -171,3 +171,15 @@ revision 2 精确示例：`[wenyousite-align-v1-center]: #\n甲\n\n乙` 显示�
 HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source-label`（含 `@`）成对保源，粘贴时严格验证；纯文本仅复制当前显示投影。编辑器 DOM 装饰不修改 ProseMirror 节点，粗斜体、引用、剪切/复制/粘贴保留完整目标。跨主题发布仍由后端验证，不静默转成账号。
 
 能力支持与新写开关分开：支持 v6 的客户端即使新增关闭仍可编辑、重排或删除原有源；无能力或服务端拒绝时保留正文。导出 `.md/.txt` 是安全展示副本，header6 额外的 `identity-sources.json` 才是原源清单，关闭期间也可能含历史称呼，不能混为当前显示。全局 Markdown5及旧写保护保留，本批不激活线上新写。
+
+## 文本颜色 v1
+
+主题正文、子贴正文、楼层与回复使用独立的文本颜色 v1，不改变全局 Markdown5 或角色提及 v6。受控标记为 <code>&lt;span data-wenyou-color-v1="#RRGGBB"&gt;文字&lt;/span&gt;</code>，仅接受不透明六位 RGB，规范化为大写。Web 无取色控件，读取、编辑和站内剪贴板保留已有颜色；动态、私信、标题不开放创建。默认文字仍由主题决定，自定义 RGB 在明暗主题保持原值，颜色内的粗体、链接和代码继承该前景，背景和下划线不变。
+
+颜色范围必须在单个物理行内、位于其他行内格式外层，不包含图片、贴纸、骰子、提及或传送门。解析只识别受控属性；不接纳任意 HTML、style 或事件属性，损坏标记沿既有安全字面降级。Milkdown 将交叉的颜色和其他格式拆为平衡范围，颜色边缘空白保留；保存前将实际文档与重新解析的彩色字符、RGB、共同格式及链接属性比较，失败则保留输入并阻止保存。源码定界符等价变化不代表格式丢失。
+
+所有 API 请求独立声明读取颜色能力，正文写入只在 meta 支持时发送 textColorVersion=1，包括删除全部颜色。缺失支持时原稿只读保留；能力变化重新核验当前正文，草稿恢复和自动保存也受同一保护。新写开关关闭仍声明可保源，真正改字、改色、改格式或复制新范围由后端门禁拒绝，输入留在编辑器。关闭期间等价转义、定界符和紧邻同色范围的拆合可保存。
+
+站内 clipboard v2 只保留通过校验的颜色属性；选区复制恢复颜色祖先，剪切/粘贴和单步撤销使用同一文档模型。v1 与无本站 envelope 的外部粘贴仍按既有兼容/可见文字规则，不从 CSS 猜颜色。共享语料为 [颜色 fixtures](../../contracts/markdown-text-color-v1-fixtures.json) 和 [schema](../../contracts/markdown-text-color-v1.schema.json)，受控代码、字符转义、恶意属性、边缘空白、邻接格式和关闭新写均纳入回归。实际 App 系统剪贴板保持纯文本；App 内部保色和保存后的跨端往返由对应消费者验证。
+
+跨端编码联验使用实际 Milkdown 入口：设置 `WENYOU_TEXT_COLOR_IMPORT` 为另一端的 `{source, saved?}[]` 测试内容产物，运行 `pnpm test src/components/editor/__tests__/text-color-roundtrip.test.ts`；`WENYOU_TEXT_COLOR_EXPORT` 输出本次真实解析和保存结果。产物与精确消费者 SHA、fixture SHA 分开登记，不传递未提交源码。转义的全体提及、骰子和站内地址是普通彩色字面，真实原子节点仍不能着色。

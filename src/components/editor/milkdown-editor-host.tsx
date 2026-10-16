@@ -2,6 +2,7 @@
 
 "use client";
 
+import { editorTextColorSchema, editorTextColorAtomicPolicy } from "./editor-text-color";
 import type { MentionIdentity } from "@/lib/thread-identity";
 
 
@@ -237,6 +238,7 @@ export interface MilkdownEditorHostProps {
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
+  textColorVersion?: 1;
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
@@ -261,6 +263,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   mediaDisplays,
   mentionIdentities,
   markdownContractVersion,
+  textColorVersion,
   editorRef,
   onValidityChange,
   onChange,
@@ -796,6 +799,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           onSyncErrorChangeRef.current?.(hasError);
         },
         markdownContractVersion,
+        textColorVersion,
         onReady: (flush) => { flushRef.current = flush; },
         onValid: () => onValidityRef.current?.(true),
         onChange: (markdown) => {
@@ -818,6 +822,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
 
         .use(internalReferenceLinkView)
         .use(editorMentionCaretPlugin)
+        .use(editorTextColorSchema)
+        .use(editorTextColorAtomicPolicy)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
@@ -835,7 +841,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
 
       return crepe;
     },
-    [capabilityReady, markdownContractVersion],
+    [capabilityReady, markdownContractVersion, textColorVersion],
   );
 
   useEffect(() => {

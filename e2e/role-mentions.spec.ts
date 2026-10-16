@@ -143,6 +143,7 @@ test("平级角色@保留同名目标、账号通知去重、复制编辑和新�
     });
     await closedFloor.getByRole("button", { name: "更多楼层操作", exact: true }).click();
     await senderPage.getByRole("menuitem", { name: "复制内容", exact: true }).click();
+    await senderPage.waitForFunction(() => typeof (window as unknown as { copied?: { html?: string } }).copied?.html === "string");
     const copied = await senderPage.evaluate(() => (window as unknown as { copied: { html: string; text: string } }).copied);
     expect(copied.html).toContain("?rpIdentityId=" + a.identityId);
     expect(copied.html).toContain("?rpIdentityId=" + b.identityId);

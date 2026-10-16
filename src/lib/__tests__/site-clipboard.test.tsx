@@ -456,3 +456,30 @@ test("不信任单个或非法提及来源属性", () => {
   expect(copied.html).not.toContain("data-wenyou-mention-source");
   expect(copied.html).not.toContain("javascript");
 });
+
+test("颜色只经站内v2属性保留，选区复制恢复颜色祖先", () => {
+  const root = document.createElement("div");
+  root.innerHTML = '<p><span data-wenyou-color-v1="#a1b2c3" style="position:fixed"><strong>中文颜色</strong></span></p>';
+  document.body.append(root);
+  const range = document.createRange(); const text = root.querySelector("strong")!.firstChild!;
+  range.setStart(text, 1); range.setEnd(text, 3);
+  const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+  const selected = createReaderSelectionClipboardPayload(root, selection)!;
+  expect(selected.text).toBe("文颜");
+  expect(selected.html).toContain('<span data-wenyou-color-v1="#A1B2C3"><strong>文颜</strong></span>');
+  expect(selected.html).not.toContain("style");
+  const old = parseSiteClipboardHtml(selected.html.replace('data-wenyou-clipboard="2"', 'data-wenyou-clipboard="1"'))!;
+  expect(old.html).not.toContain("data-wenyou-color-v1");
+  selection.removeAllRanges(); root.remove();
+});
+
+test.each([
+  '<span style="color:red">无属性</span>',
+  '<span data-wenyou-color-v1="#123">简写</span>',
+  '<span data-wenyou-color-v1="#123456"><a href="/users/c111111111111111111111111">@用户</a></span>',
+  '<span data-wenyou-color-v1="#123456">甲<br>乙</span>',
+])("剪贴板不继承非法颜色 %s", (html) => {
+  const payload = parseSiteClipboardHtml('<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="editor">' + html + '</div>')!;
+  expect(payload.html).not.toContain("data-wenyou-color-v1");
+  expect(payload.html).not.toContain("style=");
+});
