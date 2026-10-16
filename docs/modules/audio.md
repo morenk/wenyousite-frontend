@@ -2,7 +2,7 @@
 
 状态：`active`
 
-接口来源为 Backend `cb44acaeb7fbc735fb569276aef00435bf24efe5` 的 OpenAPI `5.37.0-dev.20261016.1`、`markdown-audio-v1-fixtures.json` 与 schema；体验和图标消费 Foundation 正式 `v7.3.0`。不引入录音、封面、波形或新的 Markdown 格式。
+接口来源为 Backend `9159729106cefb883726121dc9f94c0b164678c1` 的 OpenAPI `5.38.0-dev.20261017.1`、`markdown-audio-v1-fixtures.json` 与 schema；体验和图标消费 Foundation 正式 `v7.3.0`。不引入录音、封面、波形或新的 Markdown 格式。
 
 ## 上传入口与本机布局
 
@@ -14,7 +14,9 @@
 
 - 接受 MP3、M4A、WAV、OGG、FLAC，按能力验证 MIME（兼容常见别名，空/通用二进制 MIME 按支持扩展名回退，video/mp4 归一化为 audio/mp4）；输入最多 30 MiB，实际时长由后端处理校验，最多 10 分钟。播放副本由后端归一化为 `audio/mpeg`。
 - `useUploadAudio` 经 `apiClient` 获取 `RICH_CONTENT_AUDIO` 预约。XHR 仅向返回的预签名 URL PUT，携带文件 Content-Type，不携带 API Bearer。确认与查询都核对账号、mediaId 和 purpose，只有有效 `COMPLETED` 投影才插入正文。
-- `UPLOADING` 恢复先确认；仅 `40419` 缺对象才重签同一 ID 后再直传。`PROCESSING` 受控轮询，超时/断网保留恢复入口；`FAILED` 显示受控错误，重试重新预约。不自动重试网络失败或恢复后台任务。
+- `UPLOADING` 恢复先确认；仅 `40419` 缺对象才重签同一 ID 后再直传。`PROCESSING` 按 1、2、4、8、10 秒间隔查询，随后维持 10 秒，同一资源不并发。前台编辑会话活跃时不因本机等待 120 秒而失败；后台、pagehide、取消、卸载或换账号停止查询，回到前台不自动续传，显式继续先查询原 mediaId。单次 API 请求 30 秒未返回时失败并保留预约；`FAILED` 显示受控错误，重试重新预约。不自动重试网络失败或恢复后台任务。
+- 传输遵循治理仓库 [audio-transfer-policy](https://github.com/morenk/wenyousite-workspace/blob/21f0a939b3a9f5e41aa9816b44628fe0b3de59da/docs/audio-transfer-policy.md)：音频上传和下载独立限制总计 5 分钟、30 秒无字节进展；重复 progress/空 chunk 不延长等待。内部超时是可重试失败，用户取消/后台暂停不显示失败；完成、错误、取消清理计时器与监听。浏览器 XHR/fetch 不暴露独立连接阶段，不能可靠区分并配置额外 15 秒连接限时。共享图片 PUT 行为不变。
+- HTTP 429 的 `42901 AUDIO_ACTIVE_LIMIT` / `42902 AUDIO_DAILY_BYTES_LIMIT` 保留服务端简短提示、本机 File 和已有预约，不自动新建或 PUT；每日预算在 UTC 次日允许新建，活动预算恢复后仍复用原 mediaId。客户端不自行估算剩余额度，服务端为事实源。
 - 选择文件后立即在插入点显示原文件名音频卡片，复用正文播放器的纯色表面、播放按钮与轨道；上传/处理/失败/暂停沿原状态显示，取消、继续、重试和移除仍由用户操作。轨道以 progressbar 语义显示真实上传百分比；处理中保留上传已完成轨道并报告处理状态，不伪造播放进度。未完成时播放禁用，轨道不可 seek，没有链接、音源或保存入口；完成后原位变为可信播放器。占位使用 ProseMirror decoration，随文档事务映射位置，不进入 Markdown、撤销正文或云草稿。取消会中止请求并保留本机状态；继续或移除由用户明确触发。未完成上传或正在恢复本机记录时阻止发布。
 - IndexedDB `wenyousite-audio-drafts` 保存 File、mediaId、已完成结果，按账号和正文/回复目标分组；刷新/重新打开只恢复占位，不发请求。编辑目标或账号切换会失效旧操作 generation、abort 并清空内存占位，旧目标本机记录仍保留。恢复完整结果不依赖新上传能力，也不重复上传。
 - 本机记录保留七天，后续访问/保存时清理过期项；用户移除则删除。成功插入后保留完成记录，下一次打开若正文已包含对应链接则移除，避免插入与正文草稿保存之间刷新丢失结果。刷新恢复插入点使用当前正文段落位置，不承诺恢复此前光标坐标。本机保存失败保留错误，不冒称可恢复。
@@ -39,7 +41,7 @@
 
 仅阅读态播放器右侧提供 Foundation `action.download` 图标，名称为“保存到本地”。点击才以 `credentials: omit`、`referrerPolicy: no-referrer` 直接请求公开音频 URL，不使用业务 API 代理、不携带 Cookie/令牌。跨源保存需要媒体入口允许 CORS；不是依赖跨源 `a[download]`。
 
-响应必须为成功的 `audio/mpeg`，声明大小（如有）和实际读取字节都必须匹配可信投影，并受 30 MiB 上限限制。流读完后才创建 Blob 下载，45 秒超时，拒绝的响应立即取消读取。下载中同一按钮变为“取消保存”，取消或卸载中止请求；失败显示就近错误，可显式重试。Object URL 在后续保存、卸载或延迟回收时释放。
+响应必须为成功的 `audio/mpeg`，声明大小（如有）和实际读取字节都必须匹配可信投影，并受 30 MiB 上限限制。流读完后才创建 Blob 下载，使用上述 5 分钟总时限和 30 秒无字节进展时限，拒绝的响应立即取消读取。下载中同一按钮变为“取消保存”，取消或卸载中止请求；失败显示就近错误，可显式重试。Object URL 在后续保存、卸载或延迟回收时释放。
 
 下载名从可见 label 去除格式与不安全路径/控制字符生成，统一以真实播放副本的 `.mp3` 扩展保存；正文仍显示原文件名，包括原来的 `.wav` 等后缀。不改变播放进度、音源加载时机或编辑器文档。
 

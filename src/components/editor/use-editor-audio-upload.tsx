@@ -134,7 +134,7 @@ export function useEditorAudioUpload(editor: RefObject<CrepeBuilder | null>, use
         try { await saveAudioDraft(scope.backup); } catch { update({ status: "failed", error: "本机音频保存失败，请重试" }); return; }
       }
       if (!valid()) return;
-      update(controller.signal.aborted ? { status: "paused" } : { status: "failed", error: getApiErrorMessage(failure, "音频上传失败，请重试") });
+      update(controller.signal.aborted || (failure instanceof DOMException && failure.name === "AbortError") ? { status: "paused" } : { status: "failed", error: getApiErrorMessage(failure, "音频上传失败，请重试") });
     } finally { if (valid()) scope.finishRequest(); }
   };
   const open = () => {

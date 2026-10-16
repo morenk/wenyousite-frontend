@@ -4,6 +4,7 @@ import { getApiErrorMessage, hasApiErrorCode } from "@/api/errors";
 import { getAuthSnapshot, subscribeAuthStore } from "@/lib/auth-store";
 import { isValidMediaAudio, type MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { putMediaFile } from "@/lib/upload-media-file";
+import { AUDIO_TRANSFER_TOTAL_MS, withAudioTransfer } from "@/lib/audio-transfer";
 
 export type AudioUploadCapability = components["schemas"]["AudioUploadCapabilityDto"];
 type Media = components["schemas"]["MediaResponseDto"];
@@ -50,13 +51,16 @@ function verifyMedia(media: Media, mediaId: string, userId: string): Media {
   if (media.id !== mediaId || media.userId !== userId || media.purpose !== "RICH_CONTENT_AUDIO") throw new Error("音频响应不匹配，请重试");
   return media;
 }
+function audioRequest<T>(signal: AbortSignal, request: (signal: AbortSignal) => Promise<T>) {
+  return withAudioTransfer(signal, "音频请求超时，请重试", request);
+}
 async function getMedia(mediaId: string, userId: string, signal: AbortSignal) {
-  const result = await apiClient.GET("/api/v1/media/{id}", { params: { path: { id: mediaId } }, signal });
+  const result = await audioRequest(signal, (signal) => apiClient.GET("/api/v1/media/{id}", { params: { path: { id: mediaId } }, signal }));
   if (!result.data) throw new Error(getApiErrorMessage(result.error, "音频状态读取失败，请重试"));
   return verifyMedia(result.data.data, mediaId, userId);
 }
 async function confirm(mediaId: string, userId: string, signal: AbortSignal) {
-  const result = await apiClient.POST("/api/v1/media/upload-done", { body: { mediaId }, signal });
+  const result = await audioRequest(signal, (signal) => apiClient.POST("/api/v1/media/upload-done", { body: { mediaId }, signal }));
   if (!result.data) throw result.error ?? new Error("音频确认失败，请重试");
   return verifyMedia(result.data.data.media, mediaId, userId);
 }
@@ -65,7 +69,6 @@ async function confirm(mediaId: string, userId: string, signal: AbortSignal) {
 export async function uploadAudio(file: File, capability: AudioUploadCapability, options: {
   signal?: AbortSignal;
   onProgress?: (progress: AudioUploadProgress) => void;
-  processingTimeoutMs?: number;
   resume?: { mediaId: string };
   onReservation?: (reservation: { mediaId: string }) => Promise<void>;
 } = {}): Promise<MarkdownMediaAudio> {
@@ -79,6 +82,10 @@ export async function uploadAudio(file: File, capability: AudioUploadCapability,
   if (options.signal?.aborted) abort();
   const unsubscribe = subscribeAuthStore(() => { if (getAuthSnapshot().user?.id !== userId) { reservations.delete(file); abort(); } });
   const signal = controller.signal;
+  const hidden = () => { if (document.visibilityState === "hidden") abort(); };
+  document.addEventListener("visibilitychange", hidden);
+  window.addEventListener("pagehide", abort);
+  hidden();
   try {
     signal.throwIfAborted();
     const input = file.type === audioFileMime(file) ? file : new File([file], file.name, { type: audioFileMime(file), lastModified: file.lastModified });
@@ -93,16 +100,17 @@ export async function uploadAudio(file: File, capability: AudioUploadCapability,
         try { media = await confirm(reservation.mediaId, userId, signal); }
         catch (error) {
           if (!hasApiErrorCode(error, 40419)) throw error;
-          const result = await apiClient.POST("/api/v1/media/{id}/upload-url", { params: { path: { id: reservation.mediaId } }, signal });
+          const mediaId = reservation.mediaId;
+          const result = await audioRequest(signal, (signal) => apiClient.POST("/api/v1/media/{id}/upload-url", { params: { path: { id: mediaId } }, signal }));
           if (!result.data) throw result.error ?? new Error("无法继续上传，请重试");
           if (result.data.data.mediaId !== reservation.mediaId) throw new Error("音频续传响应不匹配，请重试");
           uploadUrl = result.data.data.uploadUrl;
         }
       }
     } else {
-      const result = await apiClient.POST("/api/v1/media/upload-url", {
+      const result = await audioRequest(signal, (signal) => apiClient.POST("/api/v1/media/upload-url", {
         body: { filename: file.name, contentType: input.type as AudioUploadCapability["contentTypes"][number], size: input.size, purpose: "RICH_CONTENT_AUDIO" }, signal,
-      });
+      }));
       if (!result.data) throw result.error ?? new Error("无法开始上传，请重试");
       if (!result.data.data.mediaId?.trim()) throw new Error("音频预约响应无效，请重试");
       reservation = { userId, mediaId: result.data.data.mediaId };
@@ -112,18 +120,21 @@ export async function uploadAudio(file: File, capability: AudioUploadCapability,
     }
     signal.throwIfAborted();
     if (uploadUrl) {
-      await putMediaFile(uploadUrl, input, signal, 120_000, (loaded, total) => options.onProgress?.({ stage: "uploading", percent: Math.round(loaded / total * 100) }));
+      await withAudioTransfer(signal, "上传超时，请检查网络后重试", (signal, progress) =>
+        putMediaFile(uploadUrl, input, signal, AUDIO_TRANSFER_TOTAL_MS, (loaded, total) => {
+          if (signal.aborted) return;
+          progress(loaded);
+          options.onProgress?.({ stage: "uploading", percent: Math.round(loaded / total * 100) });
+        }));
       signal.throwIfAborted();
       media = await confirm(reservation.mediaId, userId, signal);
     }
-    const deadline = Date.now() + (options.processingTimeoutMs ?? 120_000);
     let attempt = 0;
     while (media?.status !== "COMPLETED") {
       signal.throwIfAborted();
       if (media?.status === "FAILED") { reservations.delete(file); throw failed(media); }
-      if (Date.now() >= deadline) throw new Error("音频仍在处理中，请稍后继续");
       options.onProgress?.({ stage: "processing", percent: null });
-      await delay(Math.min(500 * 2 ** attempt++, 4_000), signal);
+      await delay([1_000, 2_000, 4_000, 8_000, 10_000][Math.min(attempt++, 4)], signal);
       media = await getMedia(reservation.mediaId, userId, signal);
     }
     signal.throwIfAborted();
@@ -132,6 +143,8 @@ export async function uploadAudio(file: File, capability: AudioUploadCapability,
     return result;
   } finally {
     unsubscribe();
+    document.removeEventListener("visibilitychange", hidden);
+    window.removeEventListener("pagehide", abort);
     options.signal?.removeEventListener("abort", abort);
   }
 }

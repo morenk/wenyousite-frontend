@@ -134,3 +134,23 @@ test("选中文件立即显示原名音频占位卡，无链接/音源；处理�
  expect(document.querySelector('[data-slot="audio-upload-card"]')).toBeNull();
  mounted.unmount();
 });
+
+for (const [name, expected] of [["TimeoutError", "failed"], ["AbortError", "paused"]]) test(`${name}保持超时失败和后台暂停区别`, async () => {
+ mocks.upload.mockRejectedValueOnce(new DOMException("上传超时，请检查网络后重试", name));
+ function Harness() { const upload = useEditorAudioUpload(editor, "user1", "reply:timeouts", false); return <><button onClick={upload.open}>选择音频</button>{upload.placeholder}</>; }
+ render(<Harness />); await waitFor(() => expect(mocks.load).toHaveBeenCalledTimes(1));
+ await act(async () => fireEvent.click(screen.getByRole("button", { name: "选择音频" })));
+ if (expected === "failed") { expect(screen.getByRole("alert")).toHaveTextContent("上传超时"); expect(screen.getByRole("button", { name: "重试" })).toBeInTheDocument(); }
+ else { expect(screen.queryByRole("alert")).toBeNull(); expect(screen.getByRole("button", { name: "继续" })).toBeInTheDocument(); }
+});
+
+for (const code of [42901, 42902]) test(`预算${code}保留本机文件和预约，仅用户重试恢复`, async () => {
+ mocks.upload.mockImplementationOnce(async ({ options }) => { await options.onReservation({ mediaId: "media1" }); throw { code, message: "音频任务预算限制" }; });
+ function Harness() { const upload = useEditorAudioUpload(editor, "user1", "reply:budget", false); return <><button onClick={upload.open}>选择音频</button>{upload.placeholder}</>; }
+ render(<Harness />); await waitFor(() => expect(mocks.load).toHaveBeenCalledTimes(1));
+ await act(async () => fireEvent.click(screen.getByRole("button", { name: "选择音频" })));
+ expect(screen.getByRole("alert")).toHaveTextContent("音频任务预算限制"); expect(mocks.upload).toHaveBeenCalledTimes(1); expect(mocks.remove).not.toHaveBeenCalled();
+ expect(mocks.save.mock.calls.at(-1)![0]).toMatchObject({ mediaId: "media1", file });
+ mocks.upload.mockResolvedValueOnce(completed); await act(async () => fireEvent.click(screen.getByRole("button", { name: "重试" })));
+ expect(mocks.upload.mock.calls[1][0].options.resume).toEqual({ mediaId: "media1" });
+});

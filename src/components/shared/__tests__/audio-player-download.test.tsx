@@ -31,10 +31,9 @@ test("挂起下载可用同按钮取消，状态归位且可重新发起；卸�
  view.unmount(); expect(download.mock.calls[1][1].aborted).toBe(true);
 });
 test("超时解除busy，显示显式重试", async () => {
- vi.useFakeTimers(); pending(); render(<AudioPlayer media={media}>音频</AudioPlayer>);
- fireEvent.click(screen.getByRole("button", { name: "保存到本地" }));
- await act(async () => { await vi.advanceTimersByTimeAsync(45_000); });
- expect(download.mock.calls[0][1].reason.name).toBe("TimeoutError"); expect(screen.getByRole("button", { name: "保存到本地" })).toHaveAttribute("aria-busy", "false"); expect(screen.getByRole("alert")).toHaveTextContent("保存失败");
+ download.mockRejectedValueOnce(new DOMException("保存超时", "TimeoutError")); render(<AudioPlayer media={media}>音频</AudioPlayer>);
+ await act(async () => fireEvent.click(screen.getByRole("button", { name: "保存到本地" })));
+ expect(download.mock.calls[0][1].aborted).toBe(false); expect(screen.getByRole("button", { name: "保存到本地" })).toHaveAttribute("aria-busy", "false"); expect(screen.getByRole("alert")).toHaveTextContent("保存失败");
 });
 
 test("编辑态不提供保存入口，阅读态默认保留，切换不加载音源", () => {

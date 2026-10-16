@@ -82,7 +82,6 @@ function AudioPlayerBody({ media, children, showDownload = true }: { media: Mark
     if (downloadRef.current) { downloadRef.current.abort(); return; }
     const controller = new AbortController(); downloadRef.current = controller;
     setSaving(true); setSaveFailed(false);
-    const timeout = setTimeout(() => controller.abort(new DOMException("保存超时", "TimeoutError")), 45_000);
     try {
       const blob = await downloadAudioBlob(media, controller.signal); controller.signal.throwIfAborted();
       if (downloadUrl.current) URL.revokeObjectURL(downloadUrl.current);
@@ -93,7 +92,6 @@ function AudioPlayerBody({ media, children, showDownload = true }: { media: Mark
       downloadTimer.current = setTimeout(() => { URL.revokeObjectURL(url); downloadUrl.current = null; downloadTimer.current = null; }, 60_000);
     } catch { if (mounted.current && (!controller.signal.aborted || controller.signal.reason?.name === "TimeoutError")) setSaveFailed(true); }
     finally {
-      clearTimeout(timeout);
       if (downloadRef.current === controller) downloadRef.current = null;
       if (mounted.current) setSaving(false);
     }
