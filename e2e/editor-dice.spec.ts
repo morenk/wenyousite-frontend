@@ -288,6 +288,10 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "左对齐" })).toHaveCount(0);
   await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "居中对齐" }))
     .toHaveAttribute("aria-checked", "false");
+  // 明确取键盘焦点态，避免指针打开时的焦点可见性影响圆角外的 outline。
+  await expect(moreMenu).toBeFocused();
+  await moreMenu.press("ArrowRight");
+  await expect(moreMenu).toHaveCSS("outline-width", "2px");
   await expect(moreMenu).toHaveScreenshot("editor-more-menu.png", {
     animations: "disabled",
   });

@@ -1,3 +1,4 @@
+import { putMediaFile } from "@/lib/upload-media-file";
 /** 编辑器图片上传工具：预签名 URL → S3 直传 → 确认 → 轮询 */
 
 import type { MediaDisplay } from "@/lib/media-display";
@@ -276,60 +277,6 @@ function abortableDelay(ms: number, signal?: AbortSignal): Promise<void> {
   });
 }
 
-function putImageFile(
-  uploadUrl: string,
-  file: File,
-  signal: AbortSignal | undefined,
-  timeoutMs: number,
-  onProgress?: (loadedBytes: number, totalBytes: number) => void,
-): Promise<void> {
-  throwIfUploadAborted(signal);
-  return new Promise((resolve, reject) => {
-    const request = new XMLHttpRequest();
-    let settled = false;
-
-    const abortRequest = () => request.abort();
-    const finish = (callback: () => void) => {
-      if (settled) return;
-      settled = true;
-      signal?.removeEventListener("abort", abortRequest);
-      callback();
-    };
-
-    request.upload.addEventListener("progress", (event) => {
-      const totalBytes = event.lengthComputable && event.total > 0 ? event.total : file.size;
-      onProgress?.(Math.min(event.loaded, totalBytes), totalBytes);
-    });
-    request.addEventListener("load", () => {
-      if (request.status < 200 || request.status >= 300) {
-        finish(() => reject(new Error("上传失败，请检查网络后重试")));
-        return;
-      }
-      onProgress?.(file.size, file.size);
-      finish(resolve);
-    });
-    request.addEventListener("error", () => {
-      finish(() => reject(new Error("上传失败，请检查网络后重试")));
-    });
-    request.addEventListener("timeout", () => {
-      finish(() => reject(new Error("图片上传超时，请检查网络后重试")));
-    });
-    request.addEventListener("abort", () => {
-      finish(() => reject(createUploadAbortError()));
-    });
-    signal?.addEventListener("abort", abortRequest, { once: true });
-
-    try {
-      request.open("PUT", uploadUrl);
-      request.setRequestHeader("Content-Type", file.type);
-      request.timeout = timeoutMs;
-      onProgress?.(0, file.size);
-      request.send(file);
-    } catch {
-      finish(() => reject(new Error("上传失败，请检查网络后重试")));
-    }
-  });
-}
 
 function apiErrorMessage(error: unknown, fallback: string): string {
   if (error && typeof error === "object" && "message" in error) {
@@ -572,7 +519,7 @@ async function uploadImageWithinSession(
 
     if (needsDirectUpload) {
       onStage?.("uploading");
-      await putImageFile(uploadUrl!, uploadFile, signal, timeoutMs, reportUploadProgress);
+      await putMediaFile(uploadUrl!, uploadFile, signal, timeoutMs, reportUploadProgress, "图片上传超时，请检查网络后重试");
       throwIfUploadAborted(signal);
     }
 
@@ -590,12 +537,13 @@ async function uploadImageWithinSession(
         throw new Error(apiErrorMessage(reissueError, "恢复上传地址失败，请重试"));
       }
       onStage?.("uploading");
-      await putImageFile(
+      await putMediaFile(
         reissueData.data.uploadUrl,
         uploadFile,
         signal,
         timeoutMs,
         reportUploadProgress,
+        "图片上传超时，请检查网络后重试",
       );
       reportStage("processing");
       media = await confirmMedia(mediaId, signal);

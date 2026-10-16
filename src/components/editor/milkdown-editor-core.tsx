@@ -4,6 +4,7 @@
 
 import type { MentionIdentity } from "@/lib/thread-identity";
 
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
 import { createPortal } from "react-dom";
@@ -21,9 +22,12 @@ import "@/components/editor/milkdown-editor.css";
 
 const MAX_CHARS = 10000;
 const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
+const AUTO_SAVE_LABELS = { idle: "等待编辑", saving: "保存中", saved: "已保存", error: "保存失败" } as const;
 
 export interface MilkdownEditorProps {
   defaultValue?: string;
+  audioDraftKey?: string;
+  mediaAudios?: readonly MarkdownMediaAudio[];
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   editorRef?: Ref<EditorSubmissionHandle>;
@@ -51,6 +55,8 @@ export interface MilkdownEditorProps {
 
 function EditorCore({
   defaultValue,
+  audioDraftKey,
+  mediaAudios,
   mediaDisplays,
   mentionIdentities,
   editorRef,
@@ -89,6 +95,7 @@ function EditorCore({
     user,
     restoredValue,
     restoredMediaDisplays,
+    restoredMediaAudios,
     version,
     contractVersionReady,
     currentContent,
@@ -115,6 +122,7 @@ function EditorCore({
   const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
+    if (hostRef.current?.hasPendingUpload?.()) { toast.error("请先完成或移除音频上传"); return null; }
     const content = flush();
     if (content === null) return null;
     const cached = writeAssessmentRef.current;
@@ -137,7 +145,7 @@ function EditorCore({
   }, [invalid]);
 
   const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported]);
-  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays]);
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
   useEffect(() => {
     if (protectedContent) {
       handleValidityChange(false);
@@ -176,9 +184,11 @@ function EditorCore({
     >
       {contractVersionReady && !protectedContent && (
         <MilkdownEditorHost mentionIdentities={mentionIdentities}
+          audioDraftKey={audioDraftKey} audioUserId={user?.id}
           key={`${version}-${user?.id ?? "guest"}`}
           initialValue={restoredValue ?? ""}
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
+          mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
           textColorVersion={textColorSupported ? 1 : undefined}
           editorRef={hostRef}
@@ -207,13 +217,7 @@ function EditorCore({
                 autoSaveStatus === "error" ? "text-destructive" : "text-muted-foreground",
               )}>
                 自动草稿：
-                {autoSaveStatus === "saving"
-                  ? "保存中"
-                  : autoSaveStatus === "saved"
-                    ? "已保存"
-                    : autoSaveStatus === "error"
-                      ? "保存失败"
-                      : "等待编辑"}
+                {AUTO_SAVE_LABELS[autoSaveStatus]}
               </span>
             )}
             <span className={cn("text-xs tabular-nums", charWarning)}>

@@ -221,7 +221,26 @@ function createEditorClipboardSerializer(schema: Schema): DOMSerializer {
       target?: HTMLElement | DocumentFragment,
     ) {
       const clipboardDocument = options.document ?? document.implementation.createHTMLDocument("");
-      const serialized = base.serializeFragment(withoutAutomaticTrailingContent(fragment), { document: clipboardDocument });
+      const content = withoutAutomaticTrailingContent(fragment);
+      const serialized = base.serializeFragment(content, { document: clipboardDocument });
+      // 原独立链接包住 label 的 marks；不把一次链接复制成多个相邻链接。
+      let index = 0;
+      content.forEach((node) => {
+        const target = serialized.childNodes[index++];
+        const link = node.firstChild?.marks.find((mark) => mark.type.name === "link" && mark.attrs.sourceLinkStandalone);
+        if (node.type.name !== "paragraph" || !link || !(target instanceof Element)) return;
+        const children = [];
+        for (let i = 0; i < node.childCount; i++) {
+          const child = node.child(i);
+          if (!child.isText || !child.marks.some((mark) => mark.eq(link))) return;
+          children.push(child.mark(child.marks.filter((mark) => mark.type.name !== "link")));
+        }
+        const anchor = clipboardDocument.createElement("a");
+        anchor.setAttribute("href", link.attrs.href);
+        if (link.attrs.title != null) anchor.setAttribute("title", link.attrs.title);
+        anchor.append(base.serializeFragment(Fragment.fromArray(children), { document: clipboardDocument }));
+        target.replaceChildren(anchor);
+      });
       const envelope = createSiteClipboardEnvelope(
         serialized.childNodes,
         "editor",
@@ -267,7 +286,16 @@ function createEditorClipboardParser(schema: Schema): DOMParser {
       }),
     });
   }
-  return new DOMParser(schema, [...rules, ...base.rules]);
+  const sourceRules = base.rules.map((rule) => {
+    if (typeof rule.tag !== "string" || rule.mark !== "link") return rule;
+    return { ...rule, getAttrs(element: HTMLElement) {
+      const attrs = rule.getAttrs?.(element) ?? rule.attrs ?? {};
+      if (attrs === false) return false;
+      const parent = element.parentElement;
+      return { ...attrs, sourceLinkStandalone: parent?.tagName === "P" && parent.childNodes.length === 1 };
+    } };
+  });
+  return new DOMParser(schema, [...rules, ...sourceRules]);
 }
 
 /** 所有复制、粘贴与外部拖放事务统一从 ProseMirror 插件入口进入文档。 */

@@ -11,7 +11,7 @@ describe("本机编辑器工具栏偏好", () => {
   });
   test("旧列表、未知动作与重复值被过滤，缺失动作只在展开栏补齐", () => {
     const parsed = parseEditorToolbarPreference(JSON.stringify({ version: 1,
-      primary: ["dice", "bullet-list", "audio", "dice", "ordered-list", 3],
+      primary: ["dice", "bullet-list", "unknown-tool", "dice", "ordered-list", 3],
       more: ["bold", "dice", "sticker"],
     }))!;
     expect(parsed.primary).toEqual(["dice"]);
@@ -36,4 +36,11 @@ describe("本机编辑器工具栏偏好", () => {
     vi.spyOn(window.localStorage, "setItem").mockImplementation(() => { throw new Error("denied"); });
     expect(saveEditorToolbarPreference(defaultCustomToolbar())).toBe(false);
   });
+});
+
+test("旧本机偏好只把新增音频补到展开栏，已保存音频位置保留", () => {
+  expect(defaultCustomToolbar().more).toContain("audio");
+  const old = parseEditorToolbarPreference(JSON.stringify({ version: 1, primary: ["bold"], more: ["sticker"] }))!;
+  expect(old.primary).toEqual(["bold"]); expect(old.more.at(-1)).toBe("audio");
+  expect(parseEditorToolbarPreference(JSON.stringify({ version: 1, primary: ["audio", "bold"], more: [] }))!.primary).toEqual(["audio", "bold"]);
 });

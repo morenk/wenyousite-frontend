@@ -51,6 +51,7 @@ const ATOMIC_READER_SELECTOR = [
   '[data-slot="internal-reference-link"]',
   '[data-slot="mention-link"]',
   "[data-dice-node-id]",
+  "[data-wenyou-clipboard-audio]",
   `[${SITE_CLIPBOARD_MEDIA_ATTRIBUTE}]`,
 ].join(",");
 
@@ -188,6 +189,20 @@ function appendNormalizedNode(
   const element = source as Element;
   const tagName = element.tagName.toUpperCase();
   const media = element.getAttribute(SITE_CLIPBOARD_MEDIA_ATTRIBUTE);
+  const audioSource = element.getAttribute("data-wenyou-clipboard-audio");
+  if (clipboardSource === "reader" && audioSource && isSafeHref(audioSource)) {
+    const label = element.querySelector('[data-slot="audio-label"]');
+    if (label) {
+      const paragraph = document.createElement("p");
+      const anchor = document.createElement("a");
+      anchor.setAttribute("href", audioSource);
+      appendChildren(label, anchor, clipboardSource, preserveAlignment);
+      paragraph.appendChild(anchor);
+      target.appendChild(paragraph);
+      return;
+    }
+  }
+
   if (
     clipboardSource === "reader"
     && (media === "image" || media === "sticker" || tagName === "IMG")

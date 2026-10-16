@@ -80,6 +80,7 @@ export function FloorCard({
       initialContent: floor.content,
       diceRolls: floor.diceRolls,
       mediaDisplays: floor.mediaDisplays,
+      mediaAudios: floor.mediaAudios,
     });
   };
 
@@ -169,7 +170,7 @@ export function FloorCard({
         <ThreadComposerOutlet mentionIdentities={floor.mentionIdentities} anchorId={editAnchorId} />
       ) : (
         <div id={`floor-content-${floor.id}`}>
-          <MarkdownContent mentionIdentities={floor.mentionIdentities} mediaDisplays={floor.mediaDisplays} content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
+          <MarkdownContent mentionIdentities={floor.mentionIdentities} mediaDisplays={floor.mediaDisplays} mediaAudios={floor.mediaAudios} content={floor.content} diceRolls={floor.diceRolls} sourcePostId={floor.id} />
         </div>
       )}
 

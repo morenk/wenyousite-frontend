@@ -74,6 +74,7 @@ export function ReplyDiscussion({
       initialContent: rootPost.content,
       diceRolls: rootPost.diceRolls,
       mediaDisplays: rootPost.mediaDisplays,
+      mediaAudios: rootPost.mediaAudios,
     });
   };
 
@@ -149,7 +150,7 @@ export function ReplyDiscussion({
             <ThreadComposerOutlet mentionIdentities={rootPost.mentionIdentities} anchorId={editAnchorId} />
           ) : (
             <div id={rootContentId}>
-              <MarkdownContent mentionIdentities={rootPost.mentionIdentities} mediaDisplays={rootPost.mediaDisplays}
+              <MarkdownContent mentionIdentities={rootPost.mentionIdentities} mediaDisplays={rootPost.mediaDisplays} mediaAudios={rootPost.mediaAudios}
                 content={rootPost.content}
                 diceRolls={rootPost.diceRolls}
                 sourcePostId={rootPost.id}

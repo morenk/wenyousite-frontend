@@ -1,5 +1,6 @@
 "use client";
 
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -47,6 +48,7 @@ export function useEditorDraftController({
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const initialValue = defaultValue;
+  const [restoredMediaAudios, setRestoredMediaAudios] = useState<readonly MarkdownMediaAudio[] | undefined>();
   const [restoredMediaDisplays, setRestoredMediaDisplays] = useState<readonly MarkdownMediaDisplay[] | undefined>();
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
@@ -192,6 +194,7 @@ export function useEditorDraftController({
     const safeContent = sanitizeMilkdownMarkdown(snapshot.content, { markdownContractVersion });
     latestContentRef.current = safeContent;
     setRestoredMediaDisplays(snapshot.mediaDisplays ?? []);
+    setRestoredMediaAudios(snapshot.mediaAudios ?? []);
     setRestoredValue(safeContent);
     setCurrentContent(safeContent);
     setVersion((current) => current + 1);
@@ -283,6 +286,7 @@ export function useEditorDraftController({
     advertisedTextColorSupported: textColorSupported,
     restoredValue,
     restoredMediaDisplays,
+    restoredMediaAudios,
     version,
     contractVersionReady,
     currentContent,

@@ -22,8 +22,7 @@ type Layout = Record<Zone, EditorToolbarTool[]>;
 interface DropTarget { zone: Zone; index: number }
 const ZONE_LABELS = { primary: "主栏", more: "展开栏" } as const;
 const iconClass = "inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground";
-const availableTools = new Set(EDITOR_TOOLBAR_TOOLS);
-const defaultGroups: (EditorToolbarTool | "more")[][] = [["heading"], ["bold", "italic", "strikethrough", "inline-code"], ["alignment"], ["link", "image"], ["quote", "hr"], ["dice"], ["draft"], ["sticker"], ["more"]];
+const defaultGroups: (EditorToolbarTool | "more")[][] = [["heading"], ["bold", "italic", "strikethrough", "inline-code"], ["alignment"], ["link", "image"], ["quote", "hr"], ["dice"], ["draft"], ["sticker"], ["audio"], ["more"]];
 interface FittedLayout extends Layout { moreRight: number; moreBottom: number; showMore: boolean; dividers: string[] }
 
 const collisionDetection: CollisionDetection = (args) => {
@@ -82,14 +81,15 @@ function Tool({ tool, zone, index, total, active, footer = false }: {
 }
 
 /** 测量副本与 Crepe 具有同一层级和 CSS，直接调用运行时收纳函数，避免另猜断点或项数。 */
-function MeasurementToolbar({ layout, custom, onFit }: { layout: Layout; custom: boolean; onFit: (layout: FittedLayout) => void }) {
+function MeasurementToolbar({ layout, custom, audioEnabled, onFit }: { layout: Layout; custom: boolean; audioEnabled: boolean; onFit: (layout: FittedLayout) => void }) {
   const node = useRef<HTMLDivElement>(null);
+  const availableTools = useMemo(() => new Set(EDITOR_TOOLBAR_TOOLS.filter((tool) => tool !== "audio" || audioEnabled)), [audioEnabled]);
   const fit = useCallback(() => {
     const toolbar = node.current;
     if (!toolbar) return;
     const more = custom ? fitCustomMilkdownToolbar(toolbar, { version: 1, ...layout }, availableTools)
-      : fitDefaultMilkdownToolbar(toolbar).filter(isEditorToolbarTool);
-    const primary = custom ? layout.primary.filter((tool) => !more.includes(tool))
+      : fitDefaultMilkdownToolbar(toolbar, true, true, audioEnabled).filter(isEditorToolbarTool);
+    const primary = custom ? layout.primary.filter((tool) => availableTools.has(tool) && !more.includes(tool))
       : EDITOR_TOOLBAR_TOOLS.filter((tool) => {
         const item = toolbar.querySelector<HTMLElement>(`[data-editor-tool="${tool === "alignment" ? "align-center" : tool}"]`);
         return item && !item.closest("[hidden]");
@@ -104,7 +104,7 @@ function MeasurementToolbar({ layout, custom, onFit }: { layout: Layout; custom:
     onFit({ primary, more, showMore: !trigger?.hidden, dividers,
       moreBottom: trigger ? trigger.getBoundingClientRect().bottom - toolbar.getBoundingClientRect().top : 0,
       moreRight: trigger ? trigger.getBoundingClientRect().right - toolbar.getBoundingClientRect().left : 0 });
-  }, [layout, custom, onFit]);
+  }, [layout, custom, audioEnabled, availableTools, onFit]);
   useLayoutEffect(() => {
     fit();
     const observer = new ResizeObserver(fit);
@@ -139,7 +139,8 @@ function moveTool(layout: Layout, tool: EditorToolbarTool, target: DropTarget): 
 }
 const sameLayout = (a: Layout, b: Layout) => a.primary.join() === b.primary.join() && a.more.join() === b.more.join();
 
-export function EditorToolbarArrangement({ primary, more, custom = true, onChange }: Layout & {
+export function EditorToolbarArrangement({ primary, more, custom = true, audioEnabled = false, onChange }: Layout & {
+  audioEnabled?: boolean;
   custom?: boolean;
   onChange: (primary: EditorToolbarTool[], more: EditorToolbarTool[]) => void;
 }) {
@@ -164,7 +165,13 @@ export function EditorToolbarArrangement({ primary, more, custom = true, onChang
     && previous.moreRight === next.moreRight && previous.moreBottom === next.moreBottom && previous.showMore === next.showMore
     && previous.dividers.join() === next.dividers.join() ? previous : next), []);
   const changeDraft = (next: Layout | null) => { draftRef.current = next; setDraft(next); };
-  const baseLayout = () => draftRef.current ?? (custom ? { primary, more } : { primary: fitted.primary, more: [...fitted.more, "sticker" as const] });
+  const keepUnavailable = (next: Layout, original: Layout): Layout => {
+    if (audioEnabled) return next;
+    const zone: Zone = original.primary.includes("audio") ? "primary" : "more";
+    if (original[zone].includes("audio") && !next[zone].includes("audio")) next[zone].splice(Math.min(original[zone].indexOf("audio"), next[zone].length), 0, "audio");
+    return next;
+  };
+  const baseLayout = () => draftRef.current ?? (custom ? { primary, more } : keepUnavailable({ primary: fitted.primary, more: [...fitted.more, "sticker" as const] }, { primary, more }));
   const focusTool = (tool: EditorToolbarTool) => requestAnimationFrame(() => (root.current?.querySelector<HTMLButtonElement>(`[data-toolbar-arrange-tool="${tool}"]`) ?? morePopup.current?.querySelector<HTMLButtonElement>(`[data-toolbar-arrange-tool="${tool}"]`))?.focus({ preventScroll: true }));
   const commit = (next: Layout, tool: EditorToolbarTool) => {
     if (!sameLayout(next, { primary, more }) || !custom) onChange(next.primary, next.more);
@@ -180,7 +187,7 @@ export function EditorToolbarArrangement({ primary, more, custom = true, onChang
     const zone: Zone = data.zone;
     let base = baseLayout();
     // 在临时溢出项前插入展开工具时，将当前可见分界纳入这次明确的跨栏调整。
-    if (zone === "more" && data.tool && base.primary.includes(data.tool)) base = { primary: fitted.primary, more: fitted.more };
+    if (zone === "more" && data.tool && base.primary.includes(data.tool)) base = keepUnavailable({ primary: [...fitted.primary], more: [...fitted.more] }, base);
     const items = base[zone].filter((id) => id !== tool);
     let index = zone === "primary" ? fitted.primary.filter((id) => id !== tool).length : items.length;
     if (data.tool) {
@@ -260,7 +267,7 @@ export function EditorToolbarArrangement({ primary, more, custom = true, onChang
   }, [active, keyboardDrag]);
 
   return <div ref={root} tabIndex={-1} className="relative outline-none" data-toolbar-arrangement onKeyDown={navigateTools}>
-    <MeasurementToolbar layout={layout} custom={previewCustom} onFit={fit} />
+    <MeasurementToolbar layout={layout} custom={previewCustom} audioEnabled={audioEnabled} onFit={fit} />
     <DndContext sensors={sensors} collisionDetection={collisionDetection} autoScroll={active !== null}
       measuring={{ droppable: { strategy: MeasuringStrategy.Always } }} cancelDrop={() => canceledDrag.current}
       accessibility={{

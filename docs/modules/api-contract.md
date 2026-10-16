@@ -141,6 +141,12 @@ Web 通过独立管理 Cookie/CSRF 会话消费 `/admin/mobile-releases` 列表�
 
 固定语料 `contracts/markdown-v6-role-mentions-fixtures.json` 随 OpenAPI 同步校验。源语法、复制与显示边界见[正文协议](markdown-content-protocol.md#平级角色提及-v6-扩展)。
 
+## 音频上传与正文投影
+
+固定来源为 Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / `5.39.0-dev.20261017.1`，通过 `WENYOUSITE_BACKEND_ROOT`、`BACKEND_CONTRACT_REF` 标准同步，再生成 `src/api/types.ts`。同步脚本同时复制 `markdown-audio-v1-fixtures.json` 与 schema，并验证两者 schemaVersion 一致；既有共享夹具版本校验保留。
+
+复用媒体预约、PUT、确认、状态及续签接口，purpose 新增 RICH_CONTENT_AUDIO，meta.audioUpload 只门控新入口。正文/草稿 DTO 可选 mediaAudios；缺失投影降级普通链接，旧客户端继续读取无 title 链接。本机恢复、精确投影校验、播放器和安全边界见[音频模块](audio.md)。兼容后端先发布，消费者随后；本轮不删除旧端点或历史 Markdown。
+
 ## 文本颜色 v1 能力协商
 
 Web 从 Backend 已提交 `2cdedbcdecee4991634cf4b256aa0f547b06d88c`（API5.38.0-dev.20261016.1）同步独立 textColorV1Supported / textColorV1WriteEnabled、正文及草稿 DTO 的可选 textColorVersion=1、40016/40017/40018 错误码，以及颜色和 clipboard v2 黄金用例。精确来源在本批 PR 交付记录中列出；同步与检查必须同时指定 WENYOUSITE_BACKEND_ROOT 和 BACKEND_CONTRACT_REF，沿 contract:sync / generate:api 生成，不手改类型。

@@ -91,6 +91,7 @@ export function ReplyCard({
       initialContent: reply.content,
       diceRolls: reply.diceRolls,
       mediaDisplays: reply.mediaDisplays,
+      mediaAudios: reply.mediaAudios,
     });
   };
 
@@ -161,7 +162,7 @@ export function ReplyCard({
 
       {!isEditing ? (
         <div id={`reply-content-${reply.id}`}>
-          <MarkdownContent mentionIdentities={reply.mentionIdentities} mediaDisplays={reply.mediaDisplays}
+          <MarkdownContent mentionIdentities={reply.mentionIdentities} mediaDisplays={reply.mediaDisplays} mediaAudios={reply.mediaAudios}
             content={reply.content}
             diceRolls={reply.diceRolls}
             sourcePostId={reply.id}

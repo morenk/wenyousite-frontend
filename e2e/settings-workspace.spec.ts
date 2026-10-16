@@ -134,7 +134,8 @@ for (const colorScheme of ["light", "dark"] as const) {
         const group = node.closest('[data-slot="stack-list"]')!.getBoundingClientRect();
         return { x: row.x, width: row.width, height: row.height, groupX: group.x, groupWidth: group.width };
       }));
-      expect(boxes).toHaveLength(11);
+      expect(boxes).toHaveLength(12);
+      await expect(page.getByRole("button", { name: "编辑器工具栏", exact: true })).toBeVisible();
       const columnStarts = [...new Set(boxes.map((box) => box.groupX))].sort((a, b) => a - b);
       expect(columnStarts).toHaveLength(2);
       for (const box of boxes) {

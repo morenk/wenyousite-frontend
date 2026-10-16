@@ -77,8 +77,13 @@ const profileName = "rp-identity-profile-post.v1.fixtures.json";
 const profile = JSON.parse(source.read(profileName));
 if (profile.version !== 1 || profile.contractVersion !== contract.info.version || profile.capability !== "rpIdentityProfileSupported"
   || !Array.isArray(profile.cases)) throw new Error("后端角色资料契约不是同版本 v1");
+const audioFiles = ["markdown-audio-v1-fixtures.json", "markdown-audio-v1.schema.json"];
+const audio = JSON.parse(source.read(audioFiles[0]));
+if (audio.version !== 1 || audio.markdownContractVersion !== 5 || !Array.isArray(audio.cases)
+  || !Array.isArray(audio.invalidProjectionCases)) throw new Error("后端音频契约不是 audio v1");
+if (JSON.parse(source.read(audioFiles[1])).$schema !== "https://json-schema.org/draft/2020-12/schema") throw new Error("后端音频 schema 无效");
 const names = [profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
-  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...textColorFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
+  "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...audioFiles, ...textColorFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);
 mkdirSync(target, { recursive: true });

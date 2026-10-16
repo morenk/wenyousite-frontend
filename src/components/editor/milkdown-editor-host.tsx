@@ -2,6 +2,9 @@
 
 "use client";
 
+import { useEditorAudioView } from "./editor-audio-view";
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
+import { useEditorAudioUpload } from "./use-editor-audio-upload";
 import { useEditorToolbarPreference } from "./use-editor-toolbar-preference";
 import { EditorHeadingMenu } from "./editor-heading-menu";
 import { EDITOR_TOOLBAR_TOOLS, type EditorToolbarTool } from "@/lib/editor-toolbar-preference";
@@ -238,6 +241,9 @@ function getImageBlockConfig(onUploadImage: (file: File) => Promise<string>, pro
 }
 
 export interface MilkdownEditorHostProps {
+  mediaAudios?: readonly MarkdownMediaAudio[];
+  audioDraftKey?: string;
+  audioUserId?: string;
   initialValue: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
@@ -265,6 +271,9 @@ export interface MilkdownEditorHostProps {
 export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   initialValue,
   mediaDisplays,
+  mediaAudios,
+  audioDraftKey,
+  audioUserId,
   mentionIdentities,
   markdownContractVersion,
   textColorVersion,
@@ -293,6 +302,10 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const alignmentEnabled = markdownContractVersion >= 4;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
+  const audioView = useEditorAudioView(mediaAudios, audioUserId, audioDraftKey);
+  const audioUpload = useEditorAudioUpload(crepeRef, audioUserId, audioDraftKey, loading, audioView.completed);
+  const audioActionRef = useRef(audioUpload.open);
+  useEffect(() => { audioActionRef.current = audioUpload.open; }, [audioUpload.open]);
   const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
   const hostRef = useRef<HTMLDivElement>(null);
   const onChangeRef = useRef(onChange);
@@ -305,7 +318,9 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     flush: () => flushRef.current?.() ?? null,
     isComposing: () => composingRef.current,
     getMediaDisplays: mediaDisplay.snapshot,
-  }), [mediaDisplay]);
+    getMediaAudios: audioView.api.snapshot,
+    hasPendingUpload: audioUpload.hasPending,
+  }), [mediaDisplay, audioUpload.hasPending, audioView.api]);
   useEffect(() => { onValidityRef.current = onValidityChange; }, [onValidityChange]);
   const onSyncErrorChangeRef = useRef(onSyncErrorChange);
   useEffect(() => { onSyncErrorChangeRef.current = onSyncErrorChange; }, [onSyncErrorChange]);
@@ -542,6 +557,11 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (view) handleOpenDice(view, anchor);
       return;
     }
+    if (capability === "audio") {
+      setMoreMenuAnchor(null);
+      audioActionRef.current();
+      return;
+    }
     if (capability === "draft") {
       setMoreMenuAnchor(null);
       onOpenDrafts?.();
@@ -776,6 +796,9 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
               if (trigger) setStickerAnchor(trigger);
             },
           });
+          builder.addGroup("audio", "音频").addItem("audio", {
+            icon: editorIconSvg("audio"), active: () => false, onRun: () => audioActionRef.current(),
+          });
           builder.addGroup("more-menu", "更多").addItem("more", {
             icon: editorIconSvg("more"),
             active: () => false,
@@ -803,6 +826,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       });
 
       crepe.editor.use(mediaDisplay.plugin);
+      crepe.editor.use(audioView.api.plugin);
+      crepe.editor.use(audioUpload.anchor.plugin);
       const dicePlugins = createDiceInlineEditorPlugins(diceRolls);
       const stickerPlugins = createStickerInlineEditorPlugins();
       const alignmentPlugin = createEditorAlignmentPlugin(
@@ -928,11 +953,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           const available = new Set(EDITOR_TOOLBAR_TOOLS.filter((id) =>
             (id !== "alignment" || alignmentEnabled)
             && (id !== "draft" || Boolean(onOpenDrafts))
-            && (id !== "image" || Boolean(onUploadImage))));
+            && (id !== "image" || Boolean(onUploadImage))
+            && (id !== "audio" || audioUpload.available)));
           const next = fitCustomMilkdownToolbar(topBar, toolbarPreference, available);
           setCustomMore((previous) => previous.join() === next.join() ? previous : next);
         } else {
-          const next = fitDefaultMilkdownToolbar(topBar, Boolean(onOpenDrafts), alignmentEnabled);
+          const next = fitDefaultMilkdownToolbar(topBar, Boolean(onOpenDrafts), alignmentEnabled, audioUpload.available);
           setDefaultMore((previous) => previous.join() === next.join() ? previous : next);
         }
       });
@@ -1006,7 +1032,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
-  }, [alignmentEnabled, ariaLabel, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);
+  }, [alignmentEnabled, ariaLabel, audioUpload.available, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);
 
   useEffect(() => {
     if (hostRef.current) {
@@ -1018,6 +1044,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     <>
       <div ref={hostRef} className="milkdown-editor relative">
         <Milkdown />
+        {audioUpload.placeholder}
+        {audioView.portals}
         {uploadProgress ? (
           <ImageUploadProgress
             progress={uploadProgress}
@@ -1040,7 +1068,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           onInsert={handleInsertDice}
         />
         <EditorMoreMenu
-          keyboardAccessible={Boolean(toolbarPreference)}
+          keyboardAccessible={Boolean(toolbarPreference) || audioUpload.available}
           anchor={moreMenuAnchor}
           items={moreMenuItems}
           alignment={currentAlignment}

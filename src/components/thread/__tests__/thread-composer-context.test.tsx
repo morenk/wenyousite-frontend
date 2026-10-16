@@ -155,7 +155,7 @@ test("仅订阅会话的楼层入口不随正文快照重渲染", async () => {
 test("收起和切换目标先同步最后输入，保留身份和媒体但不用旧回复目标", async () => {
   vi.stubGlobal("confirm", vi.fn(() => false));
   const { result } = renderHook(useThreadComposer, { wrapper: ThreadComposerProvider });
-  const source = { ...replySession, mediaDisplays: [{ sourceUrl: "https://example.com/source.png", display: null }] };
+  const source = { ...replySession, mediaAudios: [{ sourceUrl: "https://bucket.example/a.mp3", mediaId: "a", contentType: "audio/mpeg" as const, size: 100, durationMs: 1000 }], mediaDisplays: [{ sourceUrl: "https://example.com/source.png", display: null }] };
   await act(async () => { await result.current.open(source); });
   act(() => {
     result.current.setIdentitySelection({ scope: source.key, mode: "RP", identityId: "role-1", token: "token", name: "角色" });
@@ -164,7 +164,7 @@ test("收起和切换目标先同步最后输入，保留身份和媒体但不�
   await act(async () => { expect(await result.current.close()).toBe(true); });
   await act(async () => { await result.current.open(createFloorSession); });
   expect(result.current.content).toBe("**最后一字** ![图](https://example.com/source.png)");
-  expect(result.current.session).toMatchObject({ type: "create-floor", mediaDisplays: source.mediaDisplays });
+  expect(result.current.session).toMatchObject({ type: "create-floor", mediaDisplays: source.mediaDisplays, mediaAudios: source.mediaAudios });
   expect(result.current.session).not.toHaveProperty("parentPostId");
   expect(result.current.identitySelection).toMatchObject({ scope: createFloorSession.key, identityId: "role-1" });
   expect(confirm).not.toHaveBeenCalled();

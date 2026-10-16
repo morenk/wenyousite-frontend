@@ -1,0 +1,152 @@
+.player.player {
+  /* 独立于 Crepe 对所有后代 margin/padding 的重置，编辑与阅读共用相同尺寸。 */
+  margin-block: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  white-space: normal;
+  letter-spacing: normal;
+}
+.progress.progress { margin-top: -0.5rem; }
+.saveButton.saveButton:focus-visible, .playButton.playButton:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.player {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  container-type: inline-size;
+  container-name: audio-player;
+  position: relative;
+  isolation: isolate;
+  transition: background-color 180ms ease-out, border-color 180ms ease-out;
+}
+.player[data-download="false"] { grid-template-columns: auto minmax(0, 1fr); }
+.player[data-playing="true"] { border-color: color-mix(in srgb, var(--brand-strong) 22%, var(--border)); }
+.playFace {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--accent) 65%, transparent);
+  transition: transform 120ms ease-out, background-color 180ms ease-out;
+}
+.playButton:hover .playFace { background: var(--accent); }
+.playButton:active .playFace { transform: scale(0.96); }
+.icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 120ms ease-out;
+}
+.icon[data-visible="true"] { opacity: 1; }
+.loading { animation: loading-turn 1s linear infinite; }
+@keyframes loading-turn { to { transform: rotate(360deg); } }
+
+/* 轨道保持轻量，原生 range 仍提供键盘语义与 40px 透明触控区域。 */
+.seek {
+  --audio-track: color-mix(in srgb, var(--muted-foreground) 20%, transparent);
+  appearance: none;
+  width: 100%;
+  min-width: 0;
+  height: 2.5rem;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-control);
+}
+
+.seek:disabled { cursor: default; }
+.seek:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+
+.seek::-webkit-slider-runnable-track {
+  height: 3px;
+  border-radius: 999px;
+  background: linear-gradient(to right, var(--brand-strong) var(--audio-progress), var(--audio-track) var(--audio-progress));
+}
+.seek::-webkit-slider-thumb {
+  appearance: none;
+  width: 10px;
+  height: 10px;
+  margin-top: -3.5px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand-strong);
+  transition: transform 120ms ease-out;
+}
+.seek:disabled::-webkit-slider-thumb { visibility: hidden; }
+
+.seek::-moz-range-track {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--audio-track);
+}
+.seek::-moz-range-progress {
+  height: 3px;
+  border-radius: 999px;
+  background: var(--brand-strong);
+}
+.seek::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--brand-strong);
+  transition: transform 120ms ease-out;
+}
+.seek:disabled::-moz-range-thumb { visibility: hidden; }
+
+.player[data-dragging="true"] .seek::-webkit-slider-thumb,
+.seek:focus-visible::-webkit-slider-thumb { transform: scale(1.4); }
+.player[data-dragging="true"] .seek::-moz-range-thumb,
+.seek:focus-visible::-moz-range-thumb { transform: scale(1.4); }
+
+.player[data-visual-motion="off"],
+.player[data-visual-motion="off"] * { transition: none; animation: none; }
+.player[data-visual-motion="off"] .seek::-webkit-slider-thumb { transition: none; }
+.player[data-visual-motion="off"] .seek::-moz-range-thumb { transition: none; }
+@media (prefers-reduced-motion: reduce) {
+  .player, .player * { transition: none !important; animation: none !important; }
+  .playButton:active .playFace { transform: none; }
+  .player .seek::-webkit-slider-thumb { transition: none; transform: none; }
+  .player .seek::-moz-range-thumb { transition: none; transform: none; }
+}
+
+.saveButton:hover { background: var(--accent); color: var(--accent-foreground); }
+
+.label { position: relative; top: 2px; }
+
+/* 字体放大或极窄正文时给文件名独立一行，控件不挤掉标题和进度。 */
+@container audio-player (max-width: 22rem) {
+  .heading { flex-direction: column; align-items: stretch; gap: 0; }
+  .label { width: 100%; }
+  .time { align-self: flex-start; }
+  .playButton, .saveButton { width: 40px; height: 40px; }
+  .playButton svg, .saveButton svg { width: 20px; height: 20px; }
+  .seek { height: 40px; }
+  .progress.progress { margin-top: 0; }
+}
+
+@container audio-player (max-width: 8rem) {
+  .body { display: contents; }
+  .heading { grid-column: 1 / -1; grid-row: 1; }
+  .playButton { grid-column: 1; grid-row: 2; }
+  .saveButton { grid-column: 3; grid-row: 2; }
+  .progress { grid-column: 1 / -1; grid-row: 3; }
+  .feedback { grid-column: 1 / -1; }
+}
+
+.uploadActions { display: flex; align-items: center; gap: 0.25rem; }
+.uploadActions button { min-width: 40px; min-height: 40px; padding: 0 0.25rem; font-size: 0.875rem; white-space: nowrap; border-radius: var(--radius-control); }
+.uploadActions button:hover { background: var(--accent); }
+.uploadActions button:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+@container audio-player (max-width: 22rem) {
+  .uploadActions { grid-column: 1 / -1; grid-row: 2; justify-content: flex-end; flex-wrap: wrap; }
+}
+@container audio-player (max-width: 8rem) {
+  .uploadActions { grid-row: 4; }
+}
+
+.uploadProgress { display: flex; align-items: center; width: 100%; min-width: 0; height: 40px; }
+.uploadTrack { display: block; width: 100%; height: 3px; overflow: hidden; border-radius: 999px; background: color-mix(in srgb, var(--muted-foreground) 20%, transparent); }
+.uploadFill { display: block; height: 100%; border-radius: inherit; background: var(--brand-strong); }

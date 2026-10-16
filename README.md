@@ -53,3 +53,5 @@ SMOKE_BASE_URL=http://127.0.0.1:3001 pnpm test:smoke:readonly
 Web access token 只驻留内存，页面刷新通过 httpOnly refresh cookie 恢复；浏览器存储中不持久化凭证。
 
 项目使用 Next.js standalone 生产构建。模块设计、API 覆盖状态和迭代流程分别见 [开发文档](./docs/README.md)、[API 覆盖审计](./docs/api-coverage.md) 和 [AGENTS.md](./AGENTS.md)。
+
+音频文件上传、普通链接兼容、播放器加载和本机恢复边界见 [音频模块](./docs/modules/audio.md)。

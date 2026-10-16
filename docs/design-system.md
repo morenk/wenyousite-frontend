@@ -10,6 +10,7 @@
 - [`docs/platforms/web.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/platforms/web.md)
 - [`docs/brand.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/brand.md)
 - [`docs/elements.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/elements.md)
+- [`docs/audio.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/audio.md)
 - [`docs/images.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/images.md)
 - [`docs/icons.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/icons.md)
 - [`docs/notifications.md`](https://github.com/morenk/wenyousite-foundation/blob/v7.4.0/docs/notifications.md)

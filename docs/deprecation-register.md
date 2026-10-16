@@ -64,6 +64,10 @@ Backend `6d1228cd8c128f24860ef99747aa923c461a595a` / API5.36 增加可选能力�
 
 新增独立 schemaVersion 2 的史实参考与文学创作数据、生成 API 和确定性样例。普通姓名 v1、历史姓名 v1、11 国普通能力与全部嵌入路由保留；Mobile 已按已提交 SHA 同步本地数据。Web 仅替换本轮尚未发布的进阶候选交互，不删除已发布兼容协议。无需 Backend/OpenAPI、Foundation、业务数据迁移或在线服务；回滚消费端只撤销新入口。格式及边界见[进阶姓名数据契约](modules/advanced-name-data-contract.md)。
 
+## 音频文件兼容
+
+Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / API `5.39.0-dev.20261017.1` 兼容新增媒体 purpose、能力与可选投影，Web 消费 Foundation 正式 v7.4.0。普通无 title Markdown 链接为持久格式，旧端、缺失/无效投影、内联/列表/引用仍保持链接；关闭新上传不禁用已存在合法投影阅读。先兼容 Backend，后 Web/Mobile；回滚消费者只撤销上传/播放增强，不改历史数据与媒体 URL。没有旧协议满足清理四项证据，本次不清理兼容。详见[音频模块](modules/audio.md)。
+
 ## 文本颜色 v1 保源兼容
 
 颜色为独立受控 Markdown 扩展，全局 Markdown5、角色提及 v6 和 clipboard v2 均继续保留。兼容 Backend 为无能力端返回安全去色副本并拒绝覆盖存有颜色的原文；Web 声明颜色能力，读取、编辑与草稿始终保源，没有取色入口。旧客户端不能作为新正文的无损编辑回退目标。回滚优先关闭新增颜色，保留支持读取与覆盖保护的兼容后端和消费者；没有历史数据迁移或旧协议清理。能力字段、错误与发布顺序见[API 契约](modules/api-contract.md#文本颜色-v1-能力协商)，格式见[正文协议](modules/markdown-content-protocol.md#文本颜色-v1)。

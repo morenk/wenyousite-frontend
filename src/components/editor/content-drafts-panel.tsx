@@ -2,6 +2,7 @@
 
 "use client";
 
+import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
 import { useEffect } from "react";
 import {
@@ -45,6 +46,7 @@ interface ContentDraftsPanelProps {
 export interface EditorDraftSnapshot {
   content: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
+  mediaAudios?: readonly MarkdownMediaAudio[];
 }
 
 export function ContentDraftsPanel({
@@ -110,7 +112,7 @@ export function ContentDraftsPanel({
     }
     if (onRestore) {
       if (flush && flush() !== currentText) { toast.error("正文已变化，请再次确认恢复"); return; }
-      onRestore({ content: draft.content, mediaDisplays: draft.mediaDisplays });
+      onRestore({ content: draft.content, mediaDisplays: draft.mediaDisplays, mediaAudios: draft.mediaAudios });
       onClose();
       return;
     }
