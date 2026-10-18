@@ -384,9 +384,16 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(moreMenu).toHaveCount(0);
   const headingButton = toolbar.locator(".top-bar-heading-button");
   await headingButton.click();
-  const headingMenu = toolbar.locator(".top-bar-heading-dropdown");
+  const headingMenu = page.getByRole("dialog", { name: "正文样式" });
   await expect(headingMenu).toBeVisible();
-  await expect(headingMenu).toHaveCSS("position", "fixed");
+  await expect.poll(async () => {
+    const triggerBox = await headingButton.boundingBox();
+    const popupBox = await headingMenu.boundingBox();
+    if (!triggerBox || !popupBox) return 999;
+    const below = popupBox.y - triggerBox.y - triggerBox.height;
+    const above = triggerBox.y - popupBox.y - popupBox.height;
+    return Math.min(Math.abs(below - 6), Math.abs(above - 6));
+  }).toBeLessThanOrEqual(1);
   const menuBox = await headingMenu.boundingBox();
   expect(menuBox).not.toBeNull();
   expect(menuBox!.x).toBeGreaterThanOrEqual(8);

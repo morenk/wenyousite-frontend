@@ -334,16 +334,6 @@
   min-width: 120px;
 }
 
-/* 横向 overflow 会裁切普通绝对定位菜单；JS 按触发按钮坐标将其固定到视口。 */
-.milkdown .milkdown-top-bar .top-bar-heading-dropdown[data-editor-floating="true"] {
-  position: fixed;
-  z-index: var(--layer-nested-popup);
-  min-width: min(120px, calc(100vw - 16px));
-  max-width: calc(100vw - 16px);
-  max-height: calc(100vh - 16px);
-  overflow-y: auto;
-}
-
 /* 显式空白行已经占一行，不再叠加相邻段落的内边距。 */
 .milkdown .ProseMirror > p[data-wenyou-empty-row],
 .milkdown .ProseMirror > blockquote > p[data-wenyou-empty-row] {

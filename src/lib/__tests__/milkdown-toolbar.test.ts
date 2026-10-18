@@ -1,11 +1,10 @@
-import { describe, expect, test, vi } from "vitest";
+import { describe, expect, test } from "vitest";
 import {
   applyMilkdownToolbarDensity,
   fitMilkdownToolbar,
   fitDefaultMilkdownToolbar,
   fitCustomMilkdownToolbar,
   getMilkdownMoreCapabilities,
-  positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
   syncMilkdownToolbarItems,
@@ -25,30 +24,6 @@ import {
   EDITOR_WEB_LAYOUT,
   editorCapabilityLabels,
 } from "@/lib/editor-capabilities";
-
-function rect({
-  left,
-  right,
-  top = 0,
-  bottom = 0,
-}: {
-  left: number;
-  right: number;
-  top?: number;
-  bottom?: number;
-}): DOMRect {
-  return {
-    x: left,
-    y: top,
-    left,
-    right,
-    top,
-    bottom,
-    width: right - left,
-    height: bottom - top,
-    toJSON: () => ({}),
-  };
-}
 
 describe("syncMilkdownToolbarVisibility", () => {
   test("上传结束恢复可编辑后清除 Crepe 遗留的隐藏样式", () => {
@@ -116,7 +91,7 @@ describe("syncMilkdownToolbarVisibility", () => {
       root.querySelector('[data-editor-tool="more"]'),
     ).toHaveAccessibleName("更多");
     for (const control of root.querySelectorAll("button")) {
-      expect(control).toHaveAttribute("tabindex", "-1");
+      expect(control).toHaveAttribute("tabindex", control.classList.contains("top-bar-heading-button") ? "0" : "-1");
     }
   });
 
@@ -375,31 +350,7 @@ describe("syncMilkdownToolbarVisibility", () => {
     );
   });
 
-  test("标题菜单在视口内靠近触发按钮定位，空间不足时翻到上方", () => {
-    const root = document.createElement("div");
-    root.innerHTML = `
-      <div class="top-bar-heading-selector">
-        <button class="top-bar-heading-button"></button>
-        <div class="top-bar-heading-dropdown"></div>
-      </div>
-    `;
-    const trigger = root.querySelector<HTMLElement>(".top-bar-heading-button")!;
-    const dropdown = root.querySelector<HTMLElement>(
-      ".top-bar-heading-dropdown",
-    )!;
-    vi.spyOn(trigger, "getBoundingClientRect").mockReturnValue(
-      rect({ left: 280, right: 312, top: 170, bottom: 202 }),
-    );
-    vi.spyOn(dropdown, "getBoundingClientRect").mockReturnValue(
-      rect({ left: 0, right: 120, top: 0, bottom: 100 }),
-    );
 
-    positionMilkdownHeadingDropdowns(root, { width: 320, height: 240 });
-
-    expect(dropdown.dataset.editorFloating).toBe("true");
-    expect(dropdown.style.left).toBe("192px");
-    expect(dropdown.style.top).toBe("64px");
-  });
 });
 
 test("自定义顺序从末尾收纳并随宽度恢复，更多固定且可键盘访问", () => {
