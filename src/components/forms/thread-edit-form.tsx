@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { copyToolText } from "@/lib/tools/clipboard";
 import {
   AlertTriangle,
   ClipboardCopy,
@@ -240,7 +241,7 @@ export function ThreadEditForm({
     try {
       const content = editor.flush();
       if (content === null) return;
-      await navigator.clipboard.writeText(content);
+      if (!await copyToolText(content)) throw new Error("copy failed");
       toast.success("本地主帖正文已复制");
     } catch {
       toast.error("复制失败，请手动全选正文保存");

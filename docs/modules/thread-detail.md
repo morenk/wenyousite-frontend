@@ -334,7 +334,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 | useUpdatePost | `src/api/hooks/use-update-post.ts` | 编辑楼层正文（乐观锁 version） |
 | useDeletePost | `src/api/hooks/use-delete-post.ts` | 删除楼层/回复（作者或楼主/协作者；BODY 由后端拦截） |
 | usePinPost | `src/api/hooks/use-pin-post.ts` | OWNER/COLLABORATOR 置顶或取消置顶主楼层 |
-| useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 编辑帖时同步主题帖标签（diff 后添加/移除） |
+| useSyncThreadTags | `src/api/hooks/use-sync-thread-tags.ts` | 细粒度标签增删兼容 hook；当前管理台通过聚合写入原子保存标签，不调用此 hook |
 | useReplies | `src/api/hooks/use-replies.ts` | 楼中楼回复列表（排序、作者筛选条件进入 query key 与 cursor 分页请求） |
 | useFloorAuthors / useReplyAuthors | `src/api/hooks/use-discussion-authors.ts` | 与列表首页并行读取范围化作者候选，不从当前已加载分页推导 |
 | useMembers | `src/api/hooks/use-members.ts` | 仅成员管理页或普通用户打开订阅面板后加载全量参与人列表 |
@@ -374,7 +374,7 @@ Milkdown 通过客户端动态模块按需加载，编辑器样式不进入全�
 - 「子贴内容」左栏只展示真实子贴，使用真实顺序号、短发帖权限和楼层数；当前项以品牌竖线标记。鼠标和键盘拖拽均先本地排序，失败回滚。提交排序时自动把默认子贴补在首位，继续满足 `sortOrder=0` 约束。
 - 子贴标题与发帖权限在右侧正文画布上方内联编辑。顶栏「保存子贴」按实际变更分别提交元数据和正文；部分成功只提交成功部分的新基线，并明确提示剩余失败项。新建后立即选中、写入 URL 并聚焦正文；删除当前项后选择相邻章节。
 - 「成员权限」使用桌面表格，默认按楼主、协作者、玩家、其他参与人排序；支持用户名搜索与「全部 / 协作者 / 玩家 / 其他参与人」筛选。协作权限和玩家标记是独立维度：任免协作者需站内确认，玩家标记直接切换；每行 mutation 独立 pending、乐观更新并在失败时回滚。
-- 乐观锁冲突不清空本地输入。帖子和子贴均提供「复制本地正文 / 载入最新版本」，载入前再次确认。
+- 乐观锁冲突不清空本地输入。帖子和子贴均提供「复制本地正文 / 载入最新版本」，载入前再次确认。普通正文和链接复制优先使用 Clipboard API，受限时尝试受控 DOM 复制并恢复焦点与选区；两种方式均失败时保留失败反馈。邀请凭据仍沿用身份与生命周期检查，富文本复制保留站内剪贴板协议。
 - 帖子设置或当前子贴有未保存内容时，页签切换、子贴切换、返回帖子、工作区链接、浏览器后退、刷新和关闭均受保护；保存、排序、创建、删除或图片上传期间禁止离开。
 - 管理上下文由 URL 恢复：默认设置页省略参数；子贴使用 `?view=subthreads&subthread={id}`，成员使用 `?view=members`。无效子贴安全回落首个真实子贴并规范化 URL，切换统一使用 history replace。
 - `/threads/[id]/edit` 是已发布帖管理的唯一页面入口，同时兼容历史收藏和直达链接；草稿续写/发布流程不变。

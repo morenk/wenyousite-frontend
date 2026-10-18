@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { useState, type ReactNode } from "react";
 import { Search } from "lucide-react";
 import { toast } from "sonner";
+import { copyToolText } from "@/lib/tools/clipboard";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { useLikeThread } from "@/api/hooks/use-like-thread";
@@ -120,9 +121,9 @@ export function ThreadDetailHeader({
 
   const handleCopyThreadLink = async () => {
     try {
-      await navigator.clipboard.writeText(
+      if (!await copyToolText(
         `${window.location.origin}/threads/${thread.id}`,
-      );
+      )) throw new Error("copy failed");
       toast.success("链接已复制");
     } catch {
       toast.error("复制失败，请稍后重试");
@@ -131,13 +132,13 @@ export function ThreadDetailHeader({
 
   const handleCopySubthreadLink = async () => {
     try {
-      await navigator.clipboard.writeText(
+      if (!await copyToolText(
         `${window.location.origin}${getSubthreadHref(
           thread.id,
           selectedSubthreadId,
           defaultSubthreadId,
         )}`,
-      );
+      )) throw new Error("copy failed");
       toast.success("当前子贴链接已复制");
     } catch {
       toast.error("复制失败，请稍后重试");

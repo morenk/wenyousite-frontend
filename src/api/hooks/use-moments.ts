@@ -1,4 +1,5 @@
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { emptyCursorPage, getNextCursor } from "@/api/cursor-page";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
@@ -26,13 +27,6 @@ type MomentCommentAuthorListResponse = operations["momentsCommentAuthors"]["resp
 type UserMomentListResponse = operations["userMomentsList"]["responses"][200]["content"]["application/json"];
 type MomentBookmarkListResponse = operations["momentsBookmarks"]["responses"][200]["content"]["application/json"];
 
-const emptyPage = <T,>() => ({
-  code: 0 as const,
-  message: "ok",
-  data: [] as T[],
-  meta: { cursor: null, hasMore: false },
-});
-
 export function useMoments(feed: MomentFeed, userId?: string) {
   const viewerScope = userId ?? "anonymous";
   return useInfiniteQuery({
@@ -42,10 +36,10 @@ export function useMoments(feed: MomentFeed, userId?: string) {
         params: { query: { feed, limit: 20, ...(pageParam ? { cursor: pageParam } : {}) } },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentCard>() satisfies MomentListResponse);
+      return data ?? (emptyCursorPage<MomentCard>() satisfies MomentListResponse);
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
+    getNextPageParam: getNextCursor,
     enabled: feed === "DISCOVER" || !!userId,
     staleTime: 30_000,
     gcTime: BROWSING_RETURN_GC_TIME,
@@ -223,10 +217,10 @@ export function useMomentComments(
         },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentRootComment>() satisfies MomentCommentListResponse);
+      return data ?? (emptyCursorPage<MomentRootComment>() satisfies MomentCommentListResponse);
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
+    getNextPageParam: getNextCursor,
     enabled: !!momentId,
     refetchOnMount: "always",
   });
@@ -254,10 +248,10 @@ export function useMomentReplies(
         },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentComment>() satisfies MomentReplyListResponse);
+      return data ?? (emptyCursorPage<MomentComment>() satisfies MomentReplyListResponse);
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
+    getNextPageParam: getNextCursor,
     enabled,
     refetchOnMount: "always",
   });
@@ -354,7 +348,7 @@ function useMomentCardPages<TResponse extends { data: MomentCard[]; meta: { curs
     queryKey,
     queryFn: ({ pageParam }: { pageParam: string | undefined }) => request(pageParam),
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (page) => page.meta.hasMore ? page.meta.cursor ?? undefined : undefined,
+    getNextPageParam: getNextCursor,
     enabled,
   });
 }
@@ -375,7 +369,7 @@ export function useUserMoments(
         },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentCard>() satisfies UserMomentListResponse);
+      return data ?? (emptyCursorPage<MomentCard>() satisfies UserMomentListResponse);
     },
   );
 }
@@ -395,7 +389,7 @@ export function useMomentBookmarks(userId?: string, folderId?: string) {
         },
       });
       if (error) throw error;
-      return data ?? (emptyPage<MomentBookmarkCard>() satisfies MomentBookmarkListResponse);
+      return data ?? (emptyCursorPage<MomentBookmarkCard>() satisfies MomentBookmarkListResponse);
     },
   );
 }

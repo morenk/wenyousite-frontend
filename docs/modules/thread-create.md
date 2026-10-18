@@ -101,7 +101,7 @@
 | useUploadImage | `src/api/hooks/use-upload-image.ts` | 图片上传 hook |
 | uploadImage | `src/lib/upload-image.ts` | 图片上传流程工具函数 |
 
-> 子贴管理相关组件/hooks（`SubthreadTree`、`ManagementPanel`、`SubthreadCard/List/Form`、`useCreateSubthread` 等）在详情页管理面板中使用，见 `docs/modules/thread-detail.md`。
+> 子贴管理相关组件/hooks（`SubthreadTree`、`ManagementPanel`、`SubthreadForm`、`useCreateSubthread` 等）在详情页管理面板中使用，见 `docs/modules/thread-detail.md`。
 
 **编辑器实现说明：**
 

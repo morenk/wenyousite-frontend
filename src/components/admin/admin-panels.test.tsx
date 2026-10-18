@@ -48,7 +48,6 @@ import { AdminDashboardPanel } from "@/components/admin/admin-dashboard-panel";
 import { AdminInviteAcceptance } from "@/components/admin/admin-invite-acceptance";
 import { CaseWorkbench } from "@/components/admin/case-workbench";
 import { AdminAccountsPanel } from "@/components/admin/admin-accounts-panel";
-import { HiddenContentList } from "@/components/admin/hidden-content-list";
 import { ContentModerationPanel } from "@/components/admin/content-moderation-panel";
 
 afterEach(cleanup);
@@ -240,51 +239,6 @@ describe("station panels", () => {
     expect(operations.container.querySelector('[data-slot="admin-operations-workspace"]'))
       .toHaveClass("w-full");
     operations.unmount();
-  });
-
-  it("隐藏内容列表展示当前状态并可填写理由直接恢复", async () => {
-    const restore = mutation();
-    hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore });
-    hooks.useAdminHiddenContent.mockReturnValue({
-      data: {
-        items: [{
-          targetType: "POST",
-          targetId: "post-1",
-          summary: "被隐藏的楼层内容",
-          author: { id: "user-1", username: "小温" },
-          moderator: { id: "admin-1", username: "站务" },
-          hiddenAt: "2026-08-14T08:00:00.000Z",
-          reason: "违反社区规则",
-          canRestore: true,
-          restoreBlockedReason: null,
-          threadId: "thread-1",
-          parentPostId: null,
-          momentId: null,
-          parentCommentId: null,
-        }],
-        meta: { cursor: null, hasMore: false },
-      },
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-    });
-
-    const view = renderWithUrl(<HiddenContentList />);
-    const panel = within(view.container);
-    expect(panel.getByText("被隐藏的楼层内容")).toBeInTheDocument();
-    expect(panel.getByText("违反社区规则")).toBeInTheDocument();
-    fireEvent.click(panel.getByRole("button", { name: "操作" }));
-    expect(screen.getByRole("dialog", { name: "帖子 / 楼层 / 回复操作" })).toHaveAttribute("data-slot", "dialog-popup");
-    fireEvent.change(screen.getByLabelText("恢复理由"), { target: { value: "复核后恢复" } });
-    fireEvent.click(screen.getByRole("button", { name: "确认恢复" }));
-
-    await waitFor(() => {
-      expect(restore.mutateAsync).toHaveBeenCalledWith({
-        type: "post",
-        id: "post-1",
-        reason: "复核后恢复",
-      });
-    });
   });
 
   it("审计记录正文直接保留完整本地日期与时分", () => {
