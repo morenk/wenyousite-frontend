@@ -1,5 +1,6 @@
 /** 获取主题帖详情 API hook */
 
+import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
@@ -77,8 +78,9 @@ export function threadDetailQueryOptions(threadId: string, viewerScope = "anonym
 
 export function useThreadDetail(threadId: string | undefined) {
   const viewerScope = useViewerScope();
+  const { isInitialized } = useAuth();
   return useQuery({
     ...threadDetailQueryOptions(threadId ?? "", viewerScope),
-    enabled: !!threadId,
+    enabled: isInitialized && !!threadId,
   });
 }

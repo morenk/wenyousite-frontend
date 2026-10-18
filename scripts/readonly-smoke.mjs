@@ -1,6 +1,8 @@
 import { chromium, expect } from "@playwright/test";
 import { installReadonlySmokeGuard, smokeOrigin } from "./readonly-smoke-policy.mjs";
 
+import { assertAudioMediaPolicy } from "./audio-csp-smoke.mjs";
+
 const origin = smokeOrigin(process.env.SMOKE_BASE_URL);
 const browser = await chromium.launch();
 try {
@@ -10,11 +12,11 @@ try {
   const page = await context.newPage();
   const health = await page.goto("/api/v1/health");
   expect(health?.ok()).toBe(true);
-  await page.goto("/login");
+  assertAudioMediaPolicy(await page.goto("/login"));
   await expect(page.getByLabel("邮箱或用户名")).toBeVisible();
   await expect(page.getByRole("button", { name: "登录", exact: true })).toBeVisible();
   const listing = page.waitForResponse((response) => new URL(response.url()).pathname === "/api/v1/threads");
-  await page.goto("/");
+  assertAudioMediaPolicy(await page.goto("/"));
   const listingResponse = await listing;
   expect(listingResponse.ok()).toBe(true);
   const publicThreads = (await listingResponse.json()).data;
@@ -26,7 +28,7 @@ try {
   if (publicThreads.length) {
     expect(href).toMatch(/^\/threads\/c[a-z0-9]{24}$/i);
     const detail = page.waitForResponse((response) => new URL(response.url()).pathname === `/api/v1${href}`);
-    await page.goto(href);
+    assertAudioMediaPolicy(await page.goto(href));
     expect((await detail).ok()).toBe(true);
     await expect(page.locator("h1").first()).toBeVisible();
     await page.waitForLoadState("networkidle");

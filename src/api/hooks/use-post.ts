@@ -1,5 +1,6 @@
 /** 单帖详情查询：为通知精确跳转提供主题、子贴和父楼上下文 */
 
+import { useAuth } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
@@ -15,6 +16,7 @@ export type PostDetail = Omit<GeneratedPostDetail, "diceRolls"> & {
 /** 查询一个未删除且当前用户可访问的帖子 */
 export function usePost(id?: string) {
   const viewerScope = useViewerScope();
+  const { isInitialized } = useAuth();
   return useQuery({
     queryKey: queryKeys.posts.detailForViewer(id, viewerScope),
     queryFn: async () => {
@@ -26,7 +28,7 @@ export function usePost(id?: string) {
       if (!data) throw new Error("帖子详情响应为空");
       return data.data;
     },
-    enabled: !!id,
+    enabled: isInitialized && !!id,
     staleTime: 30 * 1000,
     refetchOnMount: "always",
     retry: shouldRetryContentQuery,

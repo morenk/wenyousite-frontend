@@ -14,7 +14,7 @@ export function createContentSecurityPolicy({
     `img-src 'self' data: blob: ${MEDIA_ORIGIN}`,
     "font-src 'self' data:",
     `connect-src 'self' ${MEDIA_ORIGIN}${isDevelopment ? " ws: wss:" : ""}`,
-    "media-src 'self' blob:",
+    `media-src 'self' blob: ${MEDIA_ORIGIN}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

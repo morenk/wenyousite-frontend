@@ -37,6 +37,8 @@
 
 挂载、悬停和滚动不设置 `src`；`preload=none`，首次明确点击才交给原生音频读取精确桶 URL/Range。同页只能一个音频活动播放。普通暂停保留缓冲；后台/pagehide/卸载解除 src 并 load 以停止在途缓冲，记录进度；回到前台不请求，用户点击后等 metadata 到达再恢复进度。来源或页面改变重置实例状态。metadata 前禁用 seek，非法 currentTime 安全处理。失败只显示就近错误与显式重试，不自动恢复或重试。
 
+生产与开发页面的 CSP 均仅在 `media-src` 中允许本站、`blob:` 和固定的 `https://cn-nb1.rains3.com`；沿用图片与直传的媒体源，不放宽到任意 HTTPS。只读烟雾检查首页、登录页和公开帖子实际文档响应中的媒体许可；桶 Range 正常并不代表浏览器获准播放。
+
 ## 保存到本地
 
 仅阅读态播放器右侧提供 Foundation `action.download` 图标，名称为“保存到本地”。点击才以 `credentials: omit`、`referrerPolicy: no-referrer` 直接请求公开音频 URL，不使用业务 API 代理、不携带 Cookie/令牌。跨源保存需要媒体入口允许 CORS；不是依赖跨源 `a[download]`。
