@@ -1,3 +1,7 @@
+import { createRef } from "react";
+import { MilkdownProvider } from "@milkdown/react";
+import { MilkdownEditorHost } from "../milkdown-editor-host";
+import type { EditorSubmissionHandle } from "../use-editor-submission";
 import { afterAll, afterEach, expect, test, vi } from "vitest";
 import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
@@ -72,4 +76,57 @@ test("同页保存与跨标签页清除会更新已挂载偏好", async () => {
   expect(screen.getByText("dice")).toBeInTheDocument();
   act(() => { localStorage.clear(); window.dispatchEvent(new StorageEvent("storage", { key: null })); });
   expect(screen.getByText("default")).toBeInTheDocument();
+});
+
+test("默认主栏正文样式使用锚点弹层，Escape 恢复触发焦点且不改正文", async () => {
+  const { container } = render(<QueryClientProvider client={new QueryClient()}><MilkdownEditor defaultValue="甲乙" /></QueryClientProvider>);
+  const editor = await startAtMiddle(container);
+  const trigger = await screen.findByRole("button", { name: "切换正文样式" });
+  await userEvent.setup().click(trigger);
+  const menu = await screen.findByRole("dialog", { name: "正文样式" });
+  expect(trigger).toHaveAttribute("aria-expanded", "true");
+  expect(within(menu).getAllByRole("button").map((item) => item.textContent)).toEqual(["正文", "标题 2", "标题 3"]);
+  expect(container.contains(menu)).toBe(false);
+  await userEvent.setup().keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("dialog", { name: "正文样式" })).toBeNull());
+  expect(trigger).toHaveFocus();
+  expect(trigger).toHaveAttribute("aria-expanded", "false");
+  expect(editor.querySelector("p")).toHaveTextContent("甲乙");
+  await userEvent.setup().keyboard("{Enter}");
+  const reopened = await screen.findByRole("dialog", { name: "正文样式" });
+  await userEvent.setup().click(within(reopened).getByRole("button", { name: "标题 2" }));
+  await waitFor(() => expect(editor.querySelector("h2")).toHaveTextContent("甲乙"));
+  expect(editor).toHaveFocus();
+});
+
+
+test("标题菜单只修改原选中段落，颜色、粗体和对齐可恢复为正文", async () => {
+  const ref = createRef<EditorSubmissionHandle>();
+  const { container } = render(<QueryClientProvider client={new QueryClient()}><MilkdownProvider><MilkdownEditorHost
+    initialValue={'第一段\n\n[wenyousite-align-v1-center]: #\n<span data-wenyou-color-v1="#3366FF">**彩色🙂中文**</span>'}
+    markdownContractVersion={5} textColorVersion={1} editorRef={ref} ariaLabel="正文" minHeight={180} maxHeight={300}
+  /></MilkdownProvider></QueryClientProvider>);
+  const editor = await waitFor(() => {
+    const node = container.querySelector<HTMLElement>(".ProseMirror")!;
+    expect(node?.querySelectorAll("p")).toHaveLength(2);
+    return node;
+  });
+  const target = editor.querySelectorAll("p")[1]!;
+  editor.focus();
+  const range = document.createRange(); range.selectNodeContents(target);
+  const selection = window.getSelection()!; selection.removeAllRanges(); selection.addRange(range);
+  fireEvent(document, new Event("selectionchange"));
+  const trigger = await screen.findByRole("button", { name: "切换正文样式" });
+  await userEvent.setup().click(trigger);
+  await userEvent.setup().click(within(await screen.findByRole("dialog", { name: "正文样式" })).getByRole("button", { name: "标题 2" }));
+  await waitFor(() => expect(editor.querySelector("h2 strong")).toHaveTextContent("彩色🙂中文"));
+  expect(editor.querySelector("h2")).toHaveAttribute("data-wenyou-align", "center");
+  expect(editor.querySelector("h2 [data-wenyou-color-v1]")).toHaveAttribute("data-wenyou-color-v1", "#3366FF");
+  expect(editor.querySelector("p")).toHaveTextContent("第一段");
+  await userEvent.setup().click(trigger);
+  await userEvent.setup().click(within(await screen.findByRole("dialog", { name: "正文样式" })).getByRole("button", { name: "正文" }));
+  await waitFor(() => expect(editor.querySelector("h2")).toBeNull());
+  expect(editor.querySelectorAll("p")[1]).toHaveAttribute("data-wenyou-align", "center");
+  expect(ref.current?.flush()).toContain('<span data-wenyou-color-v1="#3366FF">');
+  expect(ref.current?.flush()).toContain("**彩色🙂中文**");
 });

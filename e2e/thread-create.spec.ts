@@ -119,7 +119,7 @@ test.describe("主题帖创建流程", () => {
     }
 
     await toolbar.locator(".top-bar-heading-button").click();
-    const headingMenu = toolbar.locator(".top-bar-heading-dropdown");
+    const headingMenu = page.getByRole("dialog", { name: "正文样式" });
     await expect(headingMenu).toBeVisible();
     const menuBox = await headingMenu.boundingBox();
     expect(menuBox).not.toBeNull();
@@ -131,6 +131,42 @@ test.describe("主题帖创建流程", () => {
     await expect(headingMenu.getByRole("button", { name: "标题 2" })).toBeVisible();
     await expect(headingMenu.getByRole("button", { name: "标题 3" })).toBeVisible();
     await expect(headingMenu.getByRole("button", { name: "标题 1" })).toHaveCount(0);
+  });
+
+  test("正文样式锚点随窗口变化跟随，键盘取消和切换保留原段落", async ({ page }) => {
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".ProseMirror");
+    await editor.fill("第一段");
+    await page.keyboard.press("End");
+    await page.keyboard.press("Enter");
+    await page.keyboard.insertText("第二段🙂");
+    const trigger = page.getByRole("button", { name: "切换正文样式" });
+    const menu = page.getByRole("dialog", { name: "正文样式" });
+    await trigger.click();
+    await expect(menu).toBeVisible();
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await expect.poll(async () => {
+      const a = await trigger.boundingBox(); const b = await menu.boundingBox();
+      return a && b ? Math.min(Math.abs(b.y - a.y - a.height - 6), Math.abs(a.y - b.y - b.height - 6)) : 999;
+    }).toBeLessThanOrEqual(1);
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await expect(trigger).toBeFocused();
+    await expect(trigger).toHaveAttribute("aria-expanded", "false");
+    await trigger.press("ArrowDown");
+    await expect(menu).toBeVisible();
+    await menu.getByRole("button", { name: "标题 2" }).click();
+    await expect(editor.locator("h2")).toHaveText("第二段🙂");
+    await expect(editor.locator("p")).toHaveText("第一段");
+    await expect(editor).toBeFocused();
+    await trigger.click();
+    await menu.getByRole("button", { name: "正文", exact: true }).click();
+    await expect(editor.locator("h2")).toHaveCount(0);
+    await expect(editor.locator("p")).toHaveText(["第一段", "第二段🙂"]);
+    await trigger.click();
+    await page.locator("#title").click();
+    await expect(menu).toHaveCount(0);
+    await expect(page.locator("#title")).toBeFocused();
   });
 
   test("上传并插入图片后编辑器工具栏仍可见", async ({ page }) => {
