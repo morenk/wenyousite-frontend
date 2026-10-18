@@ -375,4 +375,29 @@ describe("station panels", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "复核" }));
     expect(screen.getByRole("dialog", { name: "复核 小温 的申诉" })).toHaveAttribute("data-admin-action-dialog");
   });
+  it("维护公告超长时显示字段错误并保留输入", async () => {
+    hooks.useAdminSettings.mockReturnValue({ data: {}, isLoading: false, isError: false });
+    const update = mutation(); hooks.useUpdateAdminSettings.mockReturnValue(update);
+    renderWithUrl(<OperationsSettingsPanel />);
+    fireEvent.change(screen.getByLabelText("公告标题"), { target: { value: "文".repeat(61) } });
+    fireEvent.change(screen.getByLabelText("公告正文"), { target: { value: "文".repeat(501) } });
+    fireEvent.submit(screen.getByLabelText("公告标题").closest("form")!);
+    await waitFor(() => expect(screen.getByLabelText("公告标题")).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByLabelText("公告标题")).toHaveAccessibleDescription("最多 60 个字符");
+    expect(screen.getByLabelText("公告正文")).toHaveAccessibleDescription("最多 500 个字符");
+    expect(screen.getByLabelText("公告标题")).toHaveValue("文".repeat(61));
+    expect(update.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("直接处置表单将链接和理由错误关联到真实输入控件", async () => {
+    renderWithUrl(<ContentModerationPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "直接处置内容" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认隐藏" }));
+    await waitFor(() => expect(screen.getByLabelText("内容链接或编号")).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByLabelText("内容链接或编号")).toHaveAccessibleDescription("请粘贴内容链接或填写内容编号");
+    expect(screen.getByLabelText("处置理由")).toHaveAccessibleDescription("请填写处置理由");
+    expect(screen.getByRole("combobox", { name: "执行动作" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "目标类型" })).toBeInTheDocument();
+  });
+
 });

@@ -57,9 +57,9 @@ describe("UserRecentReplies", () => {
     expect(screen.getByText("加载中…")).toBeInTheDocument();
   });
 
-  test("错误显示未公开占位", () => {
-    render(<UserRecentReplies replies={[]} isLoading={false} error />);
-    expect(screen.getByText("该用户未公开最近动态")).toBeInTheDocument();
+  test("用户不存在或未公开使用不可访问占位", () => {
+    render(<UserRecentReplies replies={[]} isLoading={false} error={{ code: 40401 }} />);
+    expect(screen.getByText("用户不存在或未公开最近动态")).toBeInTheDocument();
   });
 
   test("空列表显示空状态", () => {
@@ -126,3 +126,17 @@ describe("UserRecentReplies", () => {
     expect(screen.getByText("判定 [2d50] [详情]")).toBeInTheDocument();
   });
 });
+
+ test("网络错误不冒充隐私关闭，重试入口可用", () => {
+   const retry = vi.fn();
+   render(<UserRecentReplies replies={[]} isLoading={false} error={new TypeError("offline")} onRetry={retry} />);
+   expect(screen.getByText("最近回复加载失败")).toBeInTheDocument();
+   screen.getByRole("button", { name: "重试" }).click();
+   expect(retry).toHaveBeenCalledTimes(1);
+ });
+ test("暂时失败保留回复，权限失效隐藏旧回复", () => {
+   const { rerender } = render(<UserRecentReplies replies={sampleReplies} isLoading={false} error={new Error("offline")} />);
+   expect(screen.getAllByRole("link")).not.toHaveLength(0);
+   rerender(<UserRecentReplies replies={sampleReplies} isLoading={false} error={{ code: 40301 }} />);
+   expect(screen.queryAllByRole("link")).toHaveLength(0);
+ });

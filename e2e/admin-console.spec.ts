@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { writeFileSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "./fixtures/typography";
 
@@ -20,7 +20,7 @@ async function mockAdmin(page: Page) {
     const url = new URL(request.url());
     const reply = (data: unknown, meta?: object) => route.fulfill({ json: { code: 0, message: "ok", data, ...(meta ? { meta } : {}) } });
     if (url.pathname.endsWith("/admin/auth/session")) return reply({ csrfToken: "test", user: { id: "admin-1", username: "管理员", role: "SUPER_ADMIN" }, session: { elevatedUntil: "2026-09-21T00:00:00.000Z" } });
-    if (url.pathname.endsWith("/admin/thread-categories")) return reply([{ id: "cat-1", slug: "RPG", name: "角色扮演", isActive: true }, { id: "cat-2", slug: "OTHER", name: "其他", isActive: true }]);
+    if (url.pathname.endsWith("/admin/thread-categories")) return reply([{ id: "cat-1", slug: "RPG", name: "角色扮演", description: "共同创作故事", sortOrder: 0, isActive: true }, { id: "cat-2", slug: "OTHER", name: "其他", description: "", sortOrder: 1, isActive: true }]);
     if (url.pathname.endsWith("/admin/tags")) return reply([{ id: "tag-1", name: "日常", isActive: true }]);
     if (url.pathname.endsWith("/admin/content")) {
       const start = url.searchParams.get("cursor") ? 21 : 1;
@@ -59,6 +59,38 @@ test.describe("综合管理后台", () => {
         const box = await scroller.boundingBox();
         expect(action!.x + action!.width).toBeLessThanOrEqual(box!.x + box!.width + 1);
         await page.screenshot({ path: testInfo.outputPath(`content-${width}-${colorScheme}.png`) });
+      });
+    }
+  }
+  for (const width of [1024, 1366]) {
+    for (const colorScheme of ["light", "dark"] as const) {
+      test(`${width}px ${colorScheme} 站务字段错误可定位且可修正`, async ({ page }) => {
+        const candidateScreenshots = join(process.cwd(), ".e2e-results", "menu-form-candidate");
+        mkdirSync(candidateScreenshots, { recursive: true });
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ colorScheme });
+        await page.goto("/station/taxonomy");
+        await page.getByRole("button", { name: "编辑 角色扮演" }).click();
+        const dialog = page.getByRole("dialog", { name: "编辑分类" });
+        await dialog.getByRole("textbox", { name: "展示名称" }).fill("");
+        await dialog.getByRole("textbox", { name: "分类说明" }).fill("文".repeat(201));
+        await dialog.getByRole("button", { name: "保存分类设置" }).click();
+        await expect(dialog.getByRole("textbox", { name: "展示名称" })).toHaveAttribute("aria-invalid", "true");
+        await expect(dialog.getByRole("textbox", { name: "展示名称" })).toHaveAccessibleDescription(/修改名称会同步显示在已有主题帖中.*请输入分类名称/);
+        await expect(dialog.getByRole("textbox", { name: "分类说明" })).toHaveAccessibleDescription(/说明最多 200 个字符/);
+        await page.screenshot({ path: join(candidateScreenshots, `category-errors-${width}-${colorScheme}.png`) });
+        await dialog.getByRole("textbox", { name: "展示名称" }).fill("角色扮演");
+        await dialog.getByRole("textbox", { name: "分类说明" }).fill("共同创作故事");
+        await expect(dialog.getByRole("textbox", { name: "分类说明" })).not.toHaveAttribute("aria-invalid", "true");
+        await dialog.getByRole("button", { name: "取消", exact: true }).click();
+        await page.goto("/station/operations");
+        await page.getByRole("textbox", { name: "公告标题" }).fill("文".repeat(61));
+        await page.getByRole("textbox", { name: "公告正文" }).fill("文".repeat(501));
+        await page.getByRole("button", { name: "保存运行设置" }).click();
+        await expect(page.getByRole("textbox", { name: "公告标题" })).toHaveAccessibleDescription("最多 60 个字符");
+        await expect(page.getByRole("textbox", { name: "公告正文" })).toHaveAccessibleDescription("最多 500 个字符");
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+        await page.screenshot({ path: join(candidateScreenshots, `operations-errors-${width}-${colorScheme}.png`), fullPage: true });
       });
     }
   }

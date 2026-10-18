@@ -249,3 +249,14 @@ describe("ThreadList", () => {
     expect(container.querySelectorAll("a[href*='/threads/t1']").length).toBe(1);
   });
 });
+
+ test("已有主题的刷新失败保留卡片且可重试，权限失效隐藏旧内容", () => {
+   const retry = vi.fn();
+   const props = { threads: [sampleThread], isLoading: false, hasNextPage: true, isFetchingNextPage: false, onLoadMore: vi.fn(), onRetry: retry };
+   const { rerender } = render(<ThreadList {...props} error={new Error("offline")} />);
+   expect(screen.getByText("测试帖")).toBeInTheDocument();
+   fireEvent.click(screen.getByRole("button", { name: "重试" }));
+   expect(retry).toHaveBeenCalledTimes(1);
+   rerender(<ThreadList {...props} error={{ code: 40100 }} />);
+   expect(screen.queryByText("测试帖")).not.toBeInTheDocument();
+ });

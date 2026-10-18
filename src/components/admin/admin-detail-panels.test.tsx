@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AdminContentDetail } from "@/api/hooks/use-admin";
@@ -76,6 +76,8 @@ describe("独立管理详情", () => {
     await user.type(screen.getByLabelText("处罚理由"), "复核账号状态");
     await user.click(screen.getByRole("button", { name: "暂停账号" }));
     expect(await screen.findByText("暂停账号需要结束时间")).toBeInTheDocument();
+    expect(screen.getByLabelText("暂停至")).toHaveAttribute("aria-invalid", "true");
+    expect(screen.getByLabelText("暂停至")).toHaveAccessibleDescription("暂停账号需要结束时间");
     fireEvent.change(screen.getByLabelText("暂停至"), { target: { value: "2026-10-01T12:00" } });
     await user.click(screen.getByRole("button", { name: "暂停账号" }));
     await waitFor(() => expect(mocks.sanction).toHaveBeenCalledOnce());
@@ -88,4 +90,21 @@ describe("独立管理详情", () => {
     await userEvent.click(screen.getByRole("button", { name: "重试" }));
     expect(mocks.refetchUser).toHaveBeenCalledOnce();
   });
+  it("账号暂停只在当前动作显示忙碌状态，其他动作禁用", async () => {
+    let finish!: () => void;
+    mocks.sanction.mockImplementationOnce(() => new Promise<void>((resolve) => { finish = resolve; }));
+    render(<UserDetailPanel id="user-1" />);
+    fireEvent.click(screen.getByRole("button", { name: "修改状态" }));
+    fireEvent.change(screen.getByLabelText("处罚理由"), { target: { value: "复核账号状态" } });
+    fireEvent.change(screen.getByLabelText("暂停至"), { target: { value: "2026-10-20T12:00" } });
+    fireEvent.click(screen.getByRole("button", { name: "暂停账号" }));
+    await waitFor(() => expect(mocks.sanction).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "暂停账号" })).toHaveAttribute("aria-busy", "true");
+    expect(screen.getByRole("button", { name: "永久封禁" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "永久封禁" })).not.toHaveAttribute("aria-busy", "true");
+    fireEvent.click(screen.getByRole("button", { name: "永久封禁" }));
+    expect(mocks.sanction).toHaveBeenCalledOnce();
+    await act(async () => finish());
+  });
+
 });

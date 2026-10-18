@@ -1,12 +1,38 @@
 import { expect, type Locator } from "@playwright/test";
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 import { test } from "./fixtures/isolation";
 import { openFreshThreadDraft } from "./fixtures/auth";
 
+let geometryCheck = 0;
 async function expectMenuTethered(trigger: Locator, menu: Locator) {
-  const [triggerBox, menuBox] = await Promise.all([
-    trigger.boundingBox(),
-    menu.boundingBox(),
-  ]);
+  const readGeometry = async () => {
+    const [triggerBox, menuBox, motion] = await Promise.all([
+      trigger.boundingBox(),
+      menu.boundingBox(),
+      menu.evaluate((element) => ({
+        transform: getComputedStyle(element).transform,
+        animations: element.getAnimations().map((animation) => ({
+          playState: animation.playState,
+          pending: animation.pending,
+          currentTime: animation.currentTime,
+          duration: animation.effect?.getComputedTiming().duration,
+        })),
+      })),
+    ]);
+    return { triggerBox, menuBox, motion };
+  };
+  const initial = await readGeometry();
+  // 可见时 zoom 入场动画仍可能改变边框；只等待当前浮层自身的有限动画。
+  await expect.poll(() => menu.evaluate((element) => element.getAnimations().filter((animation) =>
+    animation.effect?.getComputedTiming().iterations !== Infinity
+      && (animation.pending || animation.playState === "running"),
+  ).length), { timeout: 2000, message: "浮层有限入场动画应结束后再测量定位" }).toBe(0);
+  const settled = await readGeometry();
+  const evidence = join(process.cwd(), ".e2e-results", "editor-menu-geometry", process.env.E2E_RUN_ID!);
+  mkdirSync(evidence, { recursive: true });
+  writeFileSync(join(evidence, `${test.info().project.name}-${test.info().repeatEachIndex}-${geometryCheck++}.json`), JSON.stringify({ initial, settled }));
+  const { triggerBox, menuBox } = settled;
   expect(triggerBox).not.toBeNull();
   expect(menuBox).not.toBeNull();
   const verticalGap = menuBox!.y >= triggerBox!.y

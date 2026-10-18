@@ -1,5 +1,8 @@
 "use client";
 
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
+import { isListAccessError } from "@/lib/list-query-state";
 import { ChevronDown, Loader2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
@@ -67,7 +70,8 @@ export function MomentComments({
   const focusedReply = context?.target.parentCommentId ? context.target : undefined;
   const showCommentsLoading = (commentsQuery.isLoading || commentsQuery.isRefetching) &&
     displayedComments.length === 0;
-  const showCommentsError = commentsQuery.isError && displayedComments.length === 0;
+  const accessError = isListAccessError(commentsQuery.error);
+  const showCommentsError = commentsQuery.isError && (displayedComments.length === 0 || accessError);
 
   useEffect(() => {
     if (!targetCommentId || !targetUnavailable) return;
@@ -106,14 +110,9 @@ export function MomentComments({
       ) : null}
 
       {showCommentsLoading ? (
-        <div className="flex justify-center py-14" role="status">
-          <Loader2 className="size-5 animate-spin text-muted-foreground" />
-        </div>
+        <LoadingState label="" className="min-h-0 py-14" />
       ) : showCommentsError ? (
-        <div className="py-10 text-center">
-          <p className="text-sm text-muted-foreground">评论加载失败</p>
-          <Button variant="ghost" size="sm" className="mt-2" onClick={() => void commentsQuery.refetch()}>重试</Button>
-        </div>
+        <LoadError title="评论加载失败" onRetry={() => void commentsQuery.refetch()} className="py-10" />
       ) : displayedComments.length === 0 ? (
         <p className="py-12 text-center text-sm text-muted-foreground">还没有评论</p>
       ) : (
@@ -133,7 +132,10 @@ export function MomentComments({
         </div>
       )}
 
-      {commentsQuery.hasNextPage ? (
+      {commentsQuery.isError && displayedComments.length > 0 && !accessError ? (
+        <LoadError title="评论更新失败" onRetry={() => void commentsQuery.refetch()} className="py-6" />
+      ) : null}
+      {commentsQuery.hasNextPage && !commentsQuery.isError ? (
         <div className="flex justify-center py-4">
           <Button
             variant="ghost"

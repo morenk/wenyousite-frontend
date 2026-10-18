@@ -77,6 +77,18 @@ describe("UserCreatedThreads", () => {
     expect(screen.getByRole("status", { name: "正在加载主题帖" })).toBeInTheDocument();
   });
 
+  test("用户不存在时隐藏旧条目，不虚构创建帖隐私开关", () => {
+    mockUseUserCreatedThreads.mockReturnValue({
+      data: { pages: [{ data: [sampleThread] }] },
+      error: { code: 40401 },
+      isLoading: false,
+    });
+    render(<UserCreatedThreads userId="u1" />, { wrapper: createWrapper() });
+    expect(screen.getByText("用户不存在")).toBeInTheDocument();
+    expect(screen.queryByText("我创建的帖")).not.toBeInTheDocument();
+    expect(screen.queryByText(/未公开/)).not.toBeInTheDocument();
+  });
+
   test("空列表显示空状态", () => {
     mockUseUserCreatedThreads.mockReturnValue({
       data: { pages: [] },
