@@ -105,7 +105,6 @@ const exactTimeFiles = [
   "src/components/user/moderation-decisions-panel.tsx",
   "src/components/admin/appeals-panel.tsx",
   "src/components/admin/case-workbench.tsx",
-  "src/components/admin/hidden-content-list.tsx",
   "src/components/admin/admin-accounts-panel.tsx",
   "src/components/admin/announcements-panel.tsx",
   "src/components/admin/audit-panel.tsx",

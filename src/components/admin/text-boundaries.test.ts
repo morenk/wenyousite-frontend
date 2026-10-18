@@ -4,7 +4,6 @@ import { categorySchema as schema1 } from "./taxonomy-panel";
 import { reasonSchema as schema2 } from "./admin-content-moderation-dialog";
 import { reasonSchema as schema3 } from "./content-detail-panel";
 import { formSchema as schema4 } from "./content-moderation-panel";
-import { restoreSchema as schema5 } from "./hidden-content-list";
 import { schema as schema6 } from "./operations-settings-panel";
 import { schema as schema7 } from "./announcements-panel";
 import { sanctionSchema as schema8 } from "./user-account-state";
@@ -35,9 +34,10 @@ describe("后台文本与后端DTO的Unicode边界", () => {
     expect(schema4.shape.reason.safeParse("😀".repeat(500)).success).toBe(true);
     expect(schema4.shape.reason.safeParse("😀".repeat(501)).success).toBe(false);
   });
-  test("hidden-content-list.reason接受500码点并拒绝超限", () => {
-    expect(schema5.shape.reason.safeParse("😀".repeat(500)).success).toBe(true);
-    expect(schema5.shape.reason.safeParse("😀".repeat(501)).success).toBe(false);
+  test("content-detail-panel恢复理由拒绝空白并按Unicode码点校验", () => {
+    expect(schema3.shape.reason.safeParse("  ").success).toBe(false);
+    expect(schema3.shape.reason.safeParse("😀".repeat(500)).success).toBe(true);
+    expect(schema3.shape.reason.safeParse("😀".repeat(501)).success).toBe(false);
   });
   test("operations-settings-panel.maintenanceTitle接受60码点并拒绝超限", () => {
     expect(schema6.shape.maintenanceTitle.safeParse("😀".repeat(60)).success).toBe(true);

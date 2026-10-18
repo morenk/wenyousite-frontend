@@ -1,9 +1,8 @@
 import { expect, type Page } from "@playwright/test";
-import { createHash } from "node:crypto";
-import { execFileSync } from "node:child_process";
-import { mkdirSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { mkdirSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "./fixtures/typography";
+import { evidenceSource } from "../scripts/source-evidence.mjs";
 import { privateJSON, readAdminFixtures, readMobileReleaseFixtures, requireIsolationRunner } from "../scripts/e2e-isolation-gate.mjs";
 
 async function login(page: Page, role: "ADMIN" | "SUPER_ADMIN") {
@@ -52,13 +51,6 @@ async function publicRelease(page: Page, build: number) {
     const response = await fetch(`/api/v1/mobile-releases/android/${build}`, { credentials: "omit" });
     return { status: response.status, body: await response.json() };
   }, build);
-}
-
-function evidenceSource() {
-  const files = execFileSync("git", ["ls-files", "--cached", "--others", "--exclude-standard", "-z"], { encoding: "utf8" }).split("\0").filter(Boolean).sort();
-  const digest = createHash("sha256");
-  for (const file of files) { digest.update(file); digest.update(readFileSync(file)); }
-  return { sourceCommit: execFileSync("git", ["rev-parse", "HEAD"], { encoding: "utf8" }).trim(), sourceDigest: digest.digest("hex") };
 }
 
 test("真实管理员深链接登录回跳、创建、冲突恢复、公开快照保护与明暗窄屏候选", async ({ page }) => {

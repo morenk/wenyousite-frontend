@@ -101,3 +101,25 @@ describe("useUserPlayedThreads", () => {
     });
   });
 });
+
+test("useUserPlayedThreads 原样续接游标，缺少数据安全结束且接口错误不变为空页", async () => {
+  mockGET.mockReset().mockResolvedValueOnce({
+    data: { code: 0, message: "ok", data: [], meta: { cursor: "opaque+/=cursor", hasMore: true } },
+  }).mockResolvedValueOnce({});
+  const { result, unmount } = renderHook(() => useUserPlayedThreads("u1", "PRIVATE"), { wrapper: createWrapper() });
+  await waitFor(() => expect(result.current.hasNextPage).toBe(true));
+  await result.current.fetchNextPage();
+  await waitFor(() => expect(result.current.data?.pages).toHaveLength(2));
+  expect(mockGET).toHaveBeenLastCalledWith("/api/v1/users/{id}/played-threads", {
+    params: { path: { id: "u1" }, query: { limit: 10, cursor: "opaque+/=cursor", visibility: "PRIVATE" } },
+  });
+  expect(result.current.data?.pages[1]).toEqual({ code: 0, message: "ok", data: [], meta: { cursor: null, hasMore: false } });
+  expect(result.current.hasNextPage).toBe(false);
+  unmount();
+  const error = { code: 403, message: "无权读取" };
+  mockGET.mockResolvedValue({ error });
+  const denied = renderHook(() => useUserPlayedThreads("u1", "PRIVATE"), { wrapper: createWrapper() });
+  await waitFor(() => expect(denied.result.current.isError).toBe(true));
+  expect(denied.result.current.error).toBe(error);
+  expect(denied.result.current.data).toBeUndefined();
+});

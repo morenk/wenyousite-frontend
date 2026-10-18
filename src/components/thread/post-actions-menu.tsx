@@ -6,6 +6,7 @@ import { Menu } from "@/components/ui/menu";
 import { Copy, Ellipsis, Link2, Pencil, ShieldAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { copyToolText } from "@/lib/tools/clipboard";
 import {
   AdminContentModerationDialog,
   type AdminModerationTarget,
@@ -37,7 +38,7 @@ interface PostActionsMenuProps {
 
 async function copyToClipboard(value: string, successMessage: string) {
   try {
-    await navigator.clipboard.writeText(value);
+    if (!await copyToolText(value)) throw new Error("copy failed");
     toast.success(successMessage);
   } catch {
     toast.error("复制失败，请稍后重试");
@@ -53,7 +54,7 @@ async function copyContentToClipboard(elementId: string | undefined, fallback: s
     if (content) {
       await writeSiteClipboardPayload(createReaderClipboardPayload(content));
     } else {
-      await navigator.clipboard.writeText(fallback);
+      if (!await copyToolText(fallback)) throw new Error("copy failed");
     }
     toast.success("内容已复制");
   } catch {
