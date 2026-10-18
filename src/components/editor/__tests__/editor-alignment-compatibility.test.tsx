@@ -738,15 +738,19 @@ describe("Milkdown 段落对齐兼容性", () => {
     await waitFor(() => expect(onChange.mock.calls.at(-1)?.[0]).not.toContain("wenyousite-align"));
   });
 
-  test("工具栏仅接受指针操作，窄栏两枚 toggle 仍保留完整 ARIA 状态", async () => {
+  test("正文菜单保留键盘入口，其他工具和窄栏对齐 toggle 保留原 ARIA 状态", async () => {
     enableMarkdownVersion(4);
     const user = userEvent.setup();
     const { container } = renderEditor({ defaultValue: "指针正文" });
     const editor = await getEditor(container);
     const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
     await user.click(editor.querySelector("p")!);
+    const heading = within(toolbar).getByRole("button", { name: "切换正文样式" });
+    expect(heading).toHaveAttribute("tabindex", "0");
+    expect(heading).toHaveAttribute("aria-haspopup", "dialog");
+    expect(heading).toHaveAttribute("aria-expanded", "false");
     for (const control of within(toolbar).getAllByRole("button")) {
-      expect(control).toHaveAttribute("tabindex", "-1");
+      if (control !== heading) expect(control).toHaveAttribute("tabindex", "-1");
     }
     await makeToolbarCompact(toolbar);
     fireEvent.pointerDown(within(toolbar).getByRole("button", { name: "更多" }));

@@ -189,3 +189,7 @@ HTML 复制用 `data-wenyou-mention-source-href` 与 `data-wenyou-mention-source
 跨端编码联验使用实际 Milkdown 入口：设置 `WENYOU_TEXT_COLOR_IMPORT` 为另一端的 `{source, saved?}[]` 或 `{cases: [{source, saved?}]}` 测试内容产物，运行 `pnpm test src/components/editor/__tests__/text-color-roundtrip.test.ts`；`WENYOU_TEXT_COLOR_EXPORT` 输出本次真实解析和保存结果。产物与精确消费者 SHA、fixture SHA 分开登记，不传递未提交源码。转义的全体提及、骰子和站内地址是普通彩色字面，真实原子节点仍不能着色。
 
 对齐与颜色的消费者回归使用生产顺序的 alignment parser/schema，再配置颜色序列化；跨端导入入口也使用该配置。永久矩阵覆盖左/中/右对齐、P/H2/H3、八种行内组合及相邻无空行边界。编辑器和阅读组件分别与独立声明的文字、RGB、全部格式及链接属性比较；见[对齐与颜色回归记录](../verification/text-color-alignment-regressions.md)。可设置 `WENYOU_TEXT_COLOR_ALIGNMENT_EXPORT` 并运行 `pnpm test src/components/editor/__tests__/text-color-alignment.test.tsx` 导出 78 个合法输入的实际保存结果，供 App 复读；产物记录 HEAD 和工作区是否干净，不能用脏树的 HEAD 冒充已提交候选。
+
+### 正文样式菜单定位
+
+主工具栏和“更多”中的正文样式共用锚点弹层，提供正文、标题 2、标题 3。菜单靠近触发按钮，空间不足时翻转并限制可用高度；滚动与窗口变化由共享浮层跟随。Crepe 主栏保留原触发控件和编辑器选区，不再把视口坐标写到编辑器 DOM 内的 fixed 菜单。鼠标、Enter／Space／向下键均可展开，Escape 关闭回到触发按钮；选择样式后返回正文，已有行内颜色与其他格式不变。

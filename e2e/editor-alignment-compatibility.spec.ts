@@ -491,7 +491,7 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     // H2/H3 可保留对齐；列表与引用边界必须清除嵌套属性。
     await selectAlignment(headingParagraph, toolbar, "center");
     await toolbar.getByRole("button", { name: "切换正文样式" }).click();
-    await toolbar.getByRole("button", { name: "标题 2" }).click();
+    await page.getByRole("dialog", { name: "正文样式" }).getByRole("button", { name: "标题 2" }).click();
     const heading = editor.locator(":scope > h2").filter({ hasText: HEADING_TEXT });
     await expectBlockAlignment(heading, "center");
 
@@ -599,9 +599,11 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
     await expect(toolbar.locator('[data-editor-tool="align-center"]')).toBeVisible();
     await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
-    for (const control of await toolbar.locator(
-      ".top-bar-heading-button, .top-bar-item",
-    ).all()) {
+    const heading = toolbar.locator(".top-bar-heading-button");
+    await expect(heading).toHaveAttribute("tabindex", "0");
+    await expect(heading).toHaveAttribute("aria-haspopup", "dialog");
+    await expect(heading).toHaveAttribute("aria-expanded", "false");
+    for (const control of await toolbar.locator(".top-bar-item").all()) {
       await expect(control).toHaveAttribute("tabindex", "-1");
     }
     let metrics = await visibleToolbarMetrics(toolbar);
