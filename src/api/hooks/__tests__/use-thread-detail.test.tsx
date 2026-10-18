@@ -1,7 +1,7 @@
 /** useThreadDetail query hook 测试 */
 
 import { beforeEach, describe, test, expect, vi } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThreadDetail, normalizeThreadDetail } from "@/api/hooks/use-thread-detail";
 import { queryKeys } from "@/api/query-keys";
@@ -98,6 +98,35 @@ describe("useThreadDetail", () => {
     expect(result.current.data?.defaultSubthread.id).toBe("sub-1");
   });
 
+  test("重新读取详情采用真实总数，回退旧响应时不沿用过期计数", async () => {
+    mockGET.mockResolvedValueOnce({ data: responseData });
+    const { result } = renderHook(() => useThreadDetail("thread-1"), {
+      wrapper: createWrapper(),
+    });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data?.bookmarkCount).toBeUndefined();
+    expect(result.current.data?.subscriberCount).toBeUndefined();
+
+    for (const counts of [
+      { bookmarkCount: 1201, subscriberCount: 23 },
+      { bookmarkCount: 0, subscriberCount: 0 },
+      {},
+    ]) {
+      mockGET.mockResolvedValueOnce({
+        data: { ...responseData, data: { ...rawThread, ...counts } },
+      });
+      await act(async () => { await result.current.refetch(); });
+      await waitFor(() => {
+        expect(result.current.data?.bookmarkCount).toBe(counts.bookmarkCount);
+        expect(result.current.data?.subscriberCount).toBe(counts.subscriberCount);
+      });
+    }
+    expect(mockGET).toHaveBeenCalledTimes(4);
+    expect(mockGET).toHaveBeenLastCalledWith("/api/v1/threads/{id}", {
+      params: { path: { id: "thread-1" } },
+    });
+  });
+
   test("threadId 为 undefined 时不发起请求", () => {
     const { result } = renderHook(() => useThreadDetail(undefined), {
       wrapper: createWrapper(),
@@ -174,6 +203,20 @@ describe("useThreadDetail", () => {
 });
 
 describe("normalizeThreadDetail", () => {
+  test.each([
+    { bookmarkCount: 1201, subscriberCount: 23 },
+    { bookmarkCount: 0, subscriberCount: 0 },
+    { bookmarkCount: 7 },
+    { subscriberCount: 8 },
+    {},
+  ])("收藏/订阅计数透传且不把缺失变成零：%j", (counts) => {
+    const detail = normalizeThreadDetail({ ...rawThread, ...counts });
+    expect(detail.bookmarkCount).toBe(counts.bookmarkCount);
+    expect(detail.subscriberCount).toBe(counts.subscriberCount);
+    expect(detail.likeCount).toBe(5);
+    expect(detail.isBookmarked).toBe(false);
+  });
+
   test("不带 subthreads", () => {
     const raw = { ...rawThread, subthreads: [], defaultSubthreadId: "any" };
     expect(() => normalizeThreadDetail(raw)).toThrow("未返回可用子贴");

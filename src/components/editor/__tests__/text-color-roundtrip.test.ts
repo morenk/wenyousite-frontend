@@ -26,7 +26,8 @@ test.each(fixtures.validCases)("实际 Milkdown 颜色契约 $id 保存重开不
       const saved = serializeEditorMarkdown(ctx, initial, { markdownContractVersion: 6, textColorVersion: 1 });
       exported.push({ source, saved });
       const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(saved));
-      expect(reopened?.toJSON()).toEqual(initial.toJSON());
+      // heading id 由 Crepe 运行时生成；仅比较 Markdown 持久语义，仍保留级别、对齐及全部格式。
+      expect(semanticJson(reopened?.toJSON())).toEqual(semanticJson(initial.toJSON()));
       expect(serializeEditorMarkdown(ctx, reopened!, { markdownContractVersion: 6, textColorVersion: 1 })).toBe(saved);
     });
   } finally { await crepe.destroy(); root.remove(); }

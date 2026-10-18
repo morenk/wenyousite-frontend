@@ -4556,6 +4556,10 @@ export interface components {
             viewCount: number;
             version: number;
             likeCount: number;
+            /** @description 未注销账号的真实收藏人数；新后端始终返回，旧响应缺失表示不支持，不能当作 0 */
+            bookmarkCount?: number;
+            /** @description 未注销账号显式订阅官方更新的人数，仅 THREAD 且 targetUserId=null；不含 USER 订阅或管理者自动通知；旧响应缺失表示不支持 */
+            subscriberCount?: number;
             /** @description 用户投入的累计打赏升数 */
             tipTotal: string;
             defaultSubthreadId: string | null;

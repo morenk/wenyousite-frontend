@@ -71,3 +71,8 @@ Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / API `5.39.0-dev.20261017.1`
 ## 文本颜色 v1 保源兼容
 
 颜色为独立受控 Markdown 扩展，全局 Markdown5、角色提及 v6 和 clipboard v2 均继续保留。兼容 Backend 为无能力端返回安全去色副本并拒绝覆盖存有颜色的原文；Web 声明颜色能力，读取、编辑与草稿始终保源，没有取色入口。旧客户端不能作为新正文的无损编辑回退目标。回滚优先关闭新增颜色，保留支持读取与覆盖保护的兼容后端和消费者；没有历史数据迁移或旧协议清理。能力字段、错误与发布顺序见[API 契约](modules/api-contract.md#文本颜色-v1-能力协商)，格式见[正文协议](modules/markdown-content-protocol.md#文本颜色-v1)。
+
+
+## 主题互动总数兼容
+
+Backend `da68203a494c6d0f6d377c23399390c2cee397f3` 的详情 GET 新增 `bookmarkCount` / `subscriberCount`；生成 DTO 保持可选以兼容旧服务和创建/更新响应。Web 直接透传真实零/正数，缺失保留未知，不通过本人收藏状态或通知资格推断总量。本次不改变 Web UI、Foundation 或正文协议，不删除接口、字段与兼容路径；先发布兼容 Backend，消费者可独立回滚，现有业务关系不变。来源、语义及检查见 [API 契约](modules/api-contract.md#主题收藏与订阅总数)。
