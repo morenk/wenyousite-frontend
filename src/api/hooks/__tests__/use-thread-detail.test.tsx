@@ -12,6 +12,9 @@ const { mockGET } = vi.hoisted(() => ({
   mockGET: vi.fn(),
 }));
 
+// 本文件验证恢复完成后的查询；真实恢复等待另由 detail-auth-initialization 覆盖。
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ isInitialized: true }) }));
+
 vi.mock("@/api/client", () => ({
   apiClient: { GET: mockGET },
 }));
