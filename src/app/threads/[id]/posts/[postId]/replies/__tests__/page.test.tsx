@@ -147,17 +147,14 @@ describe("楼中楼深链访问复核", () => {
     expect(screen.queryByText("目标回复正文")).toBeNull();
     expect(screen.queryByRole("button", { name: "查看完整讨论" })).toBeNull();
   });
-});
 
-test.each([false, true])("认证恢复前楼中楼聚焦 %s 保持加载态", (focused) => {
-  mocks.authInitialized = false;
-  mocks.focused = focused;
-  mocks.rootQuery.mockReturnValue(readyQuery(undefined));
-  mocks.replyQuery.mockReturnValue(readyQuery(undefined));
-  render(<ReplyDiscussionPage />);
-  expect(screen.getByText(focused ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
-  expect(screen.queryByText("讨论不存在或无法访问")).toBeNull();
-  cleanup();
-  mocks.authInitialized = true;
-  mocks.focused = true;
+  test.each([false, true])("认证恢复前楼中楼聚焦 %s 保持加载态", (focused) => {
+    mocks.authInitialized = false;
+    mocks.focused = focused;
+    mocks.rootQuery.mockReturnValue(readyQuery(undefined));
+    mocks.replyQuery.mockReturnValue(readyQuery(undefined));
+    render(<ReplyDiscussionPage />);
+    expect(screen.getByText(focused ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
+    expect(screen.queryByText("讨论不存在或无法访问")).toBeNull();
+  });
 });

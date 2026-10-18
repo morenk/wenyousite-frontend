@@ -294,16 +294,14 @@ describe("主题详情精确楼层阅读态", () => {
       );
     });
   });
-});
 
-test.each([null, "floor-42"])("认证恢复前详情 %s 保持现有加载态", (target) => {
-  mocks.authInitialized = false;
-  initialPostId = target;
-  mocks.targetQuery.mockReturnValue(readyQuery(undefined));
-  render(<ThreadDetailPage />);
-  expect(screen.getByText(target ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
-  expect(screen.queryByText("内容不存在或已被删除")).toBeNull();
-  expect(screen.queryByText("主题帖不存在或已被删除")).toBeNull();
-  cleanup();
-  mocks.authInitialized = true;
+  test.each([null, "floor-42"])("认证恢复前详情 %s 保持现有加载态", (target) => {
+    mocks.authInitialized = false;
+    initialPostId = target;
+    mocks.targetQuery.mockReturnValue(readyQuery(undefined));
+    render(<ThreadDetailPage />);
+    expect(screen.getByText(target ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
+    expect(screen.queryByText("内容不存在或已被删除")).toBeNull();
+    expect(screen.queryByText("主题帖不存在或已被删除")).toBeNull();
+  });
 });
