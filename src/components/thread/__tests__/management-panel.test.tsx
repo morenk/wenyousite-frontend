@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, within, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter, type UrlUpdateEvent } from "nuqs/adapters/testing";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -10,6 +10,10 @@ import { toast } from "sonner";
 import { ManagementPanel } from "@/components/thread/management-panel";
 import type { ThreadDetail } from "@/api/hooks/use-thread-detail";
 import type { ManagementEditorStatus } from "@/components/thread/management-types";
+
+const { router, blocker } = vi.hoisted(() => ({ router: { push: vi.fn() }, blocker: { request: undefined as undefined | ((replay: () => void) => void) } }));
+vi.mock("@/lib/navigation-history", () => ({ trackNavigationHistory: () => ({ addBlocker: (value: { request: (replay: () => void) => void }) => { blocker.request = value.request; return vi.fn(); } }) }));
+vi.mock("next/navigation", () => ({ useRouter: () => router }));
 
 const identityMocks = vi.hoisted(() => ({ prepare: vi.fn(), changed: vi.fn() }));
 vi.mock("@/components/thread/use-thread-identity-submission", () => ({
@@ -708,11 +712,13 @@ describe("ManagementPanel", () => {
     anchor.href = "/threads/other";
     anchor.textContent = "其他帖子";
     document.body.appendChild(anchor);
-    fireEvent.click(anchor);
+    await act(async () => { fireEvent.click(anchor); });
     await vi.waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(1));
 
-    fireEvent.popState(window);
+    const replay = vi.fn();
+    await act(async () => { blocker.request?.(replay); });
     await vi.waitFor(() => expect(window.confirm).toHaveBeenCalledTimes(2));
+    expect(replay).not.toHaveBeenCalled();
     anchor.remove();
     expect(screen.getByTestId("thread-edit-form")).toBeInTheDocument();
   });
