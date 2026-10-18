@@ -13,7 +13,8 @@ function RecentRepliesCard({ userId }: { userId: string }) {
   const {
     data: replies,
     isLoading,
-    isError,
+    error,
+    refetch,
   } = useUserRecentReplies(userId);
 
   return (
@@ -22,7 +23,7 @@ function RecentRepliesCard({ userId }: { userId: string }) {
         <CardTitle className="text-base">最近回复</CardTitle>
       </CardHeader>
       <CardContent>
-        <UserRecentReplies replies={replies ?? []} isLoading={isLoading} error={isError} />
+        <UserRecentReplies replies={replies ?? []} isLoading={isLoading} error={error} onRetry={() => void refetch()} />
       </CardContent>
     </Card>
   );

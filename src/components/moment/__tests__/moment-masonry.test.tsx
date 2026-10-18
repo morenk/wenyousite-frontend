@@ -1,4 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, test, vi } from "vitest";
 
 const { mockCard, mockLanes, mockGap } = vi.hoisted(() => ({ mockCard: vi.fn(), mockLanes: vi.fn(), mockGap: vi.fn() }));
@@ -141,4 +141,20 @@ describe("MomentMasonry", () => {
     expect(screen.queryByText("没有更多了")).not.toBeInTheDocument();
     expect(screen.queryByText("正在加载更多")).not.toBeInTheDocument();
   });
+
+ test("续页错误保留动态并暂停自动续页，重试成功后恢复", async () => {
+   const more = vi.fn();
+   const retry = vi.fn();
+   const props = { moments: [item("1")] as never, hasNextPage: true, onLoadMore: more, onRetry: retry };
+   const { rerender } = render(<MomentMasonry {...props} error={new Error("offline")} />);
+   expect(screen.getByText("动态 1")).toBeInTheDocument();
+   expect(more).not.toHaveBeenCalled();
+   fireEvent.click(screen.getByRole("button", { name: "重试" }));
+   expect(retry).toHaveBeenCalledTimes(1);
+   rerender(<MomentMasonry {...props} />);
+   await waitFor(() => expect(more).toHaveBeenCalled());
+   rerender(<MomentMasonry {...props} error={{ code: 40401 }} />);
+   expect(screen.queryByText("动态 1")).not.toBeInTheDocument();
+ });
+
 });

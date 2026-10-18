@@ -29,6 +29,7 @@ interface PostActionsMenuProps {
   onPin?: () => void;
   pinned?: boolean;
   pinPending?: boolean;
+  deletePending?: boolean;
   moderationTarget?: AdminModerationTarget;
   onModerated?: () => void;
 }
@@ -78,6 +79,7 @@ export function PostActionsMenu({
   onPin,
   pinned = false,
   pinPending = false,
+  deletePending = false,
   moderationTarget,
   onModerated,
 }: PostActionsMenuProps) {
@@ -154,6 +156,7 @@ export function PostActionsMenu({
                 {!canModerate ? <Menu.Separator /> : null}
                 <Menu.Item
                   destructive
+                  disabled={deletePending}
                   onClick={onDelete}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />

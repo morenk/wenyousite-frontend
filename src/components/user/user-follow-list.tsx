@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Menu } from "@/components/ui/menu";
 import { Ellipsis } from "lucide-react";
+import { isListAccessError } from "@/lib/list-query-state";
 import { useEffect, useRef, useState } from "react";
 import { useUserFollowList, type FollowListKind, type FollowUser } from "@/api/hooks/use-user-follow-list";
 import { useFollowActions } from "@/api/hooks/use-follow-actions";
@@ -164,7 +165,7 @@ export function UserFollowList({ userId, kind, onReady }: {
   const viewerScope = useViewerScope();
   const { data: meta } = useApiMeta();
   const isOwner = viewerScope !== "anonymous" && viewerScope === userId;
-  const { data: users, isLoading, isError, refetch } = useUserFollowList(userId, kind);
+  const { data: users, isLoading, isError, error, refetch } = useUserFollowList(userId, kind);
   const listRef = useRef<HTMLUListElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
@@ -186,11 +187,12 @@ export function UserFollowList({ userId, kind, onReady }: {
   return <section aria-label={kind === "following" ? "关注列表" : "粉丝列表"}>
     <h2 ref={headingRef} tabIndex={-1} className="sr-only">{kind === "following" ? "关注列表" : "粉丝列表"}</h2>
     {isLoading ? <LoadingState label="" className="min-h-0 py-16" />
-      : isError && !users ? <LoadError title="加载失败" onRetry={() => void refetch()} className="py-16" />
+      : isError && (!users?.length || isListAccessError(error)) ? <LoadError title="加载失败" onRetry={() => void refetch()} className="py-16" />
         : !users?.length ? <EmptyState title={kind === "following" ? "还没有关注任何人" : "还没有粉丝"} />
           : <ul ref={listRef} className="w-full">
             {users.map((user, index) => <FollowRow key={`${viewerScope}:${user.id}`} user={user} kind={kind} isOwner={isOwner} viewer={viewerScope} canMessage={meta?.capabilities?.directMessages === true}
               onRemoveIntent={() => { pendingFocus.current = { id: user.id, index, viewer: viewerScope }; }} />)}
           </ul>}
+    {isError && !!users?.length && !isListAccessError(error) ? <LoadError title="更新失败" onRetry={() => void refetch()} className="py-6" /> : null}
   </section>;
 }

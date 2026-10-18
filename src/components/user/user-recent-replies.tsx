@@ -2,6 +2,9 @@
 
 "use client";
 
+import { isListAccessError, isUserListUnavailable } from "@/lib/list-query-state";
+import { LoadError } from "@/components/shared/load-error";
+import { LoadingState } from "@/components/shared/loading-state";
 import Link from "next/link";
 import { MessageSquare, CornerDownRight, FileText } from "lucide-react";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -15,20 +18,23 @@ const MAX_REPLIES = 5;
 interface UserRecentRepliesProps {
   replies: RecentReply[];
   isLoading: boolean;
-  error: boolean;
+  error: unknown;
+  onRetry?: () => void;
 }
 
 export function UserRecentReplies({
   replies,
   isLoading,
   error,
+  onRetry,
 }: UserRecentRepliesProps) {
   if (isLoading) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">加载中…</p>;
+    return <LoadingState className="min-h-0 py-8" />;
   }
 
-  if (error) {
-    return <EmptyState title="该用户未公开最近动态" />;
+  if (isUserListUnavailable(error)) return <EmptyState title="用户不存在或未公开最近动态" />;
+  if (error && (replies.length === 0 || isListAccessError(error))) {
+    return <LoadError title="最近回复加载失败" onRetry={onRetry} />;
   }
 
   if (replies.length === 0) {
@@ -39,6 +45,7 @@ export function UserRecentReplies({
 
   return (
     <div className="flex w-full flex-col gap-[var(--collection-card-gap)]">
+      {error ? <LoadError title="最近回复更新失败" onRetry={onRetry} className="py-4" /> : null}
       {visible.map((reply) => (
         <Link
           key={reply.id}

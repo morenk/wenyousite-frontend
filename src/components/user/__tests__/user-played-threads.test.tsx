@@ -99,10 +99,10 @@ describe("UserPlayedThreads", () => {
       isFetchingNextPage: false,
       isLoading: false,
       isError: true,
-      error: new Error("404"),
+      error: { code: 40401 },
     });
     render(<UserPlayedThreads userId="u1" isSelf={false} />, { wrapper: createWrapper() });
-    expect(screen.getByText("该用户未公开参与的帖子")).toBeInTheDocument();
+    expect(screen.getByText("用户不存在或未公开参与的帖子")).toBeInTheDocument();
   });
 
   test("渲染参与的帖子", () => {

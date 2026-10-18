@@ -20,7 +20,7 @@ import { threadAppearance } from "@/lib/thread-identity";
 import { WenyouTime } from "@/components/shared/wenyou-time";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { buttonVariants } from "@/components/ui/button";
-import { useConfirm } from "@/components/ui/confirm-provider";
+import { useConfirmedDelete } from "@/hooks/use-confirmed-delete";
 import type { FloorDisplayData } from "@/api/hooks/use-floors";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { Badge } from "@/components/ui/badge";
@@ -49,7 +49,7 @@ export function FloorCard({
   const { user } = useAuth();
   const deletePost = useDeletePost();
   const pinPost = usePinPost();
-  const confirmAction = useConfirm();
+  const deletion = useConfirmedDelete();
   const { session, open } = useThreadComposerSession();
   const { isManager } = useThreadPermissions();
 
@@ -97,20 +97,11 @@ export function FloorCard({
     });
   };
 
-  const handleDelete = async () => {
-    if (!(await confirmAction({
-      title: "删除楼层",
-      description: "确定要删除该楼层吗？删除后无法恢复。",
-      confirmLabel: "删除",
-      destructive: true,
-    }))) return;
-    try {
-      await deletePost.mutateAsync(floor.id);
-      toast.success("楼层已删除");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
-    }
-  };
+  const handleDelete = () => deletion.run({
+    title: "删除楼层",
+    description: "确定要删除这条楼层吗？删除后无法恢复。",
+    successMessage: "楼层已删除",
+  }, () => deletePost.mutateAsync(floor.id));
 
   const handlePin = async () => {
     try {
@@ -159,6 +150,7 @@ export function FloorCard({
             onPin={isManager ? () => void handlePin() : undefined}
             pinned={isPinned}
             pinPending={pinPost.isPending}
+            deletePending={deletion.pending}
             onDelete={canDelete ? () => void handleDelete() : undefined}
             moderationTarget={{ type: "post", id: floor.id, label: `楼层 #${floor.floorNumber ?? ""}`.trim() }}
           />
