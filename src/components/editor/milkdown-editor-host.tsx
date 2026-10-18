@@ -426,6 +426,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       uploadAbortRef.current?.abort();
       const controller = new AbortController();
       uploadAbortRef.current = controller;
+      const isCurrent = () => uploadAbortRef.current === controller && !controller.signal.aborted;
       setUploadProgress({
         stage: "preparing",
         loadedBytes: null,
@@ -433,13 +434,15 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         percent: null,
       });
       try {
-        return await onUploadImage!(file, {
+        const url = await onUploadImage!(file, {
           signal: controller.signal,
-          onProgress: setUploadProgress,
-          onCompleted: mediaDisplay.completed,
+          onProgress: (progress) => { if (isCurrent()) setUploadProgress(progress); },
+          onCompleted: (uploaded) => { if (isCurrent()) mediaDisplay.completed(uploaded); },
         });
+        if (!isCurrent()) throw new DOMException("上传已取消", "AbortError");
+        return url;
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
           toast.error(
             getApiErrorMessage(error, "上传失败，请稍后重试"),
           );

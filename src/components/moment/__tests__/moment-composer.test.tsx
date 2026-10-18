@@ -1,4 +1,4 @@
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const {
@@ -345,4 +345,39 @@ describe("MomentComposer", () => {
     expect(screen.getAllByAltText(/第 \d+ 张图片/)).toHaveLength(9);
     expect(mockToastError).toHaveBeenCalledWith("每条动态最多 9 张图片");
   });
+
+  test("连续提交只发布一次，绑定结果晚于卸载不跳转", async () => {
+    let finish!: (value: { id: string }) => void;
+    mockCreate.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const onClose = vi.fn();
+    const view = render(<MomentComposer open userId="user-1" onClose={onClose} />);
+    fireEvent.change(screen.getByLabelText("标题"), { target: { value: "双击测试" } });
+    const form = screen.getByRole("button", { name: "发布动态" }).closest("form")!;
+    act(() => { fireEvent.submit(form); fireEvent.submit(form); });
+    await waitFor(() => expect(mockCreate).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "关闭发布器" })).toBeDisabled();
+    view.unmount();
+    await act(async () => finish({ id: "late" }));
+    expect(mockPush).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  test("取消后迟到压缩不会启动上传，卸载释放预览", async () => {
+    let finish!: (file: File) => void;
+    mockCompress.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const revoke = vi.spyOn(URL, "revokeObjectURL");
+    const view = render(<MomentComposer open userId="user-1" onClose={vi.fn()} />);
+    fireEvent.change(document.querySelector('input[type="file"]')!, { target: { files: [new File(["picture"], "picture.png", { type: "image/png" })] } });
+    fireEvent.change(screen.getByLabelText("标题"), { target: { value: "迟到测试" } });
+    fireEvent.click(screen.getByRole("button", { name: "发布动态" }));
+    await waitFor(() => expect(mockCompress).toHaveBeenCalled());
+    fireEvent.click(screen.getByRole("button", { name: "取消上传并关闭发布器" }));
+    await act(async () => finish(new File(["compressed"], "new.webp", { type: "image/webp" })));
+    expect(mockUpload).not.toHaveBeenCalled();
+    expect(mockCreate).not.toHaveBeenCalled();
+    view.unmount();
+    expect(revoke).toHaveBeenCalled();
+    revoke.mockRestore();
+  });
+
 });

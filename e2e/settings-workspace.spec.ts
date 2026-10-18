@@ -440,3 +440,70 @@ for (const navigationApi of [true, false]) {
     await expect(page).toHaveURL(/checkpoint=2$/);
   });
 }
+
+
+for (const colorScheme of ["light", "dark"] as const) {
+  for (const width of [1024, 1366]) {
+    test(`${colorScheme} ${width} 裁切上传与保存状态分开呈现并阻止重复绑定`, async ({ page }, testInfo) => {
+      await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+      await page.setViewportSize({ width, height: 1000 });
+      await mockSettings(page);
+      await page.goto("/me");
+      const directory = resolve(".e2e-results", "upload-crop-candidate");
+      mkdirSync(directory, { recursive: true, mode: 0o700 });
+      let sequence = 0;
+      let releaseProcessing = () => {};
+      let processingGate = Promise.resolve();
+      let releaseSaving = () => {};
+      let savingGate = Promise.resolve();
+      const bindings: unknown[] = [];
+      const media = (id: string) => ({ id, userId: "settings-workspace-user", url: "/pwa-icon-192.png", contentType: "image/webp", size: 100, width: 512, height: 512, status: "COMPLETED", createdAt: "1970-01-01T00:00:00.000Z" });
+      await page.route("**/api/v1/media/upload-url", async (route) => {
+        const id = `crop-${++sequence}`;
+        await route.fulfill({ json: { code: 0, data: { mediaId: id, uploadUrl: new URL("/e2e-crop-object", page.url()).href, objectKey: id, publicUrl: "/pwa-icon-192.png" } } });
+      });
+      await page.route("**/e2e-crop-object", (route) => route.fulfill({ status: 200, body: "" }));
+      await page.route("**/api/v1/media/upload-done", async (route) => {
+        const id = route.request().postDataJSON().mediaId;
+        await processingGate;
+        await route.fulfill({ json: { code: 0, data: { media: media(id), processing: false } } });
+      });
+      await page.route(/\/api\/v1\/users\/me\/(avatar|profile-cover)$/, async (route) => {
+        bindings.push(route.request().postDataJSON());
+        await savingGate;
+        await route.fulfill({ json: { code: 0, data: {} } });
+      });
+      for (const [label, input, title, saveLabel] of [
+        ["头像", "avatar-file-input", "裁剪头像", "保存头像"],
+        ["主页背景", "profile-cover-file-input", "调整主页背景", "保存背景"],
+      ]) {
+        processingGate = new Promise<void>((resolve) => { releaseProcessing = resolve; });
+        savingGate = new Promise<void>((resolve) => { releaseSaving = resolve; });
+        const before = bindings.length;
+        try {
+          await page.getByRole("button", { name: label, exact: true }).click();
+          await page.getByTestId(input).setInputFiles(resolve("public/pwa-icon-192.png"));
+          const dialog = page.getByRole("dialog", { name: title, exact: true });
+          const save = dialog.getByRole("button", { name: saveLabel, exact: true });
+          await expect(save).toBeEnabled();
+          await save.dblclick();
+          await expect(dialog.getByText("上传完成，正在处理图片", { exact: true })).toBeVisible();
+          await expect(dialog.getByRole("button", { name: "取消上传", exact: true })).toBeEnabled();
+          await expect(dialog.getByRole("button", { name: "取消", exact: true })).toBeDisabled();
+          await dialog.screenshot({ path: resolve(directory, `${input}-${width}-${colorScheme}-processing.png`), animations: "disabled" });
+          expect(bindings.length).toBe(before);
+          releaseProcessing();
+          await expect(dialog.getByText("正在保存…", { exact: true })).toBeVisible();
+          await expect(dialog.getByRole("button", { name: "取消上传", exact: true })).toHaveCount(0);
+          await page.keyboard.press("Escape");
+          await expect(dialog).toBeVisible();
+          await expect.poll(() => bindings.length).toBe(before + 1);
+          await dialog.screenshot({ path: resolve(directory, `${input}-${width}-${colorScheme}-saving.png`), animations: "disabled" });
+          releaseSaving();
+          await expect(dialog).toHaveCount(0);
+        } finally { releaseProcessing(); releaseSaving(); }
+      }
+      await testInfo.attach("upload-crop-source", { body: Buffer.from(JSON.stringify({ width, colorScheme, bindings: bindings.length })), contentType: "application/json" });
+    });
+  }
+}
