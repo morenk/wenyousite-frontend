@@ -1,5 +1,6 @@
 "use client";
 
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LockKeyhole } from "lucide-react";
 import { useForm, useWatch } from "react-hook-form";
@@ -21,7 +22,7 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 
 type Category = components["schemas"]["ThreadCategoryResponseDto"];
@@ -44,6 +45,7 @@ export function CategoryEditDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const actions = useAdminTaxonomyActions();
+  const submission = useSubmissionLock();
   const form = useForm<EditValues>({
     resolver: zodResolver(editSchema),
     defaultValues: {
@@ -54,14 +56,16 @@ export function CategoryEditDialog({
   });
   const description = useWatch({ control: form.control, name: "description" });
 
+  const pending = submission.pending || form.formState.isSubmitting || actions.updateCategory.isPending;
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => { if (!pending) onOpenChange(next); }}>
       <DialogPortal>
         <DialogBackdrop />
         <DialogViewport>
           <DialogPopup className="max-w-2xl">
             <form
-              onSubmit={form.handleSubmit(async (values) => {
+              onSubmit={form.handleSubmit(submission.guard(async (values) => {
                 try {
                   await actions.updateCategory.mutateAsync({
                     id: category.id,
@@ -75,13 +79,13 @@ export function CategoryEditDialog({
                 } catch (error) {
                   toast.error(getApiErrorMessage(error, "分类设置保存失败"));
                 }
-              })}
+              }))}
             >
               <div className="flex items-start justify-between gap-5 border-b border-border px-4 py-3">
                 <div>
                   <DialogTitle>编辑分类</DialogTitle>
                 </div>
-                <DialogCloseButton type="button" label="关闭分类编辑" />
+                <DialogCloseButton type="button" label="关闭分类编辑" disabled={pending} />
               </div>
 
               <div className="space-y-4 px-4 py-3">
@@ -96,34 +100,26 @@ export function CategoryEditDialog({
                 </div>
 
                 <div className="grid grid-cols-[1fr_9rem] gap-5">
-                  <div className="space-y-2">
-                    <Label htmlFor={`category-edit-name-${category.id}`}>展示名称</Label>
-                    <Input id={`category-edit-name-${category.id}`} aria-describedby={`category-name-help-${category.id}`} {...form.register("name")} />
-                    <p id={`category-name-help-${category.id}`} className="text-xs text-muted-foreground">修改名称会同步显示在已有主题帖中。</p>
-                    {form.formState.errors.name ? <p className="text-xs text-destructive">{form.formState.errors.name.message}</p> : null}
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor={`category-edit-sort-${category.id}`}>排序</Label>
-                    <Input id={`category-edit-sort-${category.id}`} type="number" min={0} {...form.register("sortOrder", { valueAsNumber: true })} />
-                    {form.formState.errors.sortOrder ? <p className="text-xs text-destructive">{form.formState.errors.sortOrder.message}</p> : null}
-                  </div>
+                  <FormField id={`category-edit-name-${category.id}`} label="展示名称"
+                    description="修改名称会同步显示在已有主题帖中。" error={form.formState.errors.name?.message}>
+                    {(controlProps) => <Input {...controlProps} {...form.register("name")} />}
+                  </FormField>
+                  <FormField id={`category-edit-sort-${category.id}`} label="排序" error={form.formState.errors.sortOrder?.message}>
+                    {(controlProps) => <Input {...controlProps} type="number" min={0} {...form.register("sortOrder", { valueAsNumber: true })} />}
+                  </FormField>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor={`category-edit-description-${category.id}`}>分类说明</Label>
-                  <Textarea id={`category-edit-description-${category.id}`} rows={3} placeholder="帮助创作者判断什么内容适合放在这里" {...form.register("description")} />
-                  <div className="flex justify-between gap-4 text-xs text-muted-foreground">
-                    {form.formState.errors.description ? <span className="text-destructive">{form.formState.errors.description.message}</span> : null}
-                    <span className="ml-auto">{Array.from(description).length}/200</span>
-                  </div>
-                </div>
+                <FormField id={`category-edit-description-${category.id}`} label="分类说明"
+                  description={<span className="block text-right">{Array.from(description).length}/200</span>} error={form.formState.errors.description?.message}>
+                  {(controlProps) => <Textarea {...controlProps} rows={3} placeholder="帮助创作者判断什么内容适合放在这里" {...form.register("description")} />}
+                </FormField>
 
               </div>
 
               <DialogFooter className="border-t border-border bg-muted/45 px-7 py-4">
-                <DialogClose type="button" className={buttonVariants({ variant: "outline" })}>取消</DialogClose>
-                <Button type="submit" disabled={!form.formState.isDirty || actions.updateCategory.isPending}>
-                  {actions.updateCategory.isPending ? "正在保存…" : "保存分类设置"}
+                <DialogClose type="button" disabled={pending} className={buttonVariants({ variant: "outline" })}>取消</DialogClose>
+                <Button type="submit" disabled={!form.formState.isDirty} pending={pending} pendingLabel="正在保存…">
+                  保存分类设置
                 </Button>
               </DialogFooter>
             </form>

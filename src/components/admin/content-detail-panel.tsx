@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -13,7 +14,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Dialog, DialogBackdrop, DialogCloseButton, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 import { InternalReferenceText } from "@/components/shared/internal-reference-text";
 import { MarkdownContent } from "@/components/thread/markdown-content";
@@ -72,16 +73,19 @@ export function ContentDetailPanel({ type, id }: { type: AdminContentType; id: s
 
 function ContentStateDialog({ item, onClose }: { item: AdminContentDetail; onClose: () => void }) {
   const actions = useAdminContentActions();
+  const submission = useSubmissionLock();
   const mutation = item.hidden ? actions.restore : actions.hide;
   const form = useForm<z.infer<typeof reasonSchema>>({ resolver: zodResolver(reasonSchema), defaultValues: { reason: "" } });
+  const pending = submission.pending || form.formState.isSubmitting || mutation.isPending;
   const label = item.hidden ? "恢复" : "隐藏";
-  return <Dialog open onOpenChange={(open) => { if (!open && !mutation.isPending) onClose(); }}><DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup data-admin-action-dialog className="max-w-xl p-4">
-    <div className="mb-4 flex items-center justify-between"><DialogTitle>{label}内容</DialogTitle><DialogCloseButton label="关闭内容操作" disabled={mutation.isPending} /></div>
-    <form className="space-y-3" onSubmit={form.handleSubmit(async ({ reason }) => { try { await mutation.mutateAsync({ type: item.type, id: item.id, reason }); toast.success(`内容已${label}`); onClose(); } catch (error) { form.setError("root", { message: getApiErrorMessage(error, `${label}失败，请重试`) }); } })}>
-      <Label htmlFor="content-state-reason">理由</Label><Textarea id="content-state-reason" rows={3} {...form.register("reason")} />
-      {form.formState.errors.reason ? <p role="alert" className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
+  return <Dialog open onOpenChange={(open) => { if (!open && !pending) onClose(); }}><DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup data-admin-action-dialog className="max-w-xl p-4">
+    <div className="mb-4 flex items-center justify-between"><DialogTitle>{label}内容</DialogTitle><DialogCloseButton label="关闭内容操作" disabled={pending} /></div>
+    <form className="space-y-3" onSubmit={form.handleSubmit(submission.guard(async ({ reason }) => { try { await mutation.mutateAsync({ type: item.type, id: item.id, reason }); toast.success(`内容已${label}`); onClose(); } catch (error) { form.setError("root", { message: getApiErrorMessage(error, `${label}失败，请重试`) }); } }))}>
+      <FormField id="content-state-reason" label="理由" error={form.formState.errors.reason?.message} errorRole="alert">
+        {(controlProps) => <Textarea {...controlProps} rows={3} {...form.register("reason")} />}
+      </FormField>
       {form.formState.errors.root ? <p role="alert" className="text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
-      <div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{item.hidden ? "恢复后公开可见。" : "内容将立即隐藏，保留原内容及操作记录。"}</p><Button type="submit" size="compact" variant={item.hidden ? "default" : "destructive"} disabled={mutation.isPending}>确认{label}</Button></div>
+      <div className="flex items-center justify-between gap-3"><p className="text-xs text-muted-foreground">{item.hidden ? "恢复后公开可见。" : "内容将立即隐藏，保留原内容及操作记录。"}</p><Button type="submit" size="compact" variant={item.hidden ? "default" : "destructive"} pending={pending}>确认{label}</Button></div>
     </form>
   </DialogPopup></DialogViewport></DialogPortal></Dialog>;
 }

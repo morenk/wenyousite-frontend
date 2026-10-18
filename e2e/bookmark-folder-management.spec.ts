@@ -1,6 +1,8 @@
 import { expect } from "@playwright/test";
 import { test } from "./fixtures/isolation";
 import AxeBuilder from "@axe-core/playwright";
+import { mkdirSync } from "node:fs";
+import { join } from "node:path";
 
 for (const kind of ["threads", "moments"] as const) {
   test(`${kind} 自定义夹重命名和删除保留收藏，失败保留位置，成功替换历史`, async ({ page }, testInfo) => {
@@ -41,6 +43,7 @@ for (const kind of ["threads", "moments"] as const) {
         }] : [];
       } else if (pathname.endsWith("/auth/refresh")) data = { accessToken: "mock-folder-management-token", user };
       else if (pathname.endsWith("/users/me")) data = user;
+      else if (pathname.endsWith("/wallet/check-in")) data = { balance: "0", claimedNow: false, rewardAmount: "0" };
       else if (pathname.endsWith("/wallet")) data = { balance: "0" };
       else if (pathname.endsWith("/notifications/unread")) data = { unreadCount: 0 };
       else if (pathname.endsWith("/direct-conversations/unread")) data = { total: 0 };
@@ -59,6 +62,21 @@ for (const kind of ["threads", "moments"] as const) {
     await expect(more).toHaveCount(1);
     await expect(navigation.getByRole("button", { name: /更多/ })).toHaveCount(0);
     await expect(contentLink).toBeVisible();
+    const candidateScreenshots = join(process.cwd(), ".e2e-results", "menu-form-candidate");
+    mkdirSync(candidateScreenshots, { recursive: true });
+    for (const width of [1024, 1366]) {
+      for (const colorScheme of ["light", "dark"] as const) {
+        await page.setViewportSize({ width, height: 900 });
+        await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+        await more.click();
+        await expect(page.getByRole("menuitem", { name: "删除收藏夹" })).toHaveAttribute("data-destructive", "true");
+        await page.screenshot({ path: join(candidateScreenshots, `folder-menu-${kind}-${width}-${colorScheme}.png`) });
+        await page.keyboard.press("Escape");
+        await expect(more).toBeFocused();
+      }
+    }
+    await page.setViewportSize({ width: 1280, height: 900 });
+    await page.emulateMedia({ colorScheme: "light" });
     await page.getByRole("searchbox").fill("待整理");
     await more.focus();
     await page.keyboard.press("ArrowDown");

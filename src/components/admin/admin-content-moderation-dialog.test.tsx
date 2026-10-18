@@ -45,6 +45,8 @@ describe("AdminContentModerationDialog", () => {
 
     fireEvent.click(screen.getByRole("button", { name: "确认隐藏" }));
     expect(await screen.findByText("请填写处置理由")).toBeInTheDocument();
+    expect(screen.getByLabelText("处置理由")).toHaveAccessibleDescription("请填写处置理由");
+    expect(screen.getByLabelText("处置理由")).toHaveAttribute("aria-invalid", "true");
     expect(hooks.hide).not.toHaveBeenCalled();
 
     fireEvent.change(screen.getByLabelText("处置理由"), {

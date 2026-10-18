@@ -205,6 +205,40 @@ test.describe("站务台流体工作区布局", () => {
     expect(dialogBox!.width).toBeGreaterThan(1100);
   });
 
+  test("案件未决提交阻止重复写入与 Escape、遮罩关闭", async ({ page }) => {
+    let release!: () => void;
+    let requests = 0;
+    await page.route("**/admin/cases/*/resolve", async (route) => {
+      requests += 1;
+      await new Promise<void>((resolve) => { release = resolve; });
+      await route.fulfill({ status: 409, json: { code: 40900, message: "案件状态已更新，请重试" } });
+    });
+    await page.setViewportSize({ width: 1366, height: 900 });
+    await page.goto("/station/cases");
+    await page.getByRole("button", { name: "处理", exact: true }).click();
+    const dialog = page.getByRole("dialog", { name: "主题帖治理案件" });
+    await dialog.getByRole("button", { name: "确认并结案" }).click();
+    await expect(dialog.getByRole("combobox", { name: "处置动作" })).toHaveAttribute("aria-invalid", "true");
+    await expect(dialog.getByRole("textbox", { name: "公开说明" })).toHaveAttribute("aria-invalid", "true");
+    await dialog.getByRole("combobox", { name: "处置动作" }).click();
+    await page.getByRole("option", { name: "隐藏内容" }).click();
+    await dialog.getByRole("textbox", { name: "公开说明" }).fill("已核对举报证据");
+    await dialog.getByRole("button", { name: "确认并结案" }).click();
+    await expect.poll(() => requests).toBe(1);
+    await expect(dialog.getByRole("button", { name: "正在写入决定…" })).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await expect(dialog).toBeVisible();
+    await page.mouse.click(5, 5);
+    await expect(dialog).toBeVisible();
+    await dialog.locator("form").evaluate((form: HTMLFormElement) => form.requestSubmit());
+    expect(requests).toBe(1);
+    release();
+    await expect(dialog.getByRole("button", { name: "确认并结案" })).toBeEnabled();
+    await expect(dialog.getByRole("textbox", { name: "公开说明" })).toHaveValue("已核对举报证据");
+    await page.keyboard.press("Escape");
+    await expect(dialog).toHaveCount(0);
+  });
+
   for (const colorScheme of ["light", "dark"] as const) {
     test(`${colorScheme} 下运行设置与站务入口均使用系统字体 body 角色`, async ({ page }) => {
       await page.setViewportSize({ width: 1440, height: 1000 });
