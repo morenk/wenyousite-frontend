@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Menu } from "@base-ui/react/menu";
+import { Menu } from "@/components/ui/menu";
 import { Ellipsis } from "lucide-react";
 import { isListAccessError } from "@/lib/list-query-state";
 import { useEffect, useRef, useState } from "react";
@@ -20,7 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogBackdrop, DialogDescription, DialogFooter, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
 import { getApiErrorMessage } from "@/api/errors";
 
-const menuItemClassName = "flex min-h-12 w-full cursor-default items-center rounded-[var(--radius-control)] px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground data-disabled:text-muted-foreground";
 const relationStatusClassName = "h-12 min-w-24 bg-muted px-3 text-muted-foreground hover:bg-accent aria-expanded:bg-muted aria-expanded:text-foreground";
 type RowAction = "follow" | "unfollow" | "removeFollower" | "block" | "reconcile";
 
@@ -125,21 +124,19 @@ function FollowRow({ user, kind, isOwner, viewer, canMessage, onRemoveIntent }: 
             </Menu.Trigger>
               : <Button type="button" variant="default" className="h-12 min-w-24 px-3" pending={pending}
                 aria-label={`${primary}：${user.username}`} onClick={() => void act("follow")}>{primary}</Button>}
-        <Menu.Trigger onFocus={captureFocus} disabled={pending || needsReconciliation || !known}
+        <Menu.Trigger tooltip="更多操作" onFocus={captureFocus} disabled={pending || needsReconciliation || !known}
           render={<Button type="button" variant="ghost" size="icon" className="size-12" aria-label={`更多操作：${user.username}`} />}>
           <Ellipsis className="size-4" aria-hidden="true" />
         </Menu.Trigger>
       </div>
-      <Menu.Portal><Menu.Positioner anchor={controlsRef} side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
-        <Menu.Popup aria-label={`${user.username}的操作`} finalFocus={() => afterClose.current ? false : returnFocus.current}
-          className="w-52 rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
-          {canMessage ? <Menu.Item className={menuItemClassName} onClick={() => select(() => router.push(`/messages/new/${user.id}`))}>私聊</Menu.Item> : null}
-          {user.viewerIsFollowing ? <Menu.Item className={menuItemClassName} onClick={() => select(() => void act("unfollow"))}>取消关注</Menu.Item> : null}
-          {user.viewerIsFollowedBy ? <Menu.Item className={menuItemClassName} onClick={() => select(() => { setError(undefined); setConfirming("removeFollower"); })}>移除粉丝</Menu.Item> : null}
-          <Menu.Item className={menuItemClassName} onClick={() => select(() => { setError(undefined); setConfirming("block"); })}>拉黑</Menu.Item>
-          <Menu.Item className={menuItemClassName} onClick={() => select(() => router.push(`/report?targetType=USER&targetId=${encodeURIComponent(user.id)}`))}>举报</Menu.Item>
-        </Menu.Popup>
-      </Menu.Positioner></Menu.Portal>
+      <Menu.Content anchor={controlsRef} side="bottom" align="end" sideOffset={4} aria-label={`${user.username}的操作`} finalFocus={() => afterClose.current ? false : returnFocus.current}
+          className="w-52">
+          {canMessage ? <Menu.Item density="comfortable" onClick={() => select(() => router.push(`/messages/new/${user.id}`))}>私聊</Menu.Item> : null}
+          {user.viewerIsFollowing ? <Menu.Item density="comfortable" onClick={() => select(() => void act("unfollow"))}>取消关注</Menu.Item> : null}
+          {user.viewerIsFollowedBy ? <Menu.Item density="comfortable" onClick={() => select(() => { setError(undefined); setConfirming("removeFollower"); })}>移除粉丝</Menu.Item> : null}
+          <Menu.Item density="comfortable" onClick={() => select(() => { setError(undefined); setConfirming("block"); })}>拉黑</Menu.Item>
+          <Menu.Item density="comfortable" onClick={() => select(() => router.push(`/report?targetType=USER&targetId=${encodeURIComponent(user.id)}`))}>举报</Menu.Item>
+        </Menu.Content>
     </Menu.Root> : null}
     <Dialog open={!!confirming && !!canConfirm} disablePointerDismissal={pending} onOpenChange={(open) => { if (!open && !pending) setConfirming(null); }}>
       <DialogPortal><DialogBackdrop /><DialogViewport>

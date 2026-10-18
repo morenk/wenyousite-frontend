@@ -1,5 +1,6 @@
 "use client";
 
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getCoreRowModel, getPaginationRowModel, useReactTable } from "@tanstack/react-table";
 import { FolderTree, PencilLine, Plus, Tags } from "lucide-react";
@@ -16,7 +17,7 @@ import { CategoryEditDialog } from "@/components/admin/category-edit-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   adminTaxonomyFilterParsers,
@@ -48,9 +49,9 @@ export const categorySchema = z.object({
     THREAD_CATEGORY_SLUG_PATTERN,
     "使用 1–50 位字符，以大写字母开头，仅含大写字母、数字或下划线",
   ),
-  name: z.string().trim().min(1).refine((value) => Array.from(value).length <= 50, "最多 50 个字符"),
+  name: z.string().trim().min(1, "请输入分类名称").refine((value) => Array.from(value).length <= 50, "最多 50 个字符"),
 });
-export const tagSchema = z.object({ name: z.string().trim().min(1).max(20).regex(TAG_NAME_PATTERN, TAG_NAME_MESSAGE) });
+export const tagSchema = z.object({ name: z.string().trim().min(1, "请输入标签名称").max(20, "标签名称最多 20 个字符").regex(TAG_NAME_PATTERN, TAG_NAME_MESSAGE) });
 
 function nextSortOrder(items: Array<{ sortOrder: number }>) {
   return items.reduce((highest, item) => Math.max(highest, item.sortOrder), -1) + 1;
@@ -59,6 +60,8 @@ function nextSortOrder(items: Array<{ sortOrder: number }>) {
 export function TaxonomyPanel() {
   const taxonomy = useAdminTaxonomy();
   const actions = useAdminTaxonomyActions();
+  const categorySubmission = useSubmissionLock();
+  const tagSubmission = useSubmissionLock();
   const [editingCategory, setEditingCategory] = useState<Category>();
   const [{
     categoryQuery,
@@ -222,7 +225,7 @@ export function TaxonomyPanel() {
 
           <form
             className="grid grid-cols-[1fr_1fr_auto] gap-3 border-t border-border px-4 py-3"
-            onSubmit={categoryForm.handleSubmit(async (values) => {
+            onSubmit={categoryForm.handleSubmit(categorySubmission.guard(async (values) => {
               try {
                 await actions.createCategory.mutateAsync({
                   ...values,
@@ -235,13 +238,11 @@ export function TaxonomyPanel() {
               } catch (error) {
                 toast.error(getApiErrorMessage(error, "分类创建失败"));
               }
-            })}
+            }))}
           >
-            <div><Label htmlFor="category-name" className="sr-only">分类名称</Label><Input id="category-name" placeholder="分类名称" {...categoryForm.register("name")} /></div>
-            <div>
-              <Label htmlFor="category-slug" className="sr-only">稳定标识（大写英文）</Label>
-              <Input
-                id="category-slug"
+            <FormField id="category-name" label="分类名称" labelClassName="sr-only" error={categoryForm.formState.errors.name?.message}>{(controlProps) => <Input {...controlProps} placeholder="分类名称" {...categoryForm.register("name")} />}</FormField>
+            <FormField id="category-slug" label="稳定标识（大写英文）" labelClassName="sr-only" error={categoryForm.formState.errors.slug?.message}>{(controlProps) => <Input
+                {...controlProps}
                 placeholder="大写英文标识，如 MYSTERY"
                 className="font-utility"
                 {...categorySlugField}
@@ -249,17 +250,9 @@ export function TaxonomyPanel() {
                   event.currentTarget.value = normalizeThreadCategorySlug(event.currentTarget.value);
                   void categorySlugField.onChange(event);
                 }}
-                aria-invalid={Boolean(categoryForm.formState.errors.slug)}
-              />
-              {categoryForm.formState.errors.slug ? (
-                <p className="mt-1 text-xs text-destructive">
-                  {categoryForm.formState.errors.slug.message}
-                </p>
-              ) : null}
-            </div>
-            <Button type="submit" size="icon" title="新增分类"><Plus /></Button>
+              />}</FormField>
+            <Button type="submit" size="icon" aria-label="新增分类" title="新增分类" pending={categorySubmission.pending || categoryForm.formState.isSubmitting || actions.createCategory.isPending} pendingLabel={<span className="sr-only">新增分类</span>}><Plus /></Button>
           </form>
-          {categoryForm.formState.errors.name ? <p className="px-6 pb-2 text-xs text-destructive">{categoryForm.formState.errors.name.message}</p> : null}
         </section>
 
         <section className="overflow-hidden rounded-[var(--radius-card)] border border-border bg-card">
@@ -335,7 +328,7 @@ export function TaxonomyPanel() {
           />
           <form
             className="flex gap-3 border-t border-border px-4 py-3"
-            onSubmit={tagForm.handleSubmit(async (values) => {
+            onSubmit={tagForm.handleSubmit(tagSubmission.guard(async (values) => {
               try {
                 await actions.createTag.mutateAsync({ ...values, sortOrder: nextSortOrder(taxonomy.data.tags), isActive: true, reason: "站务台新增标签" });
                 tagForm.reset();
@@ -343,10 +336,10 @@ export function TaxonomyPanel() {
               } catch (error) {
                 toast.error(getApiErrorMessage(error, "标签创建失败"));
               }
-            })}
+            }))}
           >
-            <div className="flex-1"><Label htmlFor="tag-name" className="sr-only">标签名称</Label><Input id="tag-name" placeholder="新标签名称" {...tagForm.register("name")} /></div>
-            <Button type="submit"><Plus />新增标签</Button>
+            <FormField id="tag-name" label="标签名称" labelClassName="sr-only" className="flex-1" error={tagForm.formState.errors.name?.message}>{(controlProps) => <Input {...controlProps} placeholder="新标签名称" {...tagForm.register("name")} />}</FormField>
+            <Button type="submit" pending={tagSubmission.pending || tagForm.formState.isSubmitting || actions.createTag.isPending} pendingLabel="新增标签"><Plus />新增标签</Button>
           </form>
         </section>
       </div>

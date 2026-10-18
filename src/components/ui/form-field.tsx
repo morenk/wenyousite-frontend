@@ -13,6 +13,8 @@ export interface FormFieldProps {
   id: string;
   label: ReactNode;
   labelAction?: ReactNode;
+  labelClassName?: string;
+  errorRole?: "alert";
   description?: ReactNode;
   error?: ReactNode;
   className?: string;
@@ -24,6 +26,8 @@ export function FormField({
   id,
   label,
   labelAction,
+  labelClassName,
+  errorRole,
   description,
   error,
   className,
@@ -37,10 +41,10 @@ export function FormField({
 
   return (
     <div data-slot="form-field" className={cn("flex flex-col gap-1.5", className)}>
-      <div className="flex items-center justify-between gap-2">
-        <Label htmlFor={id}>{label}</Label>
+      {labelAction ? <div className="flex items-center justify-between gap-2">
+        <Label htmlFor={id} className={labelClassName}>{label}</Label>
         {labelAction}
-      </div>
+      </div> : <Label htmlFor={id} className={labelClassName}>{label}</Label>}
       {children({
         id,
         "aria-describedby": describedBy,
@@ -52,7 +56,7 @@ export function FormField({
         </p>
       ) : null}
       {hasError ? (
-        <p id={errorId} className="text-xs text-destructive">
+        <p id={errorId} role={errorRole} className="text-xs text-destructive">
           {error}
         </p>
       ) : null}

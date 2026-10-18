@@ -1,4 +1,4 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { NuqsTestingAdapter } from "nuqs/adapters/testing";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -8,6 +8,7 @@ const hooks = vi.hoisted(() => ({
   useAdminTaxonomyActions: vi.fn(),
   createCategory: vi.fn(),
   updateCategory: vi.fn(),
+  createTag: vi.fn(),
 }));
 
 vi.mock("@/api/hooks/use-admin", () => ({
@@ -54,7 +55,7 @@ describe("TaxonomyPanel", () => {
     hooks.useAdminTaxonomyActions.mockReturnValue({
       createCategory: mutation(hooks.createCategory),
       updateCategory: mutation(hooks.updateCategory),
-      createTag: mutation(),
+      createTag: mutation(hooks.createTag),
       updateTag: mutation(),
     });
   });
@@ -107,4 +108,52 @@ describe("TaxonomyPanel", () => {
       reason: "站务台新增分类",
     });
   });
+  it("分类编辑错误关联名称、排序和说明，业务说明同时保留", async () => {
+    const user = userEvent.setup(); renderPanel();
+    await user.click(screen.getByRole("button", { name: "编辑 角色扮演" }));
+    fireEvent.change(screen.getByLabelText("展示名称"), { target: { value: "" } });
+    fireEvent.change(screen.getByLabelText("排序"), { target: { value: "-1" } });
+    fireEvent.change(screen.getByLabelText("分类说明"), { target: { value: "文".repeat(201) } });
+    fireEvent.submit(screen.getByLabelText("展示名称").closest("form")!);
+    await waitFor(() => expect(screen.getByLabelText("展示名称")).toHaveAttribute("aria-invalid", "true"));
+    for (const label of ["展示名称", "排序", "分类说明"]) {
+      const field = screen.getByLabelText(label);
+      expect(field).toHaveAttribute("aria-invalid", "true");
+      const ids = field.getAttribute("aria-describedby")!.split(" ");
+      expect(ids.every((id) => document.getElementById(id))).toBe(true);
+      expect(ids).toContain(`${field.id}-error`);
+    }
+    expect(screen.getByLabelText("展示名称")).toHaveAccessibleDescription(/修改名称会同步显示在已有主题帖中.*请输入分类名称/);
+    expect(hooks.updateCategory).not.toHaveBeenCalled();
+  });
+
+  it("新建分类与标签显示各自的字段错误", async () => {
+    renderPanel();
+    fireEvent.submit(screen.getByLabelText("分类名称").closest("form")!);
+    fireEvent.submit(screen.getByLabelText("标签名称").closest("form")!);
+    await waitFor(() => expect(screen.getByLabelText("分类名称")).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByLabelText("分类名称")).toHaveAccessibleDescription("请输入分类名称");
+    expect(screen.getByLabelText("稳定标识（大写英文）")).toHaveAccessibleDescription(/大写字母/);
+    expect(screen.getByLabelText("标签名称")).toHaveAccessibleDescription("请输入标签名称");
+    expect(hooks.createCategory).not.toHaveBeenCalled(); expect(hooks.createTag).not.toHaveBeenCalled();
+  });
+
+  it("未决分类写入阻止重复 submit，失败保留输入并允许重试", async () => {
+    let reject!: (error: Error) => void;
+    hooks.createCategory.mockImplementationOnce(() => new Promise((_, fail) => { reject = fail; }));
+    renderPanel();
+    fireEvent.change(screen.getByLabelText("分类名称"), { target: { value: "悬疑" } });
+    fireEvent.change(screen.getByLabelText("稳定标识（大写英文）"), { target: { value: "MYSTERY" } });
+    const form = screen.getByLabelText("分类名称").closest("form")!;
+    fireEvent.submit(form); fireEvent.submit(form);
+    await waitFor(() => expect(hooks.createCategory).toHaveBeenCalledOnce());
+    expect(screen.getByRole("button", { name: "新增分类" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "新增分类" })).toHaveAttribute("aria-busy", "true");
+    await act(async () => reject(new Error("暂时失败")));
+    await waitFor(() => expect(screen.getByRole("button", { name: "新增分类" })).toBeEnabled());
+    expect(screen.getByLabelText("分类名称")).toHaveValue("悬疑");
+    fireEvent.submit(form);
+    await waitFor(() => expect(hooks.createCategory).toHaveBeenCalledTimes(2));
+  });
+
 });

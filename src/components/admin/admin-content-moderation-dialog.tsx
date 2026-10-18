@@ -1,7 +1,8 @@
 "use client";
 
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Loader2, ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -21,7 +22,7 @@ import {
   DialogTitle,
   DialogViewport,
 } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/lib/auth";
 
@@ -55,6 +56,7 @@ export function AdminContentModerationDialog({
   const { user } = useAuth();
   const isAdmin = user?.role === "ADMIN" || user?.role === "SUPER_ADMIN";
   const actions = useAdminBearerContentActions();
+  const submission = useSubmissionLock();
   const form = useForm<ReasonValues>({
     resolver: zodResolver(reasonSchema),
     defaultValues: { reason: "" },
@@ -66,10 +68,10 @@ export function AdminContentModerationDialog({
 
   if (!isAdmin) return null;
 
-  const pending = actions.hide.isPending;
+  const pending = submission.pending || form.formState.isSubmitting || actions.hide.isPending;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(next) => { if (!pending) onOpenChange(next); }}>
       <DialogPortal>
         <DialogBackdrop />
         <DialogViewport>
@@ -95,7 +97,7 @@ export function AdminContentModerationDialog({
             </div>
 
             <form
-              onSubmit={form.handleSubmit(async ({ reason }) => {
+              onSubmit={form.handleSubmit(submission.guard(async ({ reason }) => {
                 try {
                   await actions.hide.mutateAsync({
                     type: target.type,
@@ -110,7 +112,7 @@ export function AdminContentModerationDialog({
                     getApiErrorMessage(error, "隐藏失败，请刷新内容后重试"),
                   );
                 }
-              })}
+              }))}
             >
               <div className="space-y-5 px-6 py-6">
                 <div className="grid grid-cols-[5rem_minmax(0,1fr)] gap-x-3 gap-y-1 rounded-[var(--radius-compact)] bg-muted px-4 py-3 text-sm">
@@ -124,23 +126,10 @@ export function AdminContentModerationDialog({
                     {target.id}
                   </code>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor={`admin-hide-reason-${target.id}`}>
-                    处置理由
-                  </Label>
-                  <Textarea
-                    id={`admin-hide-reason-${target.id}`}
-                    rows={4}
-                    placeholder="说明违反了哪项规则，以及为何需要从公开页面隐藏。"
-                    aria-invalid={Boolean(form.formState.errors.reason)}
-                    {...form.register("reason")}
-                  />
-                  {form.formState.errors.reason ? (
-                    <p className="text-xs text-destructive">
-                      {form.formState.errors.reason.message}
-                    </p>
-                  ) : null}
-                </div>
+                <FormField id={`admin-hide-reason-${target.id}`} label="处置理由" error={form.formState.errors.reason?.message}>
+                  {(controlProps) => <Textarea {...controlProps} rows={4}
+                    placeholder="说明违反了哪项规则，以及为何需要从公开页面隐藏。" {...form.register("reason")} />}
+                </FormField>
               </div>
               <DialogFooter className="border-t border-border px-6 py-4">
                 <Button
@@ -151,12 +140,8 @@ export function AdminContentModerationDialog({
                 >
                   取消
                 </Button>
-                <Button type="submit" variant="destructive" disabled={pending}>
-                  {pending ? (
-                    <Loader2 className="animate-spin" />
-                  ) : (
-                    <ShieldAlert />
-                  )}
+                <Button type="submit" variant="destructive" pending={pending} pendingLabel="确认隐藏">
+                  <ShieldAlert />
                   确认隐藏
                 </Button>
               </DialogFooter>
