@@ -27,7 +27,7 @@ import { Button } from "@/components/ui/button";
 import { InteractionToggle } from "@/components/ui/interaction-toggle";
 import { Input } from "@/components/ui/input";
 import { Tooltip } from "@/components/ui/tooltip";
-import { useConfirm } from "@/components/ui/confirm-provider";
+import { useConfirmedDelete } from "@/hooks/use-confirmed-delete";
 import { useAuth } from "@/lib/auth";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
@@ -47,7 +47,7 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
   const [moderationOpen, setModerationOpen] = useState(false);
   const [bookmarkPickerOpen, setBookmarkPickerOpen] = useState(false);
   const editContentRef = useRef<InternalReferenceEditorHandle>(null);
-  const confirm = useConfirm();
+  const deletion = useConfirmedDelete();
   const { confirmPublicInvite, resetPublicInviteConfirmation } = usePublicInviteConfirmation();
   const remove = useDeleteMoment();
   const update = useUpdateMoment();
@@ -99,18 +99,14 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
     }
     try { await bookmark.mutateAsync(undefined); } catch (error) { toast.error(getApiErrorMessage(error, "收藏失败")); }
   };
-  const deleteMoment = async () => {
-    const accepted = await confirm({ title: "删除这条动态？", description: "删除后不会再出现在动态区，操作无法撤销。", confirmLabel: "删除", destructive: true });
-    if (!accepted) return;
-    try {
-      await remove.mutateAsync(moment.id);
-      toast.success("动态已删除");
-      if (onDeleted) onDeleted();
-      else router.replace("/moments");
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "删除失败"));
-    }
-  };
+  const deleteMoment = () => deletion.run({
+    title: "删除这条动态？",
+    description: "删除后不会再出现在动态区，操作无法撤销。",
+    successMessage: "动态已删除",
+  }, () => remove.mutateAsync(moment.id), () => {
+    if (onDeleted) onDeleted();
+    else router.replace("/moments");
+  });
   const startEditing = () => {
     setEditTitle(moment.title);
     setEditContent(moment.content);
@@ -166,8 +162,8 @@ export function MomentDetailView({ momentId, onDeleted }: { momentId: string; on
               </Tooltip>
             ) : null}
             {moment.canDelete ? (
-              <Tooltip content="删除动态" disabled={remove.isPending}>
-                <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={remove.isPending} aria-label="删除动态"><Trash2 /></Button>
+              <Tooltip content="删除动态" disabled={deletion.pending || remove.isPending}>
+                <Button variant="ghost" size="icon-sm" onClick={() => void deleteMoment()} disabled={deletion.pending || remove.isPending} aria-label="删除动态"><Trash2 /></Button>
               </Tooltip>
             ) : null}
             {canModerate ? (

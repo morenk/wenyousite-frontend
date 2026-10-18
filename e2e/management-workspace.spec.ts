@@ -335,3 +335,28 @@ test.describe("帖子共同创作管理台", () => {
     expect(results.violations).toEqual([]);
   });
 });
+
+for (const navigationApi of [true, false]) {
+  test(`管理离页保护 ${navigationApi ? "浏览器默认 API" : "禁用 Navigation API"} 保留草稿、取消返回并确认链接`, async ({ page }) => {
+    if (!navigationApi) await page.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
+    await openManagementWorkspace(page, "?view=subthreads&subthread=management-setting");
+    await page.evaluate(() => history.pushState(null, "", `${location.href}&checkpoint=1`));
+    const title = page.getByRole("textbox", { name: "子贴标题" });
+    await expect(page.locator('[contenteditable="true"]')).toHaveText("北堤封锁，旧灯塔仅在退潮后可以抵达。");
+    await title.fill("未保存的章节标题");
+    await expect(page.getByRole("button", { name: "保存子贴", exact: true })).toBeEnabled();
+    await page.evaluate(() => history.back());
+    const confirmation = page.getByRole("alertdialog", { name: "放弃未保存修改" });
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "取消", exact: true }).click();
+    await expect(page).toHaveURL(/checkpoint=1$/);
+    await expect(title).toHaveValue("未保存的章节标题");
+    const nativeDialogs: string[] = [];
+    page.on("dialog", async (dialog) => { nativeDialogs.push(dialog.type()); await dialog.dismiss(); });
+    await page.locator('a[href="/"]').first().click();
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
+    await expect(page).toHaveURL(/\/$/);
+    expect(nativeDialogs).toEqual([]);
+  });
+}

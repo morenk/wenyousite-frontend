@@ -386,3 +386,57 @@ test("头像与背景在同一弹窗内裁剪，取消草稿后返回选择入�
     await expect(entry).toBeFocused();
   }
 });
+
+for (const navigationApi of [true, false]) {
+  test(`公共离页保护 ${navigationApi ? "浏览器默认 API" : "禁用 Navigation API"}：多步、锚点、前进与再次编辑`, async ({ page }) => {
+    if (!navigationApi) await page.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
+    await mockSettings(page);
+    await page.goto("/me/password");
+    await page.getByRole("link", { name: "返回设置" }).click();
+    await expect(page).toHaveURL(/\/me#security$/);
+    // 等 Next 的 HistoryUpdater 提交该 URL，再插入原生锚点；否则路由提交可能覆盖锚点。
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      const replace = history.replaceState;
+      history.replaceState = function (state, title, url) {
+        replace.call(history, state, title, url);
+        if (state?.__NA && url && new URL(String(url), location.href).search === "?checkpoint=1") {
+          history.replaceState = replace;
+          resolve();
+        }
+      };
+      history.pushState(null, "", "/me?checkpoint=1");
+    }));
+    await page.evaluate(() => { location.hash = "draft-anchor"; });
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    await page.evaluate(() => history.pushState(null, "", "/me?checkpoint=2"));
+    const originalLength = await page.evaluate(() => history.length);
+    await page.getByRole("button", { name: "个人简介", exact: true }).click();
+    await page.getByRole("textbox", { name: "个人简介" }).fill("导航保护草稿");
+    const confirmation = page.getByRole("alertdialog", { name: "放弃未保存修改" });
+    await page.evaluate(() => history.go(-3));
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "继续编辑" }).click();
+    await expect(page).toHaveURL(/checkpoint=2$/);
+    await expect(page.getByRole("textbox", { name: "个人简介" })).toHaveValue("导航保护草稿");
+    expect(await page.evaluate(() => history.length)).toBe(originalLength);
+    await page.evaluate(() => history.back());
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    // 接受导航后重新编辑，新的未保存内容仍受保护。
+    if (!(await page.getByRole("textbox", { name: "个人简介" }).isVisible())) {
+      await page.getByRole("button", { name: "个人简介", exact: true }).click();
+    }
+    await page.getByRole("textbox", { name: "个人简介" }).fill("第二次修改");
+    await page.evaluate(() => history.forward());
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "继续编辑" }).click();
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    await expect(page.getByRole("textbox", { name: "个人简介" })).toHaveValue("第二次修改");
+    const canGoForward = await page.evaluate(() => (window as Window & { navigation?: { canGoForward: boolean } }).navigation?.canGoForward);
+    if (canGoForward !== undefined) expect(canGoForward).toBe(true);
+    await page.evaluate(() => history.forward());
+    await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
+    await expect(page).toHaveURL(/checkpoint=2$/);
+  });
+}

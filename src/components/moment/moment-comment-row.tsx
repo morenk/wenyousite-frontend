@@ -3,9 +3,8 @@
 import { ShieldAlert, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useConfirmedDelete } from "@/hooks/use-confirmed-delete";
 import { type MomentComment, useDeleteMomentComment } from "@/api/hooks/use-moments";
-import { getApiErrorMessage } from "@/api/errors";
 import { AdminContentModerationDialog } from "@/components/admin/admin-content-moderation-dialog";
 import dynamic from "next/dynamic";
 import { MomentMediaImage } from "@/components/moment/moment-media-image";
@@ -38,6 +37,7 @@ export function MomentCommentRow({
   focused?: boolean;
 }) {
   const { user } = useAuth();
+  const deletion = useConfirmedDelete();
   const remove = useDeleteMomentComment(momentId, user?.id);
   const [lightboxUrl, setLightboxUrl] = useState<string | null>(null);
   const [moderationOpen, setModerationOpen] = useState(false);
@@ -45,14 +45,11 @@ export function MomentCommentRow({
 
   useDiscussionTargetReveal(focused ? `moment-comment-${comment.id}` : undefined);
 
-  const deleteComment = async () => {
-    try {
-      await remove.mutateAsync(comment.id);
-      toast.success("评论已删除");
-    } catch (error) {
-      toast.error(getApiErrorMessage(error, "删除失败"));
-    }
-  };
+  const deleteComment = () => deletion.run({
+    title: "删除评论",
+    description: "确定要删除这条评论吗？删除后无法恢复。",
+    successMessage: "评论已删除",
+  }, () => remove.mutateAsync(comment.id));
 
   return (
     <div
@@ -124,7 +121,7 @@ export function MomentCommentRow({
               <button
                 type="button"
                 aria-label="删除"
-                disabled={remove.isPending}
+                disabled={deletion.pending || remove.isPending}
                 onClick={() => void deleteComment()}
                 className="inline-flex size-8 items-center justify-center rounded-[var(--radius-control)] text-muted-foreground transition-[background-color,color,transform] hover:bg-primary hover:text-brand-strong focus-visible:bg-primary focus-visible:text-brand-strong active:scale-95 disabled:cursor-wait disabled:opacity-40"
               >

@@ -1,5 +1,6 @@
 "use client";
 
+import { trackNavigationHistory } from "@/lib/navigation-history";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
@@ -84,6 +85,7 @@ function AdminSessionLifecycle() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(() => { trackNavigationHistory(); }, []);
   const pathname = usePathname() ?? "";
   if (isToolEmbedPath(pathname)) {
     return <Suspense fallback={null}><EmbedEnvironment>{children}</EmbedEnvironment></Suspense>;
