@@ -92,7 +92,7 @@ function ReplyDiscussionPageContent() {
       !focusedReplyQuery.isFetchedAfterMount,
   );
 
-  if (isLoading || awaitingRootValidation || awaitingFocusedValidation || (!isInitialized && error)) {
+  if (isLoading || awaitingRootValidation || awaitingFocusedValidation || !isInitialized) {
     return focusedReplyId ? <DiscussionTargetRouteFallback /> : <PageRouteFallback variant="discussion" />;
   }
 
