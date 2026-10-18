@@ -1,5 +1,6 @@
 "use client";
 
+import { useUploadOperation } from "@/hooks/use-upload-operation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, ArrowRight, ImagePlus, Loader2, Star, Trash2 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -63,7 +64,9 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const draftReadyRef = useRef(false);
   const quotaWarningRef = useRef(false);
   const composerClosedRef = useRef(!open);
-  const uploadAbortRef = useRef<AbortController | null>(null);
+  const upload = useUploadOperation();
+  const { cancel: cancelUpload, invalidate: invalidateUpload, isSaving } = upload;
+  const previewUrls = useRef(new Set<string>());
   const compressedFilesRef = useRef(new Map<string, File>());
   const uploadedMediaIdsRef = useRef(new Map<string, string>());
   const publishRef = useRef<{ signature: string; requestId: string; mediaIds: string[] } | null>(null);
@@ -85,28 +88,26 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   });
   const title = useWatch({ control, name: "title" });
   const content = useWatch({ control, name: "content" });
-  const isPublishing = createMoment.isPending || uploadProgress === "正在发布动态";
-  const isUploading = uploadProgress !== null && !isPublishing;
-  const pending = isPublishing || isUploading;
+  const isPublishing = createMoment.isPending || upload.phase === "saving";
+  const isUploading = upload.pending && !isPublishing;
+  const pending = isPublishing || upload.pending;
 
   const closeComposer = useCallback(() => {
-    if (isPublishing || composerClosedRef.current) return;
+    if (isSaving() || composerClosedRef.current) return;
     composerClosedRef.current = true;
-    const upload = uploadAbortRef.current;
-    if (upload && !upload.signal.aborted) {
-      upload.abort();
+    if (cancelUpload()) {
       setUploadProgress(null);
       setImageUploadProgress(null);
       setActiveImagePosition(null);
       toast.info("已取消上传，草稿仍为你保留");
     }
     onClose();
-  }, [isPublishing, onClose]);
+  }, [isSaving, cancelUpload, onClose]);
 
   useEffect(() => {
     composerClosedRef.current = !open;
-    if (!open) uploadAbortRef.current?.abort();
-  }, [open]);
+    if (!open) invalidateUpload();
+  }, [open, invalidateUpload]);
 
   useEffect(() => {
     if (!open) return;
@@ -118,7 +119,13 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         if (draft) {
           setValue("title", draft.title);
           setValue("content", draft.content);
-          const restored = draft.files.map(({ id, file }) => ({ id, file, previewUrl: URL.createObjectURL(file) }));
+          previewUrls.current.forEach((url) => URL.revokeObjectURL(url));
+          previewUrls.current.clear();
+          const restored = draft.files.map(({ id, file }) => {
+            const previewUrl = URL.createObjectURL(file);
+            previewUrls.current.add(previewUrl);
+            return { id, file, previewUrl };
+          });
           setImages(restored);
           setCoverFileId(draft.coverFileId && restored.some((image) => image.id === draft.coverFileId) ? draft.coverFileId : restored[0]?.id ?? null);
         }
@@ -149,8 +156,9 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
     return () => window.clearTimeout(timeout);
   }, [content, coverFileId, images, open, title, userId]);
 
-  useEffect(() => () => {
-    uploadAbortRef.current?.abort();
+  useEffect(() => {
+    const urls = previewUrls.current;
+    return () => { urls.forEach((url) => URL.revokeObjectURL(url)); urls.clear(); };
   }, []);
 
   if (!open) return null;
@@ -158,6 +166,8 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   const addFiles = (files: FileList | null) => {
     if (!files) return;
     const selected = Array.from(files);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+    if (upload.isPending()) return;
     if (images.length + selected.length > 9) {
       toast.error("每条动态最多 9 张图片");
       return;
@@ -169,19 +179,23 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         return;
       }
     }
-    const added = selected.map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }));
+    const added = selected.map((file) => {
+      const previewUrl = URL.createObjectURL(file);
+      previewUrls.current.add(previewUrl);
+      return { id: crypto.randomUUID(), file, previewUrl };
+    });
     setImages((current) => [...current, ...added]);
     setCoverFileId((current) => current ?? added[0]?.id ?? null);
     publishRef.current = null;
-    if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
   const removeImage = (id: string) => {
+    if (upload.isPending()) return;
     compressedFilesRef.current.delete(id);
     uploadedMediaIdsRef.current.delete(id);
     setImages((current) => {
       const target = current.find((image) => image.id === id);
-      if (target) URL.revokeObjectURL(target.previewUrl);
+      if (target) { URL.revokeObjectURL(target.previewUrl); previewUrls.current.delete(target.previewUrl); }
       const next = current.filter((image) => image.id !== id);
       setCoverFileId((cover) => cover === id ? next[0]?.id ?? null : cover);
       return next;
@@ -190,6 +204,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   };
 
   const moveImage = (index: number, direction: -1 | 1) => {
+    if (upload.isPending()) return;
     const target = index + direction;
     if (target < 0 || target >= images.length) return;
     setImages((current) => {
@@ -201,7 +216,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
   };
 
   const clearDraft = async () => {
-    images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    images.forEach((image) => { URL.revokeObjectURL(image.previewUrl); previewUrls.current.delete(image.previewUrl); });
     setImages([]);
     setCoverFileId(null);
     compressedFilesRef.current.clear();
@@ -214,7 +229,11 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
 
   const submit = async (values: FormValues) => {
     if (composerClosedRef.current) return;
-    if (!(await confirmPublicInvite(values.content))) return;
+    const operation = upload.start();
+    if (!operation) return;
+    setUploadProgress(null);
+    setImageUploadProgress(null);
+    setActiveImagePosition(null);
     const signature = JSON.stringify({
       title: values.title.trim(),
       content: values.content,
@@ -222,15 +241,12 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
       coverFileId,
     });
     let request = publishRef.current?.signature === signature ? publishRef.current : null;
-    let uploadController: AbortController | null = null;
     try {
+      if (!(await confirmPublicInvite(values.content)) || !operation.isCurrent()) return;
       if (!request) {
         const mediaIds: string[] = [];
-        if (images.length > 0) {
-          uploadController = new AbortController();
-          uploadAbortRef.current = uploadController;
-        }
         for (let index = 0; index < images.length; index += 1) {
+          if (!operation.isCurrent()) return;
           const position = `第 ${index + 1}/${images.length} 张图片`;
           setActiveImagePosition(position);
           const image = images[index];
@@ -244,35 +260,41 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
             setImageUploadProgress(null);
             setUploadProgress(`正在准备${position}`);
             uploadFile = await compressMomentImage(image.file, {
-              signal: uploadController?.signal,
+              signal: operation.signal,
             });
+            if (!operation.isCurrent()) return;
             compressedFilesRef.current.set(image.id, uploadFile);
           }
+          operation.setPhase("uploading");
           const uploaded = await uploadImageFile(uploadFile, {
-            signal: uploadController?.signal,
+            signal: operation.signal,
             purpose: "MOMENT",
             clientNormalized: true,
             onStage: (stage) => {
+              if (!operation.isCurrent()) return;
               if (stage === "preparing") setUploadProgress(`正在准备${position}`);
               if (stage === "uploading") setUploadProgress(`正在上传${position}`);
               if (stage === "processing") setUploadProgress(`正在处理${position}`);
             },
             onProgress: (progress) => {
+              if (!operation.isCurrent()) return;
               setImageUploadProgress(progress);
               if (progress.stage === "uploading" && progress.percent !== null) {
                 setUploadProgress(`正在上传${position} · ${progress.percent}%`);
               }
             },
           });
+          if (!operation.isCurrent()) return;
           mediaIds.push(uploaded.mediaId);
           uploadedMediaIdsRef.current.set(image.id, uploaded.mediaId);
         }
-        if (composerClosedRef.current || uploadController?.signal.aborted) return;
-        if (uploadAbortRef.current === uploadController) uploadAbortRef.current = null;
+        if (!operation.isCurrent()) return;
         request = { signature, requestId: crypto.randomUUID(), mediaIds };
         publishRef.current = request;
       }
-      if (composerClosedRef.current) return;
+      if (!operation.isCurrent()) return;
+      operation.setPhase("saving");
+      setImageUploadProgress(null);
       setUploadProgress("正在发布动态");
       const coverIndex = images.findIndex((image) => image.id === coverFileId);
       const created = await createMoment.mutateAsync({
@@ -282,9 +304,11 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
         coverMediaId: coverIndex >= 0 ? request.mediaIds[coverIndex] : null,
         clientRequestId: request.requestId,
       });
+      if (!operation.isCurrent()) return;
       resetPublicInviteConfirmation();
       await deleteMomentDraft(userId).catch(() => undefined);
-      images.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+      if (!operation.isCurrent()) return;
+      images.forEach((image) => { URL.revokeObjectURL(image.previewUrl); previewUrls.current.delete(image.previewUrl); });
       reset({ title: "", content: "" });
       setImages([]);
       setCoverFileId(null);
@@ -296,14 +320,16 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
       markMomentFeedReturn(created.id, pathname);
       router.push(`/moments/${created.id}`);
     } catch (error) {
-      if (!isUploadAbortError(error)) {
+      if (operation.isCurrent() && !isUploadAbortError(error)) {
         toast.error(getApiErrorMessage(error, "发布失败，请检查网络后重试"));
       }
     } finally {
-      if (uploadAbortRef.current === uploadController) uploadAbortRef.current = null;
-      setUploadProgress(null);
-      setImageUploadProgress(null);
-      setActiveImagePosition(null);
+      if (operation.isCurrent()) {
+        setUploadProgress(null);
+        setImageUploadProgress(null);
+        setActiveImagePosition(null);
+      }
+      operation.finish();
     }
   };
 
@@ -403,15 +429,15 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
                     {/* eslint-disable-next-line @next/next/no-img-element -- 本地 Blob 草稿预览 */}
                     <img src={image.previewUrl} alt={`第 ${index + 1} 张图片`} className="h-full w-full object-cover" />
                     <div className="absolute inset-x-1 bottom-1 flex items-center justify-between rounded-[var(--radius-compact)] bg-foreground/60 p-0.5 opacity-0 transition-opacity group-hover:opacity-100 group-focus-within:opacity-100">
-                      <Tooltip content="设为封面"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => setCoverFileId(image.id)} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button></Tooltip>
-                      <div className="flex"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></Button><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></Button></div>
-                      <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></Button>
+                      <Tooltip content="设为封面"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" disabled={pending} onClick={() => { if (!upload.isPending()) setCoverFileId(image.id); }} aria-label="设为封面"><Star className={cn("size-3.5", coverFileId === image.id && "fill-current")} /></Button></Tooltip>
+                      <div className="flex"><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={pending || index === 0} onClick={() => moveImage(index, -1)} aria-label="向前移动"><ArrowLeft className="size-3.5" /></Button><Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background disabled:bg-transparent" disabled={pending || index === images.length - 1} onClick={() => moveImage(index, 1)} aria-label="向后移动"><ArrowRight className="size-3.5" /></Button></div>
+                      <Button type="button" variant="ghost" size="icon-compact" className="text-background hover:bg-background/15 hover:text-background" disabled={pending} onClick={() => removeImage(image.id)} aria-label="删除图片"><Trash2 className="size-3.5" /></Button>
                     </div>
                     {coverFileId === image.id ? <span className="absolute left-2 top-2 rounded-full bg-brand-strong px-2 py-0.5 text-[0.6875rem] font-bold text-background">封面</span> : null}
                   </div>
                 ))}
                 {images.length < 9 ? (
-                  <button type="button" className="flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-muted text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground" onClick={() => fileInputRef.current?.click()}><ImagePlus className="size-6" /><span className="text-xs font-medium">添加图片</span></button>
+                  <button type="button" className="flex aspect-[3/4] flex-col items-center justify-center gap-2 rounded-[var(--radius-control)] bg-muted text-muted-foreground transition-colors hover:bg-accent/55 hover:text-foreground" disabled={pending} onClick={() => fileInputRef.current?.click()}><ImagePlus className="size-6" /><span className="text-xs font-medium">添加图片</span></button>
                 ) : null}
               </div>
               <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple className="sr-only" onChange={(event) => addFiles(event.target.files)} />
@@ -424,7 +450,7 @@ export function MomentComposer({ open, userId, onClose }: MomentComposerProps) {
             ) : (
               <Button type="button" variant="link" size="compact" onClick={() => void clearDraft()} disabled={pending} className="px-0 text-muted-foreground">清空草稿</Button>
             )}
-            {imageUploadProgress ? (
+            {isUploading && imageUploadProgress ? (
               <ImageUploadProgress
                 progress={imageUploadProgress}
                 label={imageUploadProgress.stage === "processing"
