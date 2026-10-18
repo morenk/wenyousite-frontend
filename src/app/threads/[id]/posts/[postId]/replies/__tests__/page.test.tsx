@@ -2,6 +2,8 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  authInitialized: true,
+  focused: true,
   rootQuery: vi.fn(),
   replyQuery: vi.fn(),
   closeComposer: vi.fn().mockResolvedValue(true),
@@ -12,7 +14,7 @@ const mocks = vi.hoisted(() => ({
 vi.mock("next/navigation", () => ({
   useParams: () => ({ id: "thread-1", postId: "root-1" }),
   useRouter: () => ({ back: mocks.routerBack }),
-  useSearchParams: () => new URLSearchParams("post=reply-1"),
+  useSearchParams: () => new URLSearchParams(mocks.focused ? "post=reply-1" : ""),
 }));
 vi.mock("@/api/hooks/use-content-access-cache", () => ({
   useContentAccessCache: () => ({
@@ -23,7 +25,7 @@ vi.mock("@/api/hooks/use-content-access-cache", () => ({
 vi.mock("@/api/hooks/use-post", () => ({
   usePost: (id?: string) => id === "root-1" ? mocks.rootQuery() : mocks.replyQuery(),
 }));
-vi.mock("@/lib/auth", () => ({ useAuth: () => ({ isInitialized: true }) }));
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ isInitialized: mocks.authInitialized }) }));
 vi.mock("@/components/thread/thread-composer-context", () => ({
   ThreadComposerProvider: ({ children }: { children: React.ReactNode }) => children,
   useThreadComposerSession: () => ({ close: mocks.closeComposer }),
@@ -45,6 +47,10 @@ vi.mock("@/components/thread/reply-discussion", () => ({
 }));
 vi.mock("@/components/thread/discussion-target-mask", () => ({
   DiscussionTargetRouteFallback: () => <div>正在定位目标楼层…</div>,
+}));
+
+vi.mock("@/components/layout/page-route-fallback", () => ({
+  PageRouteFallback: () => <div>正在加载讨论…</div>,
 }));
 
 import ReplyDiscussionPage from "@/app/threads/[id]/posts/[postId]/replies/page";
@@ -81,6 +87,8 @@ function readyQuery(data: unknown, error: unknown = null) {
 describe("楼中楼深链访问复核", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.authInitialized = true;
+    mocks.focused = true;
     mocks.rootQuery.mockReturnValue(readyQuery(rootPost));
     mocks.replyQuery.mockReturnValue(readyQuery(replyPost));
   });
@@ -139,4 +147,17 @@ describe("楼中楼深链访问复核", () => {
     expect(screen.queryByText("目标回复正文")).toBeNull();
     expect(screen.queryByRole("button", { name: "查看完整讨论" })).toBeNull();
   });
+});
+
+test.each([false, true])("认证恢复前楼中楼聚焦 %s 保持加载态", (focused) => {
+  mocks.authInitialized = false;
+  mocks.focused = focused;
+  mocks.rootQuery.mockReturnValue(readyQuery(undefined));
+  mocks.replyQuery.mockReturnValue(readyQuery(undefined));
+  render(<ReplyDiscussionPage />);
+  expect(screen.getByText(focused ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
+  expect(screen.queryByText("讨论不存在或无法访问")).toBeNull();
+  cleanup();
+  mocks.authInitialized = true;
+  mocks.focused = true;
 });

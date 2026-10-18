@@ -3,6 +3,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const mocks = vi.hoisted(() => ({
+  authInitialized: true,
   targetQuery: vi.fn(),
   parentQuery: vi.fn(),
   useFloors: vi.fn(),
@@ -54,7 +55,7 @@ vi.mock("nuqs", () => {
 
 vi.mock("@/api/hooks/use-thread-detail", () => ({
   useThreadDetail: () => ({
-    data: {
+    data: mocks.authInitialized ? {
       id: "thread-1",
       title: "主题标题",
       ownerId: "owner-1",
@@ -65,7 +66,7 @@ vi.mock("@/api/hooks/use-thread-detail", () => ({
         { id: "sub-1", title: "默认子贴", _count: { posts: 1 } },
         { id: "sub-2", title: "剧情子贴", _count: { posts: 1 } },
       ],
-    },
+    } : undefined,
     isLoading: false,
     isFetching: false,
     isFetchedAfterMount: true,
@@ -113,7 +114,7 @@ vi.mock("@/api/hooks/use-latest-thread-post", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  useAuth: () => ({ user: null, isInitialized: true }),
+  useAuth: () => ({ user: null, isInitialized: mocks.authInitialized }),
 }));
 
 vi.mock("@/components/thread/thread-composer-context", () => ({
@@ -165,6 +166,10 @@ vi.mock("@/components/thread/floating-composer-dock", () => ({
   FloatingComposerDock: ({ children }: { children: React.ReactNode }) => children,
 }));
 
+vi.mock("@/components/layout/page-route-fallback", () => ({
+  PageRouteFallback: () => <div>正在加载讨论…</div>,
+}));
+
 import ThreadDetailPage from "@/app/threads/[id]/page";
 
 const targetFloor = {
@@ -210,6 +215,7 @@ function floorsResult(subthreadId?: string) {
 describe("主题详情精确楼层阅读态", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.authInitialized = true;
     initialPostId = "floor-42";
     mocks.targetQuery.mockReturnValue(readyQuery(targetFloor));
     mocks.parentQuery.mockReturnValue(readyQuery(undefined));
@@ -288,4 +294,16 @@ describe("主题详情精确楼层阅读态", () => {
       );
     });
   });
+});
+
+test.each([null, "floor-42"])("认证恢复前详情 %s 保持现有加载态", (target) => {
+  mocks.authInitialized = false;
+  initialPostId = target;
+  mocks.targetQuery.mockReturnValue(readyQuery(undefined));
+  render(<ThreadDetailPage />);
+  expect(screen.getByText(target ? "正在定位目标楼层…" : "正在加载讨论…")).toBeInTheDocument();
+  expect(screen.queryByText("内容不存在或已被删除")).toBeNull();
+  expect(screen.queryByText("主题帖不存在或已被删除")).toBeNull();
+  cleanup();
+  mocks.authInitialized = true;
 });

@@ -314,12 +314,12 @@ function ThreadDetailPageContent() {
 
   if (
     targetPostId &&
-    (isLoading || awaitingThreadValidation || awaitingTargetValidation || (!isInitialized && error))
+    (isLoading || awaitingThreadValidation || awaitingTargetValidation || !isInitialized)
   ) {
     return <DiscussionTargetRouteFallback />;
   }
 
-  if (!targetPostId && (isLoading || awaitingThreadValidation || (!isInitialized && error))) {
+  if (!targetPostId && (isLoading || awaitingThreadValidation || !isInitialized)) {
     return <PageRouteFallback variant="discussion" />;
   }
 
