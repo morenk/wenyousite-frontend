@@ -1,4 +1,6 @@
-import { describe, expect, test } from "vitest";
+import { afterEach, describe, expect, test, vi } from "vitest";
+
+import { NextRequest } from "next/server";
 
 import nextConfig from "../next.config";
 import { createContentSecurityPolicy } from "../src/lib/security-headers";
@@ -24,5 +26,25 @@ describe("Next.js 安全响应头", () => {
     expect(headers.get("X-Content-Type-Options")).toBe("nosniff");
     expect(headers.get("X-Frame-Options")).toBe("DENY");
     expect(headers.get("Permissions-Policy")).toContain("camera=()");
+  });
+});
+
+describe("音频 CSP", () => {
+  afterEach(() => { vi.unstubAllEnvs(); vi.resetModules(); });
+
+  test.each([false, true])("开发模式 %s 仅许可固定媒体源", (isDevelopment) => {
+    const csp = createContentSecurityPolicy({ nonce: "audio-test", isDevelopment });
+    expect(csp.split("; ").find((directive) => directive.startsWith("media-src ")))
+      .toBe("media-src 'self' blob: https://cn-nb1.rains3.com");
+  });
+
+  test.each(["production", "development"])("%s 页面响应和 SSR 请求使用相同音频 CSP", async (environment) => {
+    vi.stubEnv("NODE_ENV", environment);
+    vi.resetModules();
+    const { middleware } = await import("../middleware");
+    const response = middleware(new NextRequest("https://wenyou.site/threads/test"));
+    const csp = response.headers.get("Content-Security-Policy");
+    expect(csp).toContain("media-src 'self' blob: https://cn-nb1.rains3.com");
+    expect(response.headers.get("x-middleware-request-content-security-policy")).toBe(csp);
   });
 });
