@@ -21,6 +21,7 @@ interface ImageUploadProgressProps {
   progress: UploadImageProgressValue;
   label?: string;
   onCancel?: () => void;
+  cancelLabel?: string;
   className?: string;
   compact?: boolean;
 }
@@ -29,6 +30,7 @@ export function ImageUploadProgress({
   progress,
   label,
   onCancel,
+  cancelLabel = "取消",
   className,
   compact = false,
 }: ImageUploadProgressProps) {
@@ -66,7 +68,7 @@ export function ImageUploadProgress({
             className="h-auto shrink-0 px-0 py-0 text-xs text-muted-foreground"
             onClick={onCancel}
           >
-            取消
+            {cancelLabel}
           </Button>
         ) : null}
       </div>

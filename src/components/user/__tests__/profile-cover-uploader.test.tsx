@@ -1,7 +1,8 @@
+import { useRef } from "react";
 import { imageFixture } from "@/lib/__tests__/image-fixtures";
 /** ProfileCoverUploader 组件测试：双画幅预览、裁切上传、重试与原子绑定。 */
 
-import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const { mockUploadImageFile, mockValidateProfileCoverFile } = vi.hoisted(() => ({
@@ -22,8 +23,12 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => vi.fn().mockResolvedValue(true) }));
 
 vi.mock("react-easy-crop", () => ({
-  default: ({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) => {
-    queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
+  default: function MockCropper({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) {
+    const completed = useRef(false);
+    if (!completed.current) {
+      completed.current = true;
+      queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
+    }
     return <div data-testid="profile-cover-cropper" />;
   },
 }));
@@ -260,4 +265,41 @@ test("关闭裁剪后忽略仍在读取的下一张图片", async () => {
   await Promise.resolve();
   expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
   expect(screen.queryByRole("dialog", { name: "调整主页背景" })).not.toBeInTheDocument();
+});
+
+
+test("一端失败时等待另一端结算，再重试仅上传失败画幅", async () => {
+  let finishMobile!: (value: { mediaId: string }) => void;
+  mockUploadImageFile.mockReset()
+    .mockRejectedValueOnce(new Error("web failed"))
+    .mockImplementationOnce(() => new Promise((resolve) => { finishMobile = resolve; }))
+    .mockResolvedValueOnce({ mediaId: "web-retry" });
+  renderUploader();
+  await openCropDialog();
+  fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
+  await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(2));
+  expect(screen.getByRole("button", { name: "保存中" })).toBeDisabled();
+  expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+  await act(async () => finishMobile({ mediaId: "mobile-finished" }));
+  expect(await screen.findByRole("alert")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
+  await waitFor(() => expect(mockSetProfileCover.mutateAsync).toHaveBeenCalledWith({ mediaId: "web-retry", mobileMediaId: "mobile-finished" }));
+  expect(mockUploadImageFile).toHaveBeenCalledTimes(3);
+});
+
+test("取消双图上传后旧结果不能绑定或污染下一次裁切", async () => {
+  const finishes: Array<(value: { mediaId: string }) => void> = [];
+  mockUploadImageFile.mockReset().mockImplementation(() => new Promise((resolve) => finishes.push(resolve)));
+  renderUploader();
+  await openCropDialog();
+  fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
+  await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(2));
+  fireEvent.click(screen.getByRole("button", { name: "取消上传" }));
+  fireEvent.change(screen.getByLabelText("电脑端缩放"), { target: { value: "1.5" } });
+  await act(async () => { finishes[0]({ mediaId: "stale-web" }); finishes[1]({ mediaId: "stale-mobile" }); });
+  expect(mockSetProfileCover.mutateAsync).not.toHaveBeenCalled();
+  mockUploadImageFile.mockResolvedValue({ mediaId: "fresh" });
+  fireEvent.click(screen.getByRole("button", { name: "保存背景" }));
+  await waitFor(() => expect(mockUploadImageFile).toHaveBeenCalledTimes(4));
+  await waitFor(() => expect(mockSetProfileCover.mutateAsync).toHaveBeenCalledWith({ mediaId: "fresh", mobileMediaId: "fresh" }));
 });

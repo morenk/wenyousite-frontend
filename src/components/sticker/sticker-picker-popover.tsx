@@ -23,6 +23,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Check, GripVertical, Images, Loader2, Settings2, SmilePlus, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { getApiErrorMessage } from "@/api/errors";
+import { useUploadOperation } from "@/hooks/use-upload-operation";
 import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
 import { useStickerActions, useStickers, type UserSticker } from "@/api/hooks/use-stickers";
 import { getAuthSnapshot, getKnownUserId, subscribeAuthStore } from "@/lib/auth-store";
@@ -148,14 +149,15 @@ function StickerPickerPanel({
     items: UserSticker[];
   } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const upload = useUploadOperation();
+  const { invalidate: invalidateUpload } = upload;
+  const uploading = upload.pending;
   const [uploadProgress, setUploadProgress] = useState<UploadImageProgressValue | null>(null);
   const [uploadFileCount, setUploadFileCount] = useState(0);
   const fileRef = useRef<HTMLInputElement>(null);
   const pendingUploadsRef = useRef(
     new Map<string, { mediaId?: string; reservation?: UploadReservation }>(),
   );
-  const uploadAbortRef = useRef<AbortController | null>(null);
   useEffect(() => {
     let owner = getAuthSnapshot().user?.id;
     const unsubscribe = subscribeAuthStore(() => {
@@ -163,10 +165,11 @@ function StickerPickerPanel({
       if (next === owner) return;
       owner = next;
       pendingUploadsRef.current.clear();
-      uploadAbortRef.current?.abort();
+      invalidateUpload();
+      setUploadProgress(null);
     });
-    return () => { unsubscribe(); uploadAbortRef.current?.abort(); };
-  }, []);
+    return () => { unsubscribe(); };
+  }, [invalidateUpload]);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -239,15 +242,15 @@ function StickerPickerPanel({
   const handleFiles = async (files: FileList | null) => {
     if (!files?.length) return;
     const candidates = [...files].slice(0, 10);
+    if (fileRef.current) fileRef.current.value = "";
+    if (upload.isPending()) return;
     const invalid = candidates.find((file) => validateImageFile(file));
     if (invalid) {
       toast.error(validateImageFile(invalid)!);
       return;
     }
-    uploadAbortRef.current?.abort();
-    const controller = new AbortController();
-    uploadAbortRef.current = controller;
-    setUploading(true);
+    const operation = upload.start("uploading");
+    if (!operation) return;
     setUploadFileCount(candidates.length);
     const totalBytes = candidates.reduce((total, file) => total + file.size, 0);
     const loadedByFile = new Map<number, number>();
@@ -258,6 +261,7 @@ function StickerPickerPanel({
       percent: null,
     });
     const updateBatchProgress = (index: number, file: File, progress: UploadImageProgressValue) => {
+      if (!operation.isCurrent()) return;
       const loadedBytes = progress.stage === "processing"
         ? file.size
         : progress.loadedBytes ?? loadedByFile.get(index) ?? 0;
@@ -273,35 +277,38 @@ function StickerPickerPanel({
     };
     const results = await runWithConcurrency(
       candidates.map((file, index) => async () => {
-        if (controller.signal.aborted) throw new DOMException("上传已取消", "AbortError");
+        if (!operation.isCurrent()) throw new DOMException("上传已取消", "AbortError");
         const uploadKey = await getImageUploadKey(file, "STICKER_SOURCE");
+        if (!operation.isCurrent()) throw new DOMException("上传已取消", "AbortError");
         const pendingUpload = pendingUploadsRef.current.get(uploadKey) ?? {};
         let mediaId = pendingUpload.mediaId;
         if (!mediaId) {
           const uploaded = await uploadImageFile(file, {
             purpose: "STICKER_SOURCE",
-            signal: controller.signal,
+            signal: operation.signal,
             resume: pendingUpload.reservation,
             onReservation: (reservation) => {
-              pendingUploadsRef.current.set(uploadKey, { reservation });
+              if (operation.isCurrent()) pendingUploadsRef.current.set(uploadKey, { reservation });
             },
             onProgress: (progress) => updateBatchProgress(index, file, progress),
           });
+          if (!operation.isCurrent()) throw new DOMException("上传已取消", "AbortError");
           mediaId = uploaded.mediaId;
           pendingUploadsRef.current.set(uploadKey, { mediaId });
         }
-        if (controller.signal.aborted) throw new DOMException("上传已取消", "AbortError");
+        if (!operation.isCurrent()) throw new DOMException("上传已取消", "AbortError");
         const imported = await actions.importMedia.mutateAsync(mediaId);
-        pendingUploadsRef.current.delete(uploadKey);
+        if (operation.isCurrent()) pendingUploadsRef.current.delete(uploadKey);
         return imported;
       }),
       3,
     );
+    if (!operation.isCurrent()) return;
     const succeeded = results.filter((result) => result.status === "fulfilled").length;
     const failed = results.length - succeeded;
-    if (!controller.signal.aborted && succeeded) toast.success(`已添加 ${succeeded} 个表情`);
-    if (!controller.signal.aborted && failed) toast.error(`${failed} 个表情添加失败，成功项已保留`);
-    setUploading(false);
+    if (operation.isCurrent() && succeeded) toast.success(`已添加 ${succeeded} 个表情`);
+    if (operation.isCurrent() && failed) toast.error(`${failed} 个表情添加失败，成功项已保留`);
+    operation.finish();
     setUploadProgress(null);
     if (fileRef.current) fileRef.current.value = "";
     await actions.refresh();
@@ -365,7 +372,7 @@ function StickerPickerPanel({
             </div>
           </div>
 
-          {uploadProgress ? (
+          {uploading && uploadProgress ? (
             <ImageUploadProgress
               progress={uploadProgress}
               label={uploadProgress.stage === "processing"

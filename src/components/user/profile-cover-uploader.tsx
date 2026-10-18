@@ -6,11 +6,11 @@ import type { MediaDisplay } from "@/lib/media-display";
 import { useEffect, useRef, useState } from "react";
 import { assertImageCanBeProcessed } from "@/lib/image-container";
 import Cropper, { type Area } from "react-easy-crop";
-import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useSetProfileCover } from "@/api/hooks/use-set-profile-cover";
 import { getApiErrorMessage } from "@/api/errors";
-import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import { ImageUploadStatus } from "@/components/shared/image-upload-status";
+import { useUploadOperation } from "@/hooks/use-upload-operation";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { SettingsDialog, type SettingsDialogProps } from "./settings-controls";
@@ -72,7 +72,7 @@ export function ProfileCoverUploader({
   const { setProfileCover, removeProfileCover } = useSetProfileCover();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chooseButtonRef = useRef<HTMLButtonElement>(null);
-  const uploadAbortRef = useRef<AbortController | null>(null);
+  const upload = useUploadOperation();
   const preparedFilesRef = useRef(new Map<ProfileCoverSurface, File>());
   const [imageSrc, setImageSrc] = useState<string | null>(null);
   const [crops, setCrops] = useState(INITIAL_CROPS);
@@ -84,13 +84,9 @@ export function ProfileCoverUploader({
     Partial<Record<ProfileCoverSurface, string>>
   >({});
   const [cropOpen, setCropOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [activeSurface, setActiveSurface] =
-    useState<ProfileCoverSurface | null>(null);
   const [uploadProgress, setUploadProgress] =
     useState<UploadImageProgressValue | null>(null);
 
-  useEffect(() => () => uploadAbortRef.current?.abort(), []);
   useEffect(
     () => () => {
       if (imageSrc) URL.revokeObjectURL(imageSrc);
@@ -107,10 +103,11 @@ export function ProfileCoverUploader({
   );
 
   const pending =
-    isUploading || setProfileCover.isPending || removeProfileCover.isPending;
+    upload.pending || setProfileCover.isPending || removeProfileCover.isPending;
   const mobilePreviewCover = profileCover?.mobile ?? profileCover;
 
   const invalidateUploadedSurface = (surface: ProfileCoverSurface) => {
+    if (upload.isPending()) return;
     preparedFilesRef.current.delete(surface);
     setPendingMediaIds((current) => {
       if (!current[surface]) return current;
@@ -124,7 +121,7 @@ export function ProfileCoverUploader({
     const generation = ++selectionGeneration.current;
     const file = event.target.files?.[0];
     event.target.value = "";
-    if (!file) return;
+    if (!file || upload.isPending()) return;
     const validationError = validateProfileCoverFile(file);
     if (validationError) {
       toast.error(validationError);
@@ -133,13 +130,13 @@ export function ProfileCoverUploader({
     try {
       await assertImageCanBeProcessed(file, true);
     } catch (error) {
-      if (generation !== selectionGeneration.current) return;
+      if (generation !== selectionGeneration.current || upload.isPending()) return;
       toast.error(
         error instanceof Error ? error.message : "无法读取图片，请重新选择",
       );
       return;
     }
-    if (generation !== selectionGeneration.current) return;
+    if (generation !== selectionGeneration.current || upload.isPending()) return;
     setFailure(null);
     setImageSrc(URL.createObjectURL(file));
     setCrops(INITIAL_CROPS);
@@ -152,10 +149,8 @@ export function ProfileCoverUploader({
 
   const closeCrop = () => {
     selectionGeneration.current++;
-    uploadAbortRef.current?.abort();
-    uploadAbortRef.current = null;
+    upload.cancel();
     setUploadProgress(null);
-    setActiveSurface(null);
     setCropOpen(false);
     requestAnimationFrame(() => chooseButtonRef.current?.focus());
     setImageSrc(null);
@@ -168,18 +163,17 @@ export function ProfileCoverUploader({
     if (!imageSrc || !croppedAreas.web || !croppedAreas.mobile || pending)
       return;
     setFailure(null);
-    const controller = new AbortController();
-    uploadAbortRef.current = controller;
-    setIsUploading(true);
+    const operation = upload.start();
+    if (!operation) return;
+    selectionGeneration.current++;
 
     try {
       const mediaIds: Partial<Record<ProfileCoverSurface, string>> = {
         ...pendingMediaIds,
       };
       const files = new Map<ProfileCoverSurface, File>();
-      setActiveSurface("web");
       setUploadProgress(null);
-      await Promise.all(
+      const prepared = await Promise.allSettled(
         SURFACES.map(async (surface) => {
           const spec = PROFILE_COVER_SPECS[surface];
           let file = preparedFilesRef.current.get(surface);
@@ -189,6 +183,7 @@ export function ProfileCoverUploader({
               croppedAreas[surface]!,
               surface,
             );
+            if (!operation.isCurrent()) return;
             file = createImageFileFromBlob(blob, spec.filenameStem);
             preparedFilesRef.current.set(surface, file);
           }
@@ -196,19 +191,26 @@ export function ProfileCoverUploader({
         }),
       );
 
+      if (!operation.isCurrent()) return;
+      const preparationFailure = prepared.find((result) => result.status === "rejected");
+      if (preparationFailure?.status === "rejected") throw preparationFailure.reason;
+
       const progressBySurface = new Map<
         ProfileCoverSurface,
         UploadImageProgressValue
       >();
       const uploadSurfaces = SURFACES.filter((surface) => !mediaIds[surface]);
-      await Promise.all(
+      operation.setPhase("uploading");
+      // 一端失败后仍等待另一端结算，锁与成功画幅缓存属于同一次操作。
+      const results = await Promise.allSettled(
         uploadSurfaces.map(async (surface) => {
           const file = files.get(surface)!;
           const { mediaId } = await uploadImageFile(file, {
-            signal: controller.signal,
+            signal: operation.signal,
             purpose: "PROFILE_COVER",
             clientNormalized: true,
             onProgress: (progress) => {
+              if (!operation.isCurrent()) return;
               progressBySurface.set(surface, progress);
               const values = uploadSurfaces.map((item) =>
                 progressBySurface.get(item),
@@ -243,41 +245,49 @@ export function ProfileCoverUploader({
               });
             },
           });
+          if (!operation.isCurrent()) return;
           mediaIds[surface] = mediaId;
           setPendingMediaIds((current) => ({ ...current, [surface]: mediaId }));
         }),
       );
 
-      setActiveSurface(null);
+      if (!operation.isCurrent()) return;
+      const failure = results.find((result) => result.status === "rejected");
+      if (failure?.status === "rejected") throw failure.reason;
+      operation.setPhase("saving");
       setUploadProgress(null);
       await setProfileCover.mutateAsync({
         mediaId: mediaIds.web!,
         mobileMediaId: mediaIds.mobile!,
       });
+      if (!operation.isCurrent()) return;
       toast.success("主页背景已更新");
       closeCrop();
       onClose?.();
     } catch (error) {
-      if (!isUploadAbortError(error)) {
+      if (operation.isCurrent() && !isUploadAbortError(error)) {
         setFailure(getApiErrorMessage(error, "主页背景上传失败，请稍后重试"));
       }
     } finally {
-      if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
-      setUploadProgress(null);
-      setActiveSurface(null);
-      setIsUploading(false);
+      if (operation.isCurrent()) setUploadProgress(null);
+      operation.finish();
     }
   };
 
   const handleRemove = async () => {
     if (pending) return;
+    const operation = upload.start("saving");
+    if (!operation) return;
     setFailure(null);
     try {
       await removeProfileCover.mutateAsync();
+      if (!operation.isCurrent()) return;
       toast.success("主页背景已移除");
       onClose?.();
     } catch (error) {
-      setFailure(getApiErrorMessage(error, "主页背景移除失败，请稍后重试"));
+      if (operation.isCurrent()) setFailure(getApiErrorMessage(error, "主页背景移除失败，请稍后重试"));
+    } finally {
+      operation.finish();
     }
   };
 
@@ -332,7 +342,7 @@ export function ProfileCoverUploader({
                   <div
                     className={`relative overflow-hidden rounded-[var(--radius-compact)] bg-foreground ${
                       surface === "web" ? "aspect-3/1" : "aspect-2/1"
-                    } ${isUploading ? "pointer-events-none" : ""}`}
+                    } ${pending ? "pointer-events-none" : ""}`}
                   >
                     <Cropper
                       image={imageSrc}
@@ -343,23 +353,26 @@ export function ProfileCoverUploader({
                         invalidateUploadedSurface(surface)
                       }
                       onCropChange={(nextCrop) => {
+                        if (upload.isPending()) return;
                         setCrops((current) => ({
                           ...current,
                           [surface]: nextCrop,
                         }));
                       }}
                       onZoomChange={(nextZoom) => {
+                        if (upload.isPending()) return;
                         setZooms((current) => ({
                           ...current,
                           [surface]: nextZoom,
                         }));
                       }}
-                      onCropComplete={(_area, areaPixels) =>
+                      onCropComplete={(_area, areaPixels) => {
+                        if (upload.isPending()) return;
                         setCroppedAreas((current) => ({
                           ...current,
                           [surface]: areaPixels,
-                        }))
-                      }
+                        }));
+                      }}
                     />
                   </div>
                   <div className="mt-3">
@@ -376,8 +389,9 @@ export function ProfileCoverUploader({
                       max={3}
                       step={0.01}
                       value={zooms[surface]}
-                      disabled={isUploading}
+                      disabled={pending}
                       onChange={(event) => {
+                        if (upload.isPending()) return;
                         invalidateUploadedSurface(surface);
                         setZooms((current) => ({
                           ...current,
@@ -392,27 +406,12 @@ export function ProfileCoverUploader({
             })}
           </div>
 
-          {activeSurface ? (
-            uploadProgress ? (
-              <ImageUploadProgress
-                progress={uploadProgress}
-                label="正在上传主页背景"
-                onCancel={() => uploadAbortRef.current?.abort()}
-                className="mt-4"
-                compact
-              />
-            ) : (
-              <div className="mt-4 flex items-center gap-2 rounded-[var(--radius-compact)] bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
-                <Loader2 className="size-3.5 animate-spin text-brand-strong" />
-                正在准备主页背景…
-              </div>
-            )
-          ) : setProfileCover.isPending ? (
-            <div className="mt-4 flex items-center gap-2 rounded-[var(--radius-compact)] bg-muted/70 px-3 py-2 text-xs text-muted-foreground">
-              <Loader2 className="size-3.5 animate-spin text-brand-strong" />
-              正在保存主页背景…
-            </div>
-          ) : null}
+          <ImageUploadStatus
+            phase={upload.phase}
+            progress={uploadProgress}
+            onCancel={() => { if (upload.cancel()) setUploadProgress(null); }}
+            className="mt-4"
+          />
 
           <DialogFooter className="mt-6">
             <Button

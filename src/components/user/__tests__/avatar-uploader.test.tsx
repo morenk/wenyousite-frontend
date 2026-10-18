@@ -1,9 +1,10 @@
+import { useRef } from "react";
 import { imageFixture } from "@/lib/__tests__/image-fixtures";
 /** AvatarUploader 组件测试：展示/裁剪上传/移除 */
 
 import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
 import type { ReactNode } from "react";
-import { render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
+import { act, render, screen, cleanup, fireEvent, waitFor } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const { mockUploadImageFile, mockValidateAvatarFile, mockGetCroppedBlob } = vi.hoisted(() => ({
@@ -21,8 +22,12 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => vi.fn().mockResolvedValue(true) }));
 
 vi.mock("react-easy-crop", () => ({
-  default: ({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) => {
-    queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
+  default: function MockCropper({ onCropComplete }: { onCropComplete: (a: unknown, b: unknown) => void }) {
+    const completed = useRef(false);
+    if (!completed.current) {
+      completed.current = true;
+      queueMicrotask(() => onCropComplete({}, { x: 0, y: 0, width: 100, height: 100 }));
+    }
     return <div data-testid="cropper" />;
   },
 }));
@@ -302,4 +307,53 @@ test("帖内头像移除失败保留面板并允许重试", async () => {
   fireEvent.click(screen.getByRole("button", { name: "移除头像" }));
   await waitFor(() => expect(remove).toHaveBeenCalledTimes(2));
   expect(mockRemoveAvatar.mutateAsync).not.toHaveBeenCalled();
+});
+
+
+async function selectAvatar() {
+  fireEvent.change(screen.getByTestId("avatar-file-input"), {
+    target: { files: [new File([imageFixture("static.png")], "photo.png", { type: "image/png" })] },
+  });
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存头像" })).toBeEnabled());
+}
+
+test("准备中取消后忽略迟到裁切结果，重试生成新文件", async () => {
+  let finish!: (blob: Blob) => void;
+  mockGetCroppedBlob.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+  renderUploader();
+  await selectAvatar();
+  fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+  expect(await screen.findByText("正在准备图片…")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "取消上传" }));
+  await act(async () => { finish(new Blob(["old"], { type: "image/webp" })); });
+  expect(mockUploadImageFile).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+  await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledOnce());
+  expect(mockGetCroppedBlob).toHaveBeenCalledTimes(2);
+});
+
+test("业务绑定期间只显示保存状态，卸载后的完成不关闭或提示", async () => {
+  let finish!: () => void;
+  const save = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
+  const onClose = vi.fn();
+  const view = render(<AvatarUploader username="tester" avatar={null} onSaveAvatar={save} onClose={onClose} />, { wrapper: createWrapper() });
+  await selectAvatar();
+  fireEvent.click(screen.getByRole("button", { name: "保存头像" }));
+  expect(await screen.findByText("正在保存…")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "取消" })).toBeDisabled();
+  expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  view.unmount();
+  await act(async () => finish());
+  expect(toast.success).not.toHaveBeenCalled();
+  expect(onClose).not.toHaveBeenCalled();
+});
+
+test("首帧双击保存只裁切上传绑定一次", async () => {
+  renderUploader();
+  await selectAvatar();
+  const button = screen.getByRole("button", { name: "保存头像" });
+  act(() => { button.click(); button.click(); });
+  await waitFor(() => expect(mockSetAvatar.mutateAsync).toHaveBeenCalledOnce());
+  expect(mockGetCroppedBlob).toHaveBeenCalledOnce();
+  expect(mockUploadImageFile).toHaveBeenCalledOnce();
 });
