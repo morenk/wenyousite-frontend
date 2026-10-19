@@ -4,7 +4,7 @@
 
 import dynamic from "next/dynamic";
 import { Loader2 } from "lucide-react";
-import type { MilkdownEditorProps } from "@/components/editor/milkdown-editor-core";
+import type { MilkdownEditorProps } from "@/components/editor/milkdown-editor-types";
 
 const DynamicMilkdownEditor = dynamic(
   () => import("@/components/editor/milkdown-editor-core").then((module) => module.MilkdownEditor),

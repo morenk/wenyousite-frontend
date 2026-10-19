@@ -22,12 +22,66 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   expect(meta.capabilities.textColorV1WriteEnabled).toBe(true);
   await openFreshThreadDraft(page);
   await page.getByLabel("主题帖标题").fill("文字颜色隔离验收 " + Date.now());
-  await page.locator(".ProseMirror").fill("正文颜色验收");
+  const initialEditor = page.locator(".ProseMirror");
+  await initialEditor.fill("正文颜色验收");
+  await initialEditor.press("Control+End");
+  await initialEditor.press("Control+b");
+  await page.getByRole("button", { name: "切换正文样式" }).click();
+  await page.getByRole("button", { name: "红色", exact: true }).click();
+  // 自定义取消和 Escape 不应清掉既有显式输入色，首字也必须保持。
+  await page.getByRole("button", { name: "切换正文样式" }).click();
+  await page.getByRole("button", { name: "自定义", exact: true }).click();
+  await page.getByRole("textbox", { name: "R", exact: true }).fill("0");
+  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.keyboard.insertText("红");
+  await expect(initialEditor.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText("红");
+  await expect(initialEditor.locator("strong")).toHaveText("红");
+  await page.getByRole("button", { name: "切换正文样式" }).click();
+  await page.getByRole("button", { name: "自定义", exact: true }).click();
+  await page.keyboard.press("Escape");
+  await page.keyboard.insertText("色😀");
+  await initialEditor.press("Enter");
+  await page.keyboard.insertText("次行");
+  await expect(initialEditor.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(["红色😀", "次行"]);
+  await initialEditor.press("Control+A");
+  await page.getByRole("button", { name: "切换正文样式" }).click();
+  await page.getByRole("button", { name: "自定义", exact: true }).click();
+  const beforeColor = await initialEditor.innerHTML();
+  // 实际指针拖动只改变取色盘预览，不能提前修改正文。
+  const channels = () => Promise.all(["R", "G", "B"].map((name) => page.getByRole("textbox", { name, exact: true }).inputValue()));
+  for (const name of ["饱和度与亮度", "色相"]) {
+    const beforeDrag = await channels();
+    const box = await page.getByRole("slider", { name, exact: true }).boundingBox();
+    expect(box).not.toBeNull();
+    await page.mouse.move(box!.x + box!.width * 0.2, box!.y + box!.height * 0.7);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width * 0.75, box!.y + box!.height * 0.25, { steps: 6 });
+    await page.mouse.up();
+    await expect.poll(channels).not.toEqual(beforeDrag);
+    expect(await initialEditor.innerHTML()).toBe(beforeColor);
+  }
+  await page.getByRole("textbox", { name: "R", exact: true }).fill("256");
+  await expect(page.getByRole("button", { name: "应用", exact: true })).toBeDisabled();
+  for (const [name, value] of [["R", "18"], ["G", "140"], ["B", "90"]]) {
+    await page.getByRole("textbox", { name, exact: true }).fill(value!);
+  }
+  expect(await initialEditor.innerHTML()).toBe(beforeColor);
+  await page.getByRole("button", { name: "应用", exact: true }).click();
+  await expect(initialEditor.locator('[data-wenyou-color-v1="#128C5A"]')).toHaveText(["正文颜色验收", "红色😀", "次行"]);
+  await initialEditor.press("Control+z");
+  await expect(initialEditor.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(["红色😀", "次行"]);
+  await initialEditor.press("Control+Shift+z");
+  await expect(initialEditor.locator('[data-wenyou-color-v1="#128C5A"]')).toHaveText(["正文颜色验收", "红色😀", "次行"]);
+
   await page.getByRole("button", { name: "发布", exact: true }).click();
   await page.waitForURL((url) => /^\/threads\/[^/]+$/.test(url.pathname) && url.pathname !== "/threads/create");
   const threadId = new URL(page.url()).pathname.split("/").at(-1)!;
   const thread: components["schemas"]["ThreadDetailResponseDto"] = (await request("GET", "/api/v1/threads/" + threadId)).body.data;
   const subthread = thread.subthreads.find((entry) => entry.id === thread.defaultSubthreadId)!;
+  expect(subthread.bodyPost!.content).toContain('data-wenyou-color-v1="#128C5A"');
+  expect(subthread.bodyPost!.content).toContain("正文颜色验收");
+  expect(subthread.bodyPost!.content).toContain("**红色😀**");
+  expect(subthread.bodyPost!.content).toContain("**次行**");
   const source = '<span data-wenyou-color-v1="#D14343">**中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> 普通文字';
   const bodyUpdate = await request("PUT", "/api/v1/subthreads/" + thread.defaultSubthreadId + "/body", {
     content: source, version: subthread.bodyPost!.version, textColorVersion: 1, markdownContractVersion: 6,

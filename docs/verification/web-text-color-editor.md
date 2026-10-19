@@ -1,0 +1,42 @@
+# Web 颜色编辑器交付验证
+
+## 范围与正式依赖
+
+任务分支为 `codex/20261020-web-color-editor`，基于 `dev` 的 `5e21b9d5060f22a1b723f4a4bb6b91efbf7b5482`，独立 Worktree 为 `/srv/wenyousite/.worktrees/web-color-editor`。正文样式菜单新增默认 T、五个预设、自定义和最多四个按账号保存在本机的最近色；自定义在同一弹层内切换为 RGB 取色盘。主题、子帖、楼层和回复正文显式开放，动态、私信与主题标题没有入口。
+
+Foundation 锁定用户批准发布的 [v7.6.0](https://github.com/morenk/wenyousite-foundation/releases/tag/v7.6.0)，peeled SHA `1bbd5a5476b50c51d2bba1f2a218f9408a852c4a`、Tag 对象 `9bc7b530103fa1b929f90c6d307263d7bfbfc46b`。不使用未发布 SHA；不修改既有文本颜色 v1、全局 Markdown 或角色提及协议。能力入口要求支持标志和新写开关同时为真；关闭新写仍保留既有正文颜色。
+
+Auto-review 偏好已传递，宿主实际为 `approval_policy=never`，没有可用设置入口，未宣称已启用 Auto-review。本任务不包含 Web 合并或部署。
+
+## 交互与自动检查
+
+选择文字改色支持跨段、混色、普通链接、行内代码、粗体、斜体、删除线和对齐，跳过原子元素；默认只清颜色。光标处选色使用显式输入色，保留到主动移动光标；输入、组合输入事务、换段与插入原子后继续输入保持颜色。富文粘贴保留来源颜色，后续输入继续使用显式色。整篇替换、撤销和重做结束显式输入模式。
+
+调色只更新预览；应用一次格式操作，取消及 Escape 恢复原选区、焦点和存储格式，首字不丢颜色或粗体。仅光标选色及取消不修改正文、不制造草稿脏状态。最近色按使用顺序去重，失败应用不写入最近色。
+
+`pnpm check` 完整通过：安全审计、lint、类型、契约、架构、Foundation/设计/字体、410 个测试文件和 5,383 项测试、部署前置测试、文档检查及生产构建。新增真实指针拖动 E2E 后再次通过该文件 lint，最终构建也已完成类型检查。早期检查发现核心组件超出行数门禁，通过独立公共 props 类型模块解决；随后发现设计文档尚引用旧 Foundation 版本，补齐正式版本链接。没有提高门禁上限或放宽断言。
+
+针对颜色的检查覆盖 RGB 整数边界、账号隔离/去重/四项上限、能力关闭、只读保源、AllSelection、单步撤销/重做、emoji/组合字符、composition 事务、真实站内富文粘贴及原子插入；浏览器旅程进一步覆盖发布、编辑、重开、复制和草稿，以及旧端降级读取/覆盖拒绝。
+
+## 实际画面
+
+离线预览使用实际 Milkdown，显式 `BACKEND_URL=http://127.0.0.1:9`，已核验该端口无监听；合成正文没有业务 API 写入。浅色 1280×850、深色 1024×768 和窄窗深色 768×600 均保留截图。用户验收原话为“合适，按这个方向继续”。
+
+画面及 `browser-validation.json`、`preview-receipt.json` 保存在 Worktree 外 `/srv/wenyousite/.artifacts/web-color-editor-20261020/preview/`，治理端同时保存在 `D:/codex-artifacts/web-color-editor-20261020/`。记录包含预览源码摘要、视口和 PNG SHA-256。预览路由已移出产品源码，任务专属开发进程及 SSH 转发已停止。
+
+本轮人工画面验收使用 Codex 内置 Chromium；不声称完成 Edge 专项或操作系统真实中文输入法验收。中文自动输入、组合输入事务测试与真实 OS IME 手动验收分开记录。
+
+## 隔离 E2E
+
+使用已提交 Backend runner `6e00c4031a8f970609eef8cbf6fdefe3e6b12126`。本轮每次运行在登录/写入前核验独立 PostgreSQL、Redis、上传目录、随机账号和实际前后端代理；邮件、推送与外部存储写入关闭。没有向公网开发环境写入业务数据。
+
+定向颜色旅程 `e2e_ce2232de572dece1dbb0dff8`：1/1 通过，`resourcesRemoved`、`cleanupVerified`、`cleanupEventVerified` 均为 true。该轮发生于最终公共类型拆分之前；最终代码由下列完整运行验证。
+
+| 完整运行 | 通过 / 跳过 / 失败 | 清理 |
+| --- | --- | --- |
+| `e2e_55d4cb47d395b9a04833e14a` | 260 / 13 / 0 | 三个清理字段均 true；根目录与资源端口已额外核验归零 |
+| `e2e_ef5e29aa2587af7f54b3a1e5` | 260 / 13 / 0 | 三个清理字段均 true；根目录与资源端口已额外核验归零 |
+
+每轮共 273 项、47 个文件。13 项跳过来自既有长讨论合成样本和负责人历史正文快照的可选入口（`E2E_DISCUSSION_FIXTURES` / `DISCUSSION_REPRO_FILE`），本次没有新增跳过或降低断言。文本颜色用例在完整套件中实际执行，含 SV 盘和色相条真实拖动、调色不改正文、应用/取消/撤销与发布保存。
+
+原始脱敏报告、门禁日志和 0600 资源身份证据持久保存于 `/srv/wenyousite/.artifacts/web-color-editor-20261020/` 的 `checks/` 与 `e2e/`；`delivery-receipt.json` 绑定最终提交 SHA、两轮结果和清理状态。连接凭据和测试私有配置不提交 Git。

@@ -153,7 +153,7 @@ Web 从 Backend 已提交 `2cdedbcdecee4991634cf4b256aa0f547b06d88c`（API5.38.0
 
 apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Color-Version: 1，保留既有角色提及头。supported 缺省为 false；支持时全部相关正文写入发送颜色版本，即使正文已去色。冻结请求保留“明确省略”状态，重试时不能因 meta 刷新自动改变请求能力。新写关闭不代表失去读取/保源能力；40016/40017 刷新 meta 并保留编辑输入。无能力读副本和覆盖拒绝由 Backend 实施，代理继续保留 Vary。
 
-发布顺序为兼容后端 → 可读保源消费者 → 显式批准开启新写。Web 锁定正式 Foundation v7.4.0；具体正文与复制规则见[正文协议](markdown-content-protocol.md#文本颜色-v1)，不删除现存协议或迁移历史数据。
+发布顺序为兼容后端 → 可读保源消费者 → 显式批准开启新写。Web 最初使用正式 Foundation v7.4.0 保源，取色入口升级至正式 v7.6.0；具体正文与复制规则见[正文协议](markdown-content-protocol.md#文本颜色-v1)，不删除现存协议或迁移历史数据。
 
 
 ## 主题收藏与订阅总数

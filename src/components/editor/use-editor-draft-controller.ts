@@ -283,6 +283,7 @@ export function useEditorDraftController({
     markdownContractVersion: activeMarkdownContractVersion,
     advertisedMarkdownContractVersion: markdownContractVersion,
     textColorSupported: activeTextColorSupported,
+    textColorWriteEnabled: textColorSupported && apiMeta?.capabilities?.textColorV1WriteEnabled === true,
     advertisedTextColorSupported: textColorSupported,
     restoredValue,
     restoredMediaDisplays,

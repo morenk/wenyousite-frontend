@@ -26,14 +26,19 @@ if (packageJson.dependencies?.["@wenyousite/foundation"] !== `github:morenk/weny
 if (manifest.version !== lock.version) failures.push("已安装 foundation 版本与锁文件不一致");
 if (manifest.contractSha256 !== lock.contractSha256) failures.push("已安装 foundation 契约哈希与锁文件不一致");
 if (!read("pnpm-lock.yaml").includes(lock.revision)) failures.push("pnpm-lock.yaml 未锁定指定 foundation revision");
-if (foundationContract.version !== "7.4.0" || foundationContract.schemaVersion !== 3) {
-  failures.push("Web 必须消费 Foundation v7.4.0 schema 3 契约");
+if (foundationContract.version !== "7.6.0" || foundationContract.schemaVersion !== 3) {
+  failures.push("Web 必须消费 Foundation v7.6.0 schema 3 契约");
 }
-if (foundationContract.experiences.editor.textColor?.web?.picker !== false
+if (foundationContract.experiences.editor.textColor?.web?.picker !== true
   || foundationContract.experiences.editor.textColor?.web?.existingContent !== "render-edit-preserve"
   || foundationContract.experiences.editor.textColor?.web?.clipboard !== "preserve-color"
-  || foundationContract.experiences.editor.textColor?.colorModel !== "opaque-rgb") {
-  failures.push("Foundation 缺少 Web 颜色保源且不开放取色的契约");
+  || foundationContract.experiences.editor.textColor?.colorModel !== "opaque-rgb"
+  || foundationContract.experiences.editor.textColor?.selection?.application !== "selected-text-or-caret"
+  || foundationContract.experiences.editor.textColor?.selection?.caret?.continuation !== "typing-and-newline"
+  || foundationContract.experiences.editor.textColor?.web?.parentCapability !== "heading"
+  || foundationContract.experiences.editor.textColor?.web?.mainToolbar !== "unchanged"
+  || foundationContract.experiences.editor.textColor?.web?.pickerPresentation !== "popover-content-replacement") {
+  failures.push("Foundation 缺少 Web RGB 取色与保源契约");
 }
 const radiusUsage = foundationContract.profiles?.radiusUsage;
 const webRadii = foundationContract.profiles?.web?.radii;

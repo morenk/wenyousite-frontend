@@ -1,0 +1,20 @@
+import { render, screen, waitFor, cleanup } from "@testing-library/react";
+import { afterEach, expect, test, vi } from "vitest";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { MilkdownEditor } from "../milkdown-editor-core";
+import type { MilkdownEditorHostProps } from "../milkdown-editor-host";
+const { meta } = vi.hoisted(() => ({ meta: vi.fn() }));
+vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => meta() }));
+vi.mock("@/lib/auth", () => ({ useAuth: () => ({ user: { id: "account" } }) }));
+vi.mock("@/api/hooks/use-save-draft", () => ({ useSaveDraft: () => ({ mutateAsync: vi.fn() }) }));
+vi.mock("../milkdown-editor-host", () => ({ MilkdownEditorHost: (props: MilkdownEditorHostProps) => <output aria-label="host">{JSON.stringify({ write: props.textColorWriteEnabled, version: props.textColorVersion, account: props.textColorAccountId })}</output> }));
+afterEach(cleanup);
+test.each([[true,true,true,true],[true,true,false,false],[true,false,true,false],[false,true,true,false],[false,false,false,false]])("scope=%s supported=%s write=%s => %s", async (scope, supported, write, expected) => {
+ meta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: supported, textColorV1WriteEnabled: write } } });
+ render(<QueryClientProvider client={new QueryClient()}><MilkdownEditor allowTextColor={scope} defaultValue="正文" /></QueryClientProvider>);
+ await waitFor(() => expect(screen.getByLabelText("host")).toBeInTheDocument());
+ const props = JSON.parse(screen.getByLabelText("host").textContent!);
+ expect(props.write).toBe(expected);
+ expect(props.version).toBe(supported ? 1 : undefined);
+ expect(props.account).toBe("account");
+});

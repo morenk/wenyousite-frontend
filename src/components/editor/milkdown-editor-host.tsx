@@ -6,6 +6,8 @@ import { useEditorAudioView } from "./editor-audio-view";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import { useEditorAudioUpload } from "./use-editor-audio-upload";
 import { useEditorToolbarPreference } from "./use-editor-toolbar-preference";
+import { applyEditorTextColor, clearEditorTextColorTyping, editorTextColorTyping, getEditorTextColor } from "./editor-text-color-command";
+import type { SelectionBookmark } from "@milkdown/kit/prose/state";
 import { EditorHeadingMenu } from "./editor-heading-menu";
 import { EDITOR_TOOLBAR_TOOLS, type EditorToolbarTool } from "@/lib/editor-toolbar-preference";
 import type { Ctx } from "@milkdown/kit/ctx";
@@ -248,6 +250,8 @@ export interface MilkdownEditorHostProps {
   mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
   textColorVersion?: 1;
+  textColorWriteEnabled?: boolean;
+  textColorAccountId?: string;
   editorRef?: Ref<EditorSubmissionHandle>;
   onValidityChange?: (valid: boolean) => void;
   onChange?: (value: string) => void;
@@ -276,6 +280,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   mentionIdentities,
   markdownContractVersion,
   textColorVersion,
+  textColorWriteEnabled = false,
+  textColorAccountId,
   editorRef,
   onValidityChange,
   onChange,
@@ -297,10 +303,32 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [customMore, setCustomMore] = useState<EditorToolbarTool[]>([]);
   const [stickerAnchor, setStickerAnchor] = useState<HTMLElement | null>(null);
   const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
+  const colorSelectionRef = useRef<SelectionBookmark | null>(null);
+  const [colorSelection, setColorSelection] = useState<{ enabled: boolean; color: string | null | undefined }>({ enabled: false, color: undefined });
   const capabilityReady = true;
   const alignmentEnabled = markdownContractVersion >= 4;
   const imageAlignmentEnabled = markdownContractVersion >= 5;
   const crepeRef = useRef<CrepeBuilder | null>(null);
+  useEffect(() => {
+    if (!loading && !textColorWriteEnabled) crepeRef.current?.editor.action((ctx) => clearEditorTextColorTyping(ctx.get(editorViewCtx)));
+  }, [loading, textColorWriteEnabled]);
+  const captureColorSelection = useCallback(() => {
+    crepeRef.current?.editor.action((ctx) => {
+      const state = ctx.get(editorViewCtx).state;
+      colorSelectionRef.current = state.selection.getBookmark();
+      setColorSelection(getEditorTextColor(state));
+    });
+  }, []);
+  const restoreColorSelection = () => {
+    crepeRef.current?.editor.action((ctx) => {
+      const view = ctx.get(editorViewCtx);
+      if (colorSelectionRef.current) {
+        const selection = colorSelectionRef.current.resolve(view.state.doc);
+        if (!selection.eq(view.state.selection)) view.dispatch(view.state.tr.setSelection(selection));
+      }
+      view.focus();
+    });
+  };
   const audioView = useEditorAudioView(mediaAudios, audioUserId, audioDraftKey);
   const audioUpload = useEditorAudioUpload(crepeRef, audioUserId, audioDraftKey, loading, audioView.completed);
   const audioActionRef = useRef(audioUpload.open);
@@ -550,7 +578,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       setMoreMenuAnchor(null);
       if (trigger) {
         if (capability === "sticker") setStickerAnchor(trigger);
-        else setHeadingMenuAnchor(trigger);
+        else { captureColorSelection(); setHeadingMenuAnchor(trigger); }
       }
       return;
     }
@@ -570,7 +598,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       return;
     }
     runMoreCommand(capability);
-  }, [handleOpenDice, onOpenDrafts, runMoreCommand]);
+  }, [captureColorSelection, handleOpenDice, onOpenDrafts, runMoreCommand]);
 
   const handleMoreAlignmentSelect = useCallback((alignment: Exclude<WenyouTextAlignment, "left">) => {
     crepeRef.current?.editor.action((ctx) =>
@@ -873,6 +901,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         .use(editorMentionCaretPlugin)
         .use(editorTextColorSchema)
         .use(editorTextColorAtomicPolicy)
+        .use(editorTextColorTyping)
         .use(editorMarkdownPastePlugin)
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
@@ -948,6 +977,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       // Crepe 在 pointerdown 中展开 DOM 内菜单；统一交给现有锚点弹层，正文选区仍由编辑器保存。
       event.preventDefault();
       event.stopPropagation();
+      captureColorSelection();
       if (event.type !== "pointerdown") setHeadingMenuAnchor((current) => current === trigger ? null : trigger);
     };
     const onHeadingKeyDown = (event: KeyboardEvent) => {
@@ -1043,7 +1073,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       window.removeEventListener("resize", scheduleToolbarLayout);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
-  }, [alignmentEnabled, ariaLabel, audioUpload.available, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);
+  }, [alignmentEnabled, ariaLabel, audioUpload.available, captureColorSelection, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);
 
   useEffect(() => {
     if (hostRef.current) {
@@ -1098,7 +1128,24 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           onSelect={handleMentionSelect}
         />
       </div>
-      <EditorHeadingMenu anchor={headingMenuAnchor} onClose={() => setHeadingMenuAnchor(null)} onSelect={(level) => {
+      <EditorHeadingMenu
+        key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled)}
+        anchor={headingMenuAnchor}
+        colorControls={textColorWriteEnabled && textColorVersion === 1 ? {
+          ...colorSelection,
+          enabled: colorSelection.enabled && !disabled && !composingRef.current,
+          accountId: textColorAccountId,
+          onApply: (color) => {
+            if (!textColorWriteEnabled || disabled || composingRef.current) return false;
+            const applied = crepeRef.current?.editor.action((ctx) =>
+              applyEditorTextColor(ctx.get(editorViewCtx), color, colorSelectionRef.current ?? undefined)) ?? false;
+            setHeadingMenuAnchor(null);
+            return applied;
+          },
+          onCancel: () => { restoreColorSelection(); setHeadingMenuAnchor(null); },
+        } : undefined}
+        onClose={() => setHeadingMenuAnchor(null)}
+        onSelect={(level) => {
         crepeRef.current?.editor.action((ctx) => {
           if (!setSelectedEditorHeading(ctx, level || null)) ctx.get(commandsCtx).call(wrapInHeadingCommand.key, level);
           ctx.get(editorViewCtx).focus();
