@@ -4,7 +4,7 @@ import { parseInternalReference } from "@/lib/internal-reference";
 import { $prose, $markSchema } from "@milkdown/kit/utils";
 import { normalizeTextColor, TEXT_COLOR_ATTRIBUTE, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 
-/** Web 只保源，不增加取色入口；DOM 只接受受控属性，不从 style 读取颜色。 */
+/** 颜色标记共用保源与取色；DOM 只接受受控属性，不从 style 读取颜色。 */
 export const editorTextColorSchema = $markSchema(TEXT_COLOR_MARK, () => ({
   attrs: { color: { default: null } },
   inclusive: false,

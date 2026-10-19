@@ -2,11 +2,9 @@
 
 "use client";
 
-import type { MentionIdentity } from "@/lib/thread-identity";
+import type { MilkdownEditorProps } from "./milkdown-editor-types";
 
-import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
-import type { MarkdownMediaDisplay } from "@/lib/media-display";
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState, type Ref } from "react";
+import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { toast } from "sonner";
 import { EDITOR_COMPOSITION_MESSAGE, EDITOR_SYNC_ERROR, type EditorSubmissionHandle } from "@/components/editor/use-editor-submission";
@@ -24,37 +22,11 @@ const MAX_CHARS = 10000;
 const EMPTY_DICE_ROLLS: InlineDiceRoll[] = [];
 const AUTO_SAVE_LABELS = { idle: "等待编辑", saving: "保存中", saved: "已保存", error: "保存失败" } as const;
 
-export interface MilkdownEditorProps {
-  defaultValue?: string;
-  audioDraftKey?: string;
-  mediaAudios?: readonly MarkdownMediaAudio[];
-  mediaDisplays?: readonly MarkdownMediaDisplay[];
-  mentionIdentities?: readonly MentionIdentity[];
-  editorRef?: Ref<EditorSubmissionHandle>;
-  onValidityChange?: (valid: boolean) => void;
-  onChange?: (value: string) => void;
-  /** 每次文档变更即时通知；onChange 为延后的已验证 Markdown 快照。 */
-  onDocumentChange?: () => void;
-  onSyncErrorChange?: (hasError: boolean) => void;
-  onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
-  placeholder?: string;
-  disabled?: boolean;
-  /** 内容区最大高度（px），超过后内容区出现滚动条；默认 400 */
-  maxHeight?: number;
-  /** 内容区最小高度（px），保证空白区可点击落位；默认 280 */
-  minHeight?: number;
-  /** 当前主题帖 ID；提供后启用受权限约束的 @候选菜单。 */
-  threadId?: string;
-  /** 已由服务端结算的结果；按 nodeId 映射到正文内联节点。 */
-  diceRolls?: InlineDiceRoll[];
-  /** 编辑器就绪后聚焦正文；仅用于明确的创建后续写流程。 */
-  autoFocus?: boolean;
-  /** contenteditable 正文输入区的可访问名称。 */
-  ariaLabel?: string;
-}
+export type { MilkdownEditorProps } from "./milkdown-editor-types";
 
 function EditorCore({
   defaultValue,
+  allowTextColor = false,
   audioDraftKey,
   mediaAudios,
   mediaDisplays,
@@ -91,6 +63,7 @@ function EditorCore({
     markdownContractVersion,
     advertisedMarkdownContractVersion,
     textColorSupported,
+    textColorWriteEnabled,
     advertisedTextColorSupported,
     user,
     restoredValue,
@@ -191,6 +164,8 @@ function EditorCore({
           mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
           textColorVersion={textColorSupported ? 1 : undefined}
+          textColorWriteEnabled={allowTextColor && textColorWriteEnabled}
+          textColorAccountId={user?.id}
           editorRef={hostRef}
           onValidityChange={handleValidity}
           onChange={handleChange}

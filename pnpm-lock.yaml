@@ -59,8 +59,8 @@ importers:
         specifier: ^3.14.9
         version: 3.14.9(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
       '@wenyousite/foundation':
-        specifier: github:morenk/wenyousite-foundation#v7.4.0
-        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d
+        specifier: github:morenk/wenyousite-foundation#v7.6.0
+        version: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/1bbd5a5476b50c51d2bba1f2a218f9408a852c4a
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -1902,9 +1902,9 @@ packages:
   '@vue/shared@3.5.42':
     resolution: {integrity: sha512-2rPxex1jQf4jvl9MOHl6YaXCPcrNqz/FstMOEh3QWY+/OME9nQTvl9WYeCwhW7AFjaR0SnngZGlp/wkR6rkI6g==}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d':
-    resolution: {gitHosted: true, integrity: sha512-3dttJz1211/tevW7k49CjBUAORA9xXmG+KdQR4252tnD6M2cP1KNxpoCFHH44gJ2bPVMjnV4xoSgrI/Nd6hbfw==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d}
-    version: 7.4.0
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/1bbd5a5476b50c51d2bba1f2a218f9408a852c4a':
+    resolution: {gitHosted: true, integrity: sha512-dZxWHV3Pdo9VYcoF4FPzTXwoNRPrA+7nhptnRxZaPmExHvxGZf1c1GuAk3lmHezOtNGPl1pUUubXmYr2nyrE2w==, tarball: https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/1bbd5a5476b50c51d2bba1f2a218f9408a852c4a}
+    version: 7.6.0
 
   acorn-jsx@5.3.2:
     resolution: {integrity: sha512-rq9s+JNhf0IChjtDXxllJ7g41oZk5SlXtp0LHwyA5cejwn7vKmKp4pPri6YEePv2PU65sAsegbXtIinmDFDXgQ==}
@@ -6195,7 +6195,7 @@ snapshots:
 
   '@vue/shared@3.5.42': {}
 
-  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/a03b5c24ea7dcdaa2ba07c962f58434bdb40965d':
+  '@wenyousite/foundation@https://codeload.github.com/morenk/wenyousite-foundation/tar.gz/1bbd5a5476b50c51d2bba1f2a218f9408a852c4a':
     dependencies:
       lucide-static: 1.28.0
 

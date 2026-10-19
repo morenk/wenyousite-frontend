@@ -340,3 +340,22 @@ test("颜色能力撤回时保留原文并取消待发自动草稿", async () =>
   expect(result.current.textColorSupported).toBe(false);
   expect(mockSaveDraft).not.toHaveBeenCalled();
 });
+
+test.each([[true,true,true],[true,false,false],[false,true,false],[false,false,false],[undefined,undefined,false]])("颜色入口支持=%s，新写=%s时开放=%s", (supported, write, expected) => {
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: supported, textColorV1WriteEnabled: write } } });
+  const { Wrapper } = createQueryWrapper();
+  const { result } = renderHook(() => useEditorDraftController({ defaultValue: "正文" }), { wrapper: Wrapper });
+  expect(result.current.textColorWriteEnabled).toBe(expected);
+});
+test("新写开关变化立即关闭入口而保留草稿正文", () => {
+  const content = '<span data-wenyou-color-v1="#D14343">彩色正文</span>';
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: true, textColorV1WriteEnabled: true } } });
+  const { Wrapper } = createQueryWrapper();
+  const { result, rerender } = renderHook(() => useEditorDraftController({ defaultValue: content }), { wrapper: Wrapper });
+  expect(result.current.textColorWriteEnabled).toBe(true);
+  mockMeta.mockReturnValue({ data: { markdownContractVersion: 5, capabilities: { textColorV1Supported: true, textColorV1WriteEnabled: false } } });
+  rerender();
+  expect(result.current.textColorWriteEnabled).toBe(false);
+  expect(result.current.currentContent).toBe(content);
+  expect(result.current.textColorSupported).toBe(true);
+});
