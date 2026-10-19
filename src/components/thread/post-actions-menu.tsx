@@ -2,10 +2,11 @@
 
 "use client";
 
-import { Menu } from "@base-ui/react/menu";
+import { Menu } from "@/components/ui/menu";
 import { Copy, Ellipsis, Link2, Pencil, ShieldAlert, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
+import { copyToolText } from "@/lib/tools/clipboard";
 import {
   AdminContentModerationDialog,
   type AdminModerationTarget,
@@ -16,7 +17,6 @@ import {
   createReaderClipboardPayload,
   writeSiteClipboardPayload,
 } from "@/lib/site-clipboard";
-import { cn } from "@/lib/utils";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
 
 interface PostActionsMenuProps {
@@ -30,16 +30,15 @@ interface PostActionsMenuProps {
   onPin?: () => void;
   pinned?: boolean;
   pinPending?: boolean;
+  deletePending?: boolean;
   moderationTarget?: AdminModerationTarget;
   onModerated?: () => void;
 }
 
-const menuItemClassName =
-  "flex min-h-9 w-full cursor-default items-center gap-2 rounded-[var(--radius-control)] px-3 py-2 text-sm outline-none select-none data-highlighted:bg-accent data-highlighted:text-accent-foreground focus:bg-accent focus:text-accent-foreground";
 
 async function copyToClipboard(value: string, successMessage: string) {
   try {
-    await navigator.clipboard.writeText(value);
+    if (!await copyToolText(value)) throw new Error("copy failed");
     toast.success(successMessage);
   } catch {
     toast.error("复制失败，请稍后重试");
@@ -55,7 +54,7 @@ async function copyContentToClipboard(elementId: string | undefined, fallback: s
     if (content) {
       await writeSiteClipboardPayload(createReaderClipboardPayload(content));
     } else {
-      await navigator.clipboard.writeText(fallback);
+      if (!await copyToolText(fallback)) throw new Error("copy failed");
     }
     toast.success("内容已复制");
   } catch {
@@ -81,6 +80,7 @@ export function PostActionsMenu({
   onPin,
   pinned = false,
   pinPending = false,
+  deletePending = false,
   moderationTarget,
   onModerated,
 }: PostActionsMenuProps) {
@@ -93,34 +93,30 @@ export function PostActionsMenu({
   return (
     <>
       <Menu.Root>
-        <Menu.Trigger
+        <Menu.Trigger tooltip={triggerLabel}
           render={
             <Button
               type="button"
               variant="ghost"
               size="icon-sm"
               aria-label={triggerLabel}
-              title={triggerLabel}
+
             />
           }
         >
           <Ellipsis className="size-4" aria-hidden="true" />
         </Menu.Trigger>
-        <Menu.Portal>
-          <Menu.Positioner side="bottom" align="end" sideOffset={4} className="z-[var(--layer-popup)]">
-            <Menu.Popup
+        <Menu.Content side="bottom" align="end" sideOffset={4}
               aria-label={menuLabel}
-              className="w-52 origin-(--transform-origin) rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95"
+              className="w-52"
             >
             <Menu.Item
-              className={menuItemClassName}
               onClick={() => void copyContentToClipboard(copyContentId, copyText())}
             >
               <Copy className="size-4" aria-hidden="true" />
               复制内容
             </Menu.Item>
             <Menu.Item
-              className={menuItemClassName}
               onClick={() => void copyToClipboard(
                 `${window.location.origin}${copyHref}`,
                 "链接已复制",
@@ -130,14 +126,13 @@ export function PostActionsMenu({
               复制链接
             </Menu.Item>
             {onEdit ? (
-              <Menu.Item className={menuItemClassName} onClick={onEdit}>
+              <Menu.Item onClick={onEdit}>
                 <Pencil className="size-4" aria-hidden="true" />
                 编辑
               </Menu.Item>
             ) : null}
             {onPin ? (
               <Menu.Item
-                className={menuItemClassName}
                 disabled={pinPending}
                 onClick={onPin}
               >
@@ -147,12 +142,9 @@ export function PostActionsMenu({
             ) : null}
             {canModerate ? (
               <>
-                <Menu.Separator className="mx-2 my-1 h-px bg-border" />
+                <Menu.Separator />
                 <Menu.Item
-                  className={cn(
-                    menuItemClassName,
-                    "text-destructive data-highlighted:bg-destructive-soft data-highlighted:text-destructive focus:bg-destructive-soft focus:text-destructive",
-                  )}
+                  destructive
                   onClick={() => setModerationOpen(true)}
                 >
                   <ShieldAlert className="size-4" aria-hidden="true" />
@@ -162,12 +154,10 @@ export function PostActionsMenu({
             ) : null}
             {onDelete ? (
               <>
-                {!canModerate ? <Menu.Separator className="mx-2 my-1 h-px bg-border" /> : null}
+                {!canModerate ? <Menu.Separator /> : null}
                 <Menu.Item
-                  className={cn(
-                    menuItemClassName,
-                    "text-destructive data-highlighted:bg-destructive-soft data-highlighted:text-destructive focus:bg-destructive-soft focus:text-destructive",
-                  )}
+                  destructive
+                  disabled={deletePending}
                   onClick={onDelete}
                 >
                   <Trash2 className="size-4" aria-hidden="true" />
@@ -175,9 +165,7 @@ export function PostActionsMenu({
                 </Menu.Item>
               </>
             ) : null}
-            </Menu.Popup>
-          </Menu.Positioner>
-        </Menu.Portal>
+            </Menu.Content>
       </Menu.Root>
       {canModerate && moderationTarget ? (
         <AdminContentModerationDialog

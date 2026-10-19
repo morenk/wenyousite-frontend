@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { COLLECTION_WEB_PROFILE } from "@wenyousite/foundation/collections";
+import { isListAccessError } from "@/lib/list-query-state";
 import { Loader2 } from "lucide-react";
 import type { MomentCard as MomentCardData } from "@/api/hooks/use-moments";
 import { MomentCard } from "@/components/moment/moment-card";
@@ -108,19 +109,19 @@ export function MomentMasonry({
   const virtualItems = virtualizer.getVirtualItems();
 
   useEffect(() => {
-    if (!onLoadMore || !hasNextPage || isFetchingNextPage) return;
+    if (error || !onLoadMore || !hasNextPage || isFetchingNextPage) return;
     if (virtualItems.some((item) => item.index >= uniqueMoments.length - layout.lanes * 2)) {
       onLoadMore();
     }
-  }, [hasNextPage, isFetchingNextPage, layout.lanes, onLoadMore, uniqueMoments.length, virtualItems]);
+  }, [error, hasNextPage, isFetchingNextPage, layout.lanes, onLoadMore, uniqueMoments.length, virtualItems]);
 
   const columnWidth = `calc((100% - ${(layout.lanes - 1) * GAP}px) / ${layout.lanes})`;
   return (
     <div ref={containerRef} className="w-full">
       {isLoading ? (
         <MomentMasonrySkeleton lanes={layout.lanes} />
-      ) : error ? (
-        <LoadError title="动态加载失败" onRetry={onRetry ?? (() => undefined)} className="py-20" />
+      ) : error && (uniqueMoments.length === 0 || isListAccessError(error)) ? (
+        <LoadError title="动态加载失败" onRetry={onRetry} className="py-20" />
       ) : uniqueMoments.length === 0 ? (
         <EmptyState title={emptyTitle} description={emptyDescription} />
       ) : (
@@ -154,7 +155,7 @@ export function MomentMasonry({
               );
             })}
           </div>
-          {showPaginationStatus ? (
+          {error ? <LoadError title="动态加载失败" onRetry={onRetry} className="py-6" /> : showPaginationStatus ? (
             <div className="flex min-h-14 items-center justify-center text-sm text-muted-foreground">
               {isFetchingNextPage ? (
                 <span className="inline-flex items-center gap-2" role="status">

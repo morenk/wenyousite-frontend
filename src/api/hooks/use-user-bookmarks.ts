@@ -1,6 +1,7 @@
 /** 指定用户的收藏列表 API hook（GET /users/:id/bookmarks，受 showBookmarks 控制） */
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { emptyCursorPage, getNextCursor } from "@/api/cursor-page";
 import { apiClient } from "@/api/client";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
@@ -29,20 +30,12 @@ export function useUserBookmarks(userId: string | undefined) {
       if (error) throw error;
 
       if (!data?.data) {
-        return {
-          code: 0,
-          message: "ok",
-          data: [],
-          meta: { cursor: null, hasMore: false },
-        } satisfies UserBookmarksResponse;
+        return emptyCursorPage<UserBookmarksResponse["data"][number]>() satisfies UserBookmarksResponse;
       }
       return data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => {
-      if (!lastPage?.meta?.hasMore) return undefined;
-      return lastPage.meta.cursor ?? undefined;
-    },
+    getNextPageParam: getNextCursor,
     enabled: !!userId,
     staleTime: 60 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,
@@ -64,18 +57,12 @@ export function useUserMomentBookmarks(userId: string | undefined, enabled = tru
       });
       if (error) throw error;
       if (!data?.data) {
-        return {
-          code: 0,
-          message: "ok",
-          data: [],
-          meta: { cursor: null, hasMore: false },
-        } satisfies UserMomentBookmarksResponse;
+        return emptyCursorPage<UserMomentBookmarksResponse["data"][number]>() satisfies UserMomentBookmarksResponse;
       }
       return data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) =>
-      lastPage.meta.hasMore ? lastPage.meta.cursor ?? undefined : undefined,
+    getNextPageParam: getNextCursor,
     enabled: enabled && !!userId,
     staleTime: 60 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,

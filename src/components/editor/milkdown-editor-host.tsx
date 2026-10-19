@@ -95,7 +95,6 @@ import {
   fitDefaultMilkdownToolbar,
   fitCustomMilkdownToolbar,
   handleCustomToolbarKeyDown,
-  positionMilkdownHeadingDropdowns,
   syncMilkdownHeadingOptions,
   syncMilkdownMoreMenuState,
   syncMilkdownToolbarSemantics,
@@ -426,6 +425,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       uploadAbortRef.current?.abort();
       const controller = new AbortController();
       uploadAbortRef.current = controller;
+      const isCurrent = () => uploadAbortRef.current === controller && !controller.signal.aborted;
       setUploadProgress({
         stage: "preparing",
         loadedBytes: null,
@@ -433,13 +433,15 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         percent: null,
       });
       try {
-        return await onUploadImage!(file, {
+        const url = await onUploadImage!(file, {
           signal: controller.signal,
-          onProgress: setUploadProgress,
-          onCompleted: mediaDisplay.completed,
+          onProgress: (progress) => { if (isCurrent()) setUploadProgress(progress); },
+          onCompleted: (uploaded) => { if (isCurrent()) mediaDisplay.completed(uploaded); },
         });
+        if (!isCurrent()) throw new DOMException("上传已取消", "AbortError");
+        return url;
       } catch (error) {
-        if (!(error instanceof DOMException && error.name === "AbortError")) {
+        if (isCurrent() && !(error instanceof DOMException && error.name === "AbortError")) {
           toast.error(
             getApiErrorMessage(error, "上传失败，请稍后重试"),
           );
@@ -932,16 +934,25 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useEffect(() => {
     const host = hostRef.current;
     if (!host) return;
-    let positionFrame: number | null = null;
     let layoutFrame: number | null = null;
     let resizeObserver: ResizeObserver | null = null;
 
-    const scheduleDropdownPosition = () => {
-      if (positionFrame !== null) return;
-      positionFrame = window.requestAnimationFrame(() => {
-        positionFrame = null;
-        positionMilkdownHeadingDropdowns(host);
-      });
+    const openHeadingMenu = (event: Event) => {
+      const target = event.target instanceof Element ? event.target : null;
+      const trigger = target?.closest<HTMLButtonElement>(".top-bar-heading-button");
+      if (!trigger || disabled) return;
+      if (event instanceof PointerEvent && event.button !== 0) {
+        event.stopPropagation();
+        return;
+      }
+      // Crepe 在 pointerdown 中展开 DOM 内菜单；统一交给现有锚点弹层，正文选区仍由编辑器保存。
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.type !== "pointerdown") setHeadingMenuAnchor((current) => current === trigger ? null : trigger);
+    };
+    const onHeadingKeyDown = (event: KeyboardEvent) => {
+      if (!["Enter", " ", "ArrowDown"].includes(event.key)) return;
+      openHeadingMenu(event);
     };
     const scheduleToolbarLayout = () => {
       if (layoutFrame !== null) return;
@@ -974,7 +985,6 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (toolbarPreference) host.querySelectorAll<HTMLButtonElement>(".top-bar-heading-option:not([hidden])").forEach((button) => { button.tabIndex = 0; });
       syncMilkdownToolbarVisibility(host, disabled ?? false);
       syncMilkdownToolbarSemantics(host);
-      scheduleDropdownPosition();
       scheduleToolbarLayout();
     };
 
@@ -987,11 +997,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       if (!onlyContentChanged) syncTopBar();
     });
     observer.observe(host, { childList: true, subtree: true });
+    host.addEventListener("pointerdown", openHeadingMenu, true);
+    host.addEventListener("click", openHeadingMenu, true);
+    host.addEventListener("keydown", onHeadingKeyDown, true);
     host.addEventListener("keydown", handleCustomToolbarKeyDown);
     syncEditorSemantics();
     window.addEventListener("resize", scheduleToolbarLayout);
-    window.addEventListener("resize", scheduleDropdownPosition);
-    window.addEventListener("scroll", scheduleDropdownPosition, true);
 
     const topBar = host.querySelector<HTMLElement>(".milkdown-top-bar");
     if (topBar) {
@@ -1024,12 +1035,12 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     return () => {
       clearInterval(interval);
       observer.disconnect();
+      host.removeEventListener("pointerdown", openHeadingMenu, true);
+      host.removeEventListener("click", openHeadingMenu, true);
+      host.removeEventListener("keydown", onHeadingKeyDown, true);
       host.removeEventListener("keydown", handleCustomToolbarKeyDown);
       resizeObserver?.disconnect();
       window.removeEventListener("resize", scheduleToolbarLayout);
-      window.removeEventListener("resize", scheduleDropdownPosition);
-      window.removeEventListener("scroll", scheduleDropdownPosition, true);
-      if (positionFrame !== null) window.cancelAnimationFrame(positionFrame);
       if (layoutFrame !== null) window.cancelAnimationFrame(layoutFrame);
     };
   }, [alignmentEnabled, ariaLabel, audioUpload.available, currentAlignment, disabled, onOpenDrafts, onUploadImage, toolbarPreference]);

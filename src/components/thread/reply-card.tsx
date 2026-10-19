@@ -3,10 +3,8 @@
 "use client";
 
 import Link from "next/link";
-import { toast } from "sonner";
 import { useDeletePost } from "@/api/hooks/use-delete-post";
 import type { ReplyData, ReplyDisplayData } from "@/api/hooks/use-floors";
-import { getApiErrorMessage } from "@/api/errors";
 import { ReplyActionButton } from "@/components/shared/reply-action-button";
 import { ThreadPostAuthor } from "@/components/thread/thread-post-author";
 import { threadAppearance } from "@/lib/thread-identity";
@@ -20,7 +18,7 @@ import {
 import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 import { useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { useThreadPermissions } from "@/components/thread/thread-permissions-context";
-import { useConfirm } from "@/components/ui/confirm-provider";
+import { useConfirmedDelete } from "@/hooks/use-confirmed-delete";
 import { useAuth } from "@/lib/auth";
 import { getPostHref } from "@/lib/post-navigation";
 import { cn } from "@/lib/utils";
@@ -47,7 +45,7 @@ export function ReplyCard({
 }: ReplyCardProps) {
   const { user } = useAuth();
   const deletePost = useDeletePost();
-  const confirmAction = useConfirm();
+  const deletion = useConfirmedDelete();
   const { session, open } = useThreadComposerSession();
   const { isManager } = useThreadPermissions();
   const isDiscussion = variant === "discussion";
@@ -95,20 +93,11 @@ export function ReplyCard({
     });
   };
 
-  const handleDelete = async () => {
-    if (!(await confirmAction({
-      title: "删除回复",
-      description: "确定要删除这条回复吗？删除后无法恢复。",
-      confirmLabel: "删除",
-      destructive: true,
-    }))) return;
-    try {
-      await deletePost.mutateAsync(reply.id);
-      toast.success("回复已删除");
-    } catch (error: unknown) {
-      toast.error(getApiErrorMessage(error, "删除失败，请稍后重试"));
-    }
-  };
+  const handleDelete = () => deletion.run({
+    title: "删除回复",
+    description: "确定要删除这条回复吗？删除后无法恢复。",
+    successMessage: "回复已删除",
+  }, () => deletePost.mutateAsync(reply.id));
 
   return (
     <div
@@ -154,6 +143,7 @@ export function ReplyCard({
             copyContentId={`reply-content-${reply.id}`}
             copyHref={replyHref}
             onEdit={isAuthor ? handleStartEdit : undefined}
+            deletePending={deletion.pending}
             onDelete={canDelete ? () => void handleDelete() : undefined}
             moderationTarget={{ type: "post", id: reply.id, label: "回复" }}
           />

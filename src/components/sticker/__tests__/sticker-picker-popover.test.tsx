@@ -300,4 +300,34 @@ describe("StickerPickerPopover", () => {
     expect(importMedia.mutateAsync).not.toHaveBeenCalled();
   });
 
+
+  test("首帧重选不会开启第二批，关闭后迟到结果不导入或刷新", async () => {
+    let finish!: (value: { mediaId: string }) => void;
+    mockUpload.mockImplementationOnce(() => new Promise((resolve) => { finish = resolve; }));
+    const user = userEvent.setup();
+    const view = render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const input = document.querySelector('input[type="file"]')!;
+    const file = new File(["picture"], "picture.png", { type: "image/png" });
+    act(() => { fireEvent.change(input, { target: { files: [file] } }); fireEvent.change(input, { target: { files: [file] } }); });
+    await waitFor(() => expect(mockUpload).toHaveBeenCalledOnce());
+    view.unmount();
+    await act(async () => finish({ mediaId: "late" }));
+    expect(importMedia.mutateAsync).not.toHaveBeenCalled();
+    expect(refresh).not.toHaveBeenCalled();
+  });
+
+  test("无效文件也立即重置input，允许再次选择同一文件", async () => {
+    mockValidate.mockReturnValue("图片过大");
+    const user = userEvent.setup();
+    render(<StickerPickerPopover onSelect={vi.fn()} />);
+    await user.click(screen.getByRole("button", { name: "表情" }));
+    const input = document.querySelector<HTMLInputElement>('input[type="file"]')!;
+    const file = new File(["picture"], "picture.png", { type: "image/png" });
+    Object.defineProperty(input, "value", { writable: true, value: "C:/fakepath/picture.png" });
+    fireEvent.change(input, { target: { files: [file] } });
+    expect(input.value).toBe("");
+    expect(mockUpload).not.toHaveBeenCalled();
+  });
+
 });

@@ -2,6 +2,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from "@testing-libra
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
 
 const {
+  mockConfirm,
   mockUseAuth,
   mockCreate,
   mockDelete,
@@ -22,6 +23,7 @@ const {
   mockToastDismiss,
   mockRemoveQueries,
 } = vi.hoisted(() => ({
+  mockConfirm: vi.fn(),
   mockUseAuth: vi.fn(),
   mockCreate: vi.fn(),
   mockDelete: vi.fn(),
@@ -84,6 +86,7 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/moments/moment-1",
   useSearchParams: () => mockSearchParams(),
 }));
+vi.mock("@/components/ui/confirm-provider", () => ({ useConfirm: () => mockConfirm }));
 vi.mock("@/lib/auth", () => ({ useAuth: () => mockUseAuth() }));
 vi.mock("@/lib/moment-image", () => ({
   validateMomentImageFile: (...args: unknown[]) => mockValidate(...args),
@@ -153,6 +156,7 @@ function clipboardData(text: string) {
 
 describe("MomentComments", () => {
   beforeEach(() => {
+    mockConfirm.mockResolvedValue(true);
     vi.clearAllMocks();
     vi.stubGlobal("ResizeObserver", class {
       observe() {}
@@ -989,4 +993,14 @@ describe("MomentComments", () => {
     await waitFor(() => expect(mockToastError).toHaveBeenCalled());
     expect(screen.getByText("主评论内容")).toBeInTheDocument();
   });
+
+ test("删除评论取消确认不发请求", async () => {
+   mockConfirm.mockResolvedValueOnce(false);
+   render(<MomentComments momentId="moment-1" />);
+   fireEvent.click(screen.getByRole("button", { name: "删除" }));
+   await waitFor(() => expect(mockConfirm).toHaveBeenCalled());
+   expect(mockDelete).not.toHaveBeenCalled();
+   expect(screen.getByText("主评论内容")).toBeInTheDocument();
+ });
+
 });

@@ -386,3 +386,124 @@ test("头像与背景在同一弹窗内裁剪，取消草稿后返回选择入�
     await expect(entry).toBeFocused();
   }
 });
+
+for (const navigationApi of [true, false]) {
+  test(`公共离页保护 ${navigationApi ? "浏览器默认 API" : "禁用 Navigation API"}：多步、锚点、前进与再次编辑`, async ({ page }) => {
+    if (!navigationApi) await page.addInitScript(() => Object.defineProperty(window, "navigation", { value: undefined, configurable: true }));
+    await mockSettings(page);
+    await page.goto("/me/password");
+    await page.getByRole("link", { name: "返回设置" }).click();
+    await expect(page).toHaveURL(/\/me#security$/);
+    // 等 Next 的 HistoryUpdater 提交该 URL，再插入原生锚点；否则路由提交可能覆盖锚点。
+    await page.evaluate(() => new Promise<void>((resolve) => {
+      const replace = history.replaceState;
+      history.replaceState = function (state, title, url) {
+        replace.call(history, state, title, url);
+        if (state?.__NA && url && new URL(String(url), location.href).search === "?checkpoint=1") {
+          history.replaceState = replace;
+          resolve();
+        }
+      };
+      history.pushState(null, "", "/me?checkpoint=1");
+    }));
+    await page.evaluate(() => { location.hash = "draft-anchor"; });
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    await page.evaluate(() => history.pushState(null, "", "/me?checkpoint=2"));
+    const originalLength = await page.evaluate(() => history.length);
+    await page.getByRole("button", { name: "个人简介", exact: true }).click();
+    await page.getByRole("textbox", { name: "个人简介" }).fill("导航保护草稿");
+    const confirmation = page.getByRole("alertdialog", { name: "放弃未保存修改" });
+    await page.evaluate(() => history.go(-3));
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "继续编辑" }).click();
+    await expect(page).toHaveURL(/checkpoint=2$/);
+    await expect(page.getByRole("textbox", { name: "个人简介" })).toHaveValue("导航保护草稿");
+    expect(await page.evaluate(() => history.length)).toBe(originalLength);
+    await page.evaluate(() => history.back());
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    // 接受导航后重新编辑，新的未保存内容仍受保护。
+    if (!(await page.getByRole("textbox", { name: "个人简介" }).isVisible())) {
+      await page.getByRole("button", { name: "个人简介", exact: true }).click();
+    }
+    await page.getByRole("textbox", { name: "个人简介" }).fill("第二次修改");
+    await page.evaluate(() => history.forward());
+    await expect(confirmation).toBeVisible();
+    await confirmation.getByRole("button", { name: "继续编辑" }).click();
+    await expect(page).toHaveURL(/checkpoint=1#draft-anchor$/);
+    await expect(page.getByRole("textbox", { name: "个人简介" })).toHaveValue("第二次修改");
+    const canGoForward = await page.evaluate(() => (window as Window & { navigation?: { canGoForward: boolean } }).navigation?.canGoForward);
+    if (canGoForward !== undefined) expect(canGoForward).toBe(true);
+    await page.evaluate(() => history.forward());
+    await confirmation.getByRole("button", { name: "放弃修改", exact: true }).click();
+    await expect(page).toHaveURL(/checkpoint=2$/);
+  });
+}
+
+
+for (const colorScheme of ["light", "dark"] as const) {
+  for (const width of [1024, 1366]) {
+    test(`${colorScheme} ${width} 裁切上传与保存状态分开呈现并阻止重复绑定`, async ({ page }, testInfo) => {
+      await page.emulateMedia({ colorScheme, reducedMotion: "reduce" });
+      await page.setViewportSize({ width, height: 1000 });
+      await mockSettings(page);
+      await page.goto("/me");
+      const directory = resolve(".e2e-results", "upload-crop-candidate");
+      mkdirSync(directory, { recursive: true, mode: 0o700 });
+      let sequence = 0;
+      let releaseProcessing = () => {};
+      let processingGate = Promise.resolve();
+      let releaseSaving = () => {};
+      let savingGate = Promise.resolve();
+      const bindings: unknown[] = [];
+      const media = (id: string) => ({ id, userId: "settings-workspace-user", url: "/pwa-icon-192.png", contentType: "image/webp", size: 100, width: 512, height: 512, status: "COMPLETED", createdAt: "1970-01-01T00:00:00.000Z" });
+      await page.route("**/api/v1/media/upload-url", async (route) => {
+        const id = `crop-${++sequence}`;
+        await route.fulfill({ json: { code: 0, data: { mediaId: id, uploadUrl: new URL("/e2e-crop-object", page.url()).href, objectKey: id, publicUrl: "/pwa-icon-192.png" } } });
+      });
+      await page.route("**/e2e-crop-object", (route) => route.fulfill({ status: 200, body: "" }));
+      await page.route("**/api/v1/media/upload-done", async (route) => {
+        const id = route.request().postDataJSON().mediaId;
+        await processingGate;
+        await route.fulfill({ json: { code: 0, data: { media: media(id), processing: false } } });
+      });
+      await page.route(/\/api\/v1\/users\/me\/(avatar|profile-cover)$/, async (route) => {
+        bindings.push(route.request().postDataJSON());
+        await savingGate;
+        await route.fulfill({ json: { code: 0, data: {} } });
+      });
+      for (const [label, input, title, saveLabel] of [
+        ["头像", "avatar-file-input", "裁剪头像", "保存头像"],
+        ["主页背景", "profile-cover-file-input", "调整主页背景", "保存背景"],
+      ]) {
+        processingGate = new Promise<void>((resolve) => { releaseProcessing = resolve; });
+        savingGate = new Promise<void>((resolve) => { releaseSaving = resolve; });
+        const before = bindings.length;
+        try {
+          await page.getByRole("button", { name: label, exact: true }).click();
+          await page.getByTestId(input).setInputFiles(resolve("public/pwa-icon-192.png"));
+          const dialog = page.getByRole("dialog", { name: title, exact: true });
+          const save = dialog.getByRole("button", { name: saveLabel, exact: true });
+          await expect(save).toBeEnabled();
+          await save.dblclick();
+          await expect(dialog.getByText("上传完成，正在处理图片", { exact: true })).toBeVisible();
+          await expect(dialog.getByRole("button", { name: "取消上传", exact: true })).toBeEnabled();
+          await expect(dialog.getByRole("button", { name: "取消", exact: true })).toBeDisabled();
+          await dialog.screenshot({ path: resolve(directory, `${input}-${width}-${colorScheme}-processing.png`), animations: "disabled" });
+          expect(bindings.length).toBe(before);
+          releaseProcessing();
+          await expect(dialog.getByText("正在保存…", { exact: true })).toBeVisible();
+          await expect(dialog.getByRole("button", { name: "取消上传", exact: true })).toHaveCount(0);
+          await page.keyboard.press("Escape");
+          await expect(dialog).toBeVisible();
+          await expect.poll(() => bindings.length).toBe(before + 1);
+          await dialog.screenshot({ path: resolve(directory, `${input}-${width}-${colorScheme}-saving.png`), animations: "disabled" });
+          releaseSaving();
+          await expect(dialog).toHaveCount(0);
+        } finally { releaseProcessing(); releaseSaving(); }
+      }
+      await testInfo.attach("upload-crop-source", { body: Buffer.from(JSON.stringify({ width, colorScheme, bindings: bindings.length })), contentType: "application/json" });
+    });
+  }
+}

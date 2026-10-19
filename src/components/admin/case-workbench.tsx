@@ -1,5 +1,6 @@
 "use client";
 
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
   type ColumnDef,
@@ -51,7 +52,7 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import {
   Select,
   SelectContent,
@@ -174,6 +175,7 @@ function caseColumns(onSelect: (id: string) => void): ColumnDef<CaseSummary>[] {
 }
 
 export function CaseWorkbench() {
+  const submission = useSubmissionLock();
   const [{ status, targetType, reasonCode, selectedCaseId }, setFilters] = useQueryStates(adminCaseFilterParsers, {
     shallow: true,
     urlKeys: adminCaseUrlKeys,
@@ -302,7 +304,7 @@ export function CaseWorkbench() {
 
       {selectedId ? (
         <Dialog open onOpenChange={(open) => {
-          if (!open) void setFilters({ selectedCaseId: null });
+          if (!open && !submission.pending) void setFilters({ selectedCaseId: null });
         }}>
           <DialogPortal>
             <DialogBackdrop />
@@ -329,7 +331,7 @@ export function CaseWorkbench() {
                     <p className="px-7 py-10 text-sm text-destructive">案件详情加载失败，请关闭后重试。</p>
                   </>
                 ) : (
-                  <CaseDetail key={detail.data.id} detail={detail.data} />
+                  <CaseDetail key={detail.data.id} detail={detail.data} submission={submission} />
                 )}
               </DialogPopup>
             </DialogViewport>
@@ -340,7 +342,7 @@ export function CaseWorkbench() {
   );
 }
 
-function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdminCase>["data"]> }) {
+function CaseDetail({ detail, submission }: { detail: NonNullable<ReturnType<typeof useAdminCase>["data"]>; submission: ReturnType<typeof useSubmissionLock> }) {
   const resolve = useResolveAdminCase();
   const form = useForm<ResolutionValues>({
     resolver: zodResolver(resolutionSchema),
@@ -352,6 +354,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
       suspendUntil: "",
     },
   });
+  const pending = submission.pending || form.formState.isSubmitting || resolve.isPending;
   const outcome = useWatch({ control: form.control, name: "outcome" });
   const action = useWatch({ control: form.control, name: "action" });
   const policyCode = useWatch({ control: form.control, name: "policyCode" });
@@ -375,7 +378,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             <p>建案 <WenyouTime mode="exact" value={detail.createdAt} /></p>
             <p className="mt-1">累计 {detail.reports.length} 份举报</p>
           </div>
-          <DialogCloseButton type="button" label="关闭案件操作" disabled={resolve.isPending} />
+          <DialogCloseButton type="button" label="关闭案件操作" disabled={pending} />
         </div>
       </div>
 
@@ -435,7 +438,7 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
             <p className="mt-2 text-xs leading-5 text-muted-foreground">公开说明会提供给被处置用户，并成为申诉依据。</p>
             <form
               className="mt-6 space-y-5"
-              onSubmit={form.handleSubmit(async (values) => {
+              onSubmit={form.handleSubmit(submission.guard(async (values) => {
                 try {
                   await resolve.mutateAsync({
                     id: detail.id,
@@ -448,12 +451,10 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                 } catch (error) {
                   toast.error(getApiErrorMessage(error, "结案失败，请刷新后重试"));
                 }
-              })}
+              }))}
             >
               <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label>案件结论</Label>
-                <Select
+              <FormField id="case-outcome" label="案件结论" error={form.formState.errors.outcome?.message}>{(controlProps) => <Select
                   items={[{ value: "RESOLVED", label: "确认违规" }, { value: "DISMISSED", label: "驳回举报" }]}
                   value={outcome}
                   onValueChange={(value) => {
@@ -461,65 +462,52 @@ function CaseDetail({ detail }: { detail: NonNullable<ReturnType<typeof useAdmin
                     if (value === "DISMISSED") form.setValue("action", undefined, { shouldValidate: true });
                   }}
                 >
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger {...controlProps} className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent layer="nested" align="start">
                     <SelectItem value="RESOLVED">确认违规</SelectItem>
                     <SelectItem value="DISMISSED">驳回举报</SelectItem>
                   </SelectContent>
-                </Select>
-              </div>
+                </Select>}</FormField>
               {outcome === "RESOLVED" ? (
-                <div className="space-y-2">
-                  <Label>处置动作</Label>
-                  <Select
+                <FormField id="case-action" label="处置动作" error={form.formState.errors.action?.message}>{(controlProps) => <Select
                     items={allowedActions}
                     value={action ?? null}
                     onValueChange={(value) => form.setValue("action", value as DecisionAction, { shouldValidate: true })}
                   >
-                    <SelectTrigger className="w-full"><SelectValue placeholder="选择处置" /></SelectTrigger>
+                    <SelectTrigger {...controlProps} className="w-full"><SelectValue placeholder="选择处置" /></SelectTrigger>
                     <SelectContent layer="nested" align="start">
                       {allowedActions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
                     </SelectContent>
-                  </Select>
-                  {form.formState.errors.action ? <p className="text-xs text-destructive">{form.formState.errors.action.message}</p> : null}
-                </div>
+                  </Select>}</FormField>
               ) : null}
-              <div className="space-y-2">
-                <Label>规则分类</Label>
-                <Select
+              <FormField id="case-policy" label="规则分类" error={form.formState.errors.policyCode?.message}>{(controlProps) => <Select
                   items={reasonOptions}
                   value={policyCode}
                   onValueChange={(value) => form.setValue("policyCode", value as ReasonCode)}
                 >
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectTrigger {...controlProps} className="w-full"><SelectValue /></SelectTrigger>
                   <SelectContent layer="nested" align="start">
                     {reasonOptions.map((item) => <SelectItem key={item.value} value={item.value}>{item.label}</SelectItem>)}
                   </SelectContent>
-                </Select>
-              </div>
+                </Select>}</FormField>
               {action === "SUSPEND_USER" && outcome === "RESOLVED" ? (
-                <div className="space-y-2">
-                  <Label htmlFor="suspend-until">暂停至</Label>
-                  <Input id="suspend-until" type="datetime-local" {...form.register("suspendUntil")} />
-                  {form.formState.errors.suspendUntil ? <p className="text-xs text-destructive">{form.formState.errors.suspendUntil.message}</p> : null}
-                </div>
+                <FormField id="suspend-until" label="暂停至" error={form.formState.errors.suspendUntil?.message}>
+                  {(controlProps) => <Input {...controlProps} type="datetime-local" {...form.register("suspendUntil")} />}
+                </FormField>
               ) : null}
               </div>
               <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="public-explanation">公开说明</Label>
-                <Textarea id="public-explanation" rows={4} placeholder="说明违反了什么规则，以及为什么采取这个动作。" {...form.register("publicExplanation")} />
-                {form.formState.errors.publicExplanation ? <p className="text-xs text-destructive">{form.formState.errors.publicExplanation.message}</p> : null}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="internal-note">内部备注（可选）</Label>
-                <Textarea id="internal-note" rows={3} placeholder="交接信息、相似案件等，仅站务可见。" {...form.register("internalNote")} />
-              </div>
+              <FormField id="public-explanation" label="公开说明" error={form.formState.errors.publicExplanation?.message}>
+                {(controlProps) => <Textarea {...controlProps} rows={4} placeholder="说明违反了什么规则，以及为什么采取这个动作。" {...form.register("publicExplanation")} />}
+              </FormField>
+              <FormField id="internal-note" label="内部备注（可选）" error={form.formState.errors.internalNote?.message}>
+                {(controlProps) => <Textarea {...controlProps} rows={3} placeholder="交接信息、相似案件等，仅站务可见。" {...form.register("internalNote")} />}
+              </FormField>
               </div>
               <div className="flex items-center justify-between gap-5 border-t border-border pt-5">
                 <p className="text-xs leading-5 text-muted-foreground">提交后会写入决定轨迹，并按所选动作立即更新公开内容或账号状态。</p>
-                <Button type="submit" disabled={resolve.isPending}>
-                  {resolve.isPending ? "正在写入决定…" : outcome === "RESOLVED" ? "确认并结案" : "驳回并结案"}
+                <Button type="submit" pending={pending} pendingLabel="正在写入决定…">
+                  {outcome === "RESOLVED" ? "确认并结案" : "驳回并结案"}
                 </Button>
               </div>
             </form>

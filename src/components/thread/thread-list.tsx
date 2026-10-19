@@ -2,6 +2,7 @@
 
 "use client";
 
+import { isListAccessError } from "@/lib/list-query-state";
 import { Loader2 } from "lucide-react";
 import { ThreadCard, type ThreadCardViewData } from "./thread-card";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -39,7 +40,7 @@ export function ThreadList({
   errorTitle = "加载失败",
 }: ThreadListProps) {
   const sentinelRef = useInfiniteScroll({
-    hasNextPage: hasNextPage && !isRefreshing,
+    hasNextPage: hasNextPage && !isRefreshing && !error,
     isFetchingNextPage: isFetchingNextPage || isRefreshing,
     onLoadMore,
   });
@@ -53,7 +54,7 @@ export function ThreadList({
     );
   }
 
-  if (error) {
+  if (error && (threads.length === 0 || isListAccessError(error))) {
     return (
       <Panel padding="none" className="rounded-[var(--radius-card)] border-0">
         <LoadError
@@ -94,11 +95,12 @@ export function ThreadList({
               正在加载更多
             </span>
           )}
-          {!isRefreshing && !hasNextPage && (
+          {!error && !isRefreshing && !hasNextPage && (
             <p className="text-xs text-muted-foreground">没有更多了</p>
           )}
         </div>
       </StackList>
+      {error ? <LoadError title={errorTitle} onRetry={onRetry} className="py-6" /> : null}
     </div>
   );
 }

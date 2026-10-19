@@ -1,9 +1,10 @@
 "use client";
 
 import { LANGUAGE_ACTIONS } from "@wenyousite/foundation/language";
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { CheckCircle2, ExternalLink, Loader2, RotateCcw, ShieldAlert } from "lucide-react";
+import { CheckCircle2, ExternalLink, RotateCcw, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -23,7 +24,7 @@ import {
   DialogViewport,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Panel } from "@/components/ui/panel";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -62,6 +63,7 @@ const actionLabels: Record<FormValues["action"], string> = {
 
 export function ContentModerationPanel() {
   const actions = useAdminContentActions();
+  const submission = useSubmissionLock();
   const [lastAction, setLastAction] = useState<LastAction | null>(null);
   const [moderationOpen, setModerationOpen] = useState(false);
   const form = useForm<FormValues>({
@@ -77,9 +79,9 @@ export function ContentModerationPanel() {
   const targetType = useWatch({ control: form.control, name: "targetType" });
   const reference = useWatch({ control: form.control, name: "reference" });
   const parsedPreview = parseAdminContentReference(reference, targetType);
-  const pending = actions.hide.isPending || actions.restore.isPending;
+  const pending = submission.pending || form.formState.isSubmitting || actions.hide.isPending || actions.restore.isPending;
 
-  const submit = form.handleSubmit(async (values) => {
+  const submit = form.handleSubmit(submission.guard(async (values) => {
     const target = parseAdminContentReference(values.reference, values.targetType);
     if (!target) {
       form.setError("reference", { message: "无法识别此链接；请使用站内内容链接或直接填写内容编号" });
@@ -100,7 +102,7 @@ export function ContentModerationPanel() {
     } catch (error) {
       toast.error(getApiErrorMessage(error, `${actionLabels[values.action]}失败`));
     }
-  });
+  }));
 
   return (
     <div data-slot="admin-content-workspace" data-layout="full-table" className="w-full space-y-4">
@@ -149,66 +151,40 @@ export function ContentModerationPanel() {
 
               <form onSubmit={submit} className="space-y-4 px-4 py-4">
                 <div className="grid grid-cols-2 gap-5">
-                  <div className="space-y-2">
-                    <Label>执行动作</Label>
-                    <Select
+                  <FormField id="content-moderation-action" label="执行动作" error={form.formState.errors.action?.message}>{(controlProps) => <Select
                       value={action}
                       onValueChange={(value) => form.setValue("action", value as FormValues["action"], { shouldValidate: true })}
                     >
-                      <SelectTrigger className="w-full"><SelectValue>{actionLabels[action]}内容</SelectValue></SelectTrigger>
+                      <SelectTrigger {...controlProps} className="w-full"><SelectValue>{actionLabels[action]}内容</SelectValue></SelectTrigger>
                       <SelectContent layer="nested" align="start">
                         <SelectItem value="hide">{LANGUAGE_ACTIONS.hide}内容</SelectItem>
                         <SelectItem value="restore">{LANGUAGE_ACTIONS.restore}内容</SelectItem>
                       </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>目标类型</Label>
-                    <Select
+                    </Select>}</FormField>
+                  <FormField id="content-moderation-type" label="目标类型" error={form.formState.errors.targetType?.message}>{(controlProps) => <Select
                       value={targetType}
                       onValueChange={(value) => form.setValue("targetType", value as AdminContentType, { shouldValidate: true })}
                     >
-                      <SelectTrigger className="w-full"><SelectValue>{targetLabels[targetType]}</SelectValue></SelectTrigger>
+                      <SelectTrigger {...controlProps} className="w-full"><SelectValue>{targetLabels[targetType]}</SelectValue></SelectTrigger>
                       <SelectContent layer="nested" align="start">
                         {Object.entries(targetLabels).map(([value, label]) => (
                           <SelectItem key={value} value={value}>{label}</SelectItem>
                         ))}
                       </SelectContent>
-                    </Select>
-                  </div>
+                    </Select>}</FormField>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="content-reference">内容链接或编号</Label>
-                  <Input
-                    id="content-reference"
-                    placeholder="例如 https://wenyou.site/moments/… 或直接填写编号"
-                    aria-invalid={Boolean(form.formState.errors.reference)}
-                    {...form.register("reference")}
-                  />
-                  {form.formState.errors.reference ? (
-                    <p className="text-xs text-destructive">{form.formState.errors.reference.message}</p>
-                  ) : parsedPreview ? (
-                    <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                      <CheckCircle2 className="size-3.5 text-success" />
-                      将处置{targetLabels[parsedPreview.type]} · <code className="font-utility">{parsedPreview.id}</code>
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">粘贴链接自动识别；直接填编号时需选择类型。</p>
-                  )}
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="content-moderation-reason">处置理由</Label>
-                  <Textarea
-                    id="content-moderation-reason"
-                    rows={5}
-                    placeholder={action === "hide" ? "说明违反的规则与隐藏依据。" : "说明复核结论与恢复依据。"}
-                    aria-invalid={Boolean(form.formState.errors.reason)}
-                    {...form.register("reason")}
-                  />
-                  {form.formState.errors.reason ? <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
-                </div>
+                <FormField id="content-reference" label="内容链接或编号" error={form.formState.errors.reference?.message}
+                  description={form.formState.errors.reference ? undefined : parsedPreview ? <>
+                    <CheckCircle2 className="mr-1.5 inline size-3.5 text-success" />
+                    将处置{targetLabels[parsedPreview.type]} · <code className="font-utility">{parsedPreview.id}</code>
+                  </> : "粘贴链接自动识别；直接填编号时需选择类型。"}>
+                  {(controlProps) => <Input {...controlProps} placeholder="例如 https://wenyou.site/moments/… 或直接填写编号" {...form.register("reference")} />}
+                </FormField>
+                <FormField id="content-moderation-reason" label="处置理由" error={form.formState.errors.reason?.message}>
+                  {(controlProps) => <Textarea {...controlProps} rows={5}
+                    placeholder={action === "hide" ? "说明违反的规则与隐藏依据。" : "说明复核结论与恢复依据。"} {...form.register("reason")} />}
+                </FormField>
 
                 <div className="flex items-center justify-between gap-4 border-t border-border pt-5">
                   <p className="max-w-xl text-xs leading-5 text-muted-foreground">
@@ -216,8 +192,8 @@ export function ContentModerationPanel() {
                       ? "内容将立即隐藏，保留原内容及操作记录。"
                       : "只能恢复由管理员隐藏的内容；作者主动删除或父级不可见状态不会被改写。"}
                   </p>
-                  <Button type="submit" variant={action === "hide" ? "destructive" : "default"} disabled={pending}>
-                    {pending ? <Loader2 className="animate-spin" /> : action === "hide" ? <ShieldAlert /> : <RotateCcw />}
+                  <Button type="submit" variant={action === "hide" ? "destructive" : "default"} pending={pending} pendingLabel={`确认${actionLabels[action]}`}>
+                    {action === "hide" ? <ShieldAlert /> : <RotateCcw />}
                     确认{actionLabels[action]}
                   </Button>
                 </div>

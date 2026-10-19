@@ -4,6 +4,7 @@ import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capab
 import { useCallback, useEffect, useMemo, useReducer, useRef } from "react";
 import { useQueryStates } from "nuqs";
 import { toast } from "sonner";
+import { copyToolText } from "@/lib/tools/clipboard";
 import { useEditorSubmission, EDITOR_SYNC_ERROR } from "@/components/editor/use-editor-submission";
 import { useManagementNavigationGuard } from "@/components/thread/use-management-navigation-guard";
 import { useAuth } from "@/lib/auth";
@@ -435,7 +436,7 @@ export function useManagementPanelController({
     try {
       const content = editor.flush();
       if (content === null) return;
-      await navigator.clipboard.writeText(content);
+      if (!await copyToolText(content)) throw new Error("copy failed");
       toast.success("本地正文已复制");
     } catch {
       toast.error("复制失败，请手动全选正文保存");

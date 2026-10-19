@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState, type RefObject } from "react";
-import { Menu } from "@base-ui/react/menu";
+import { Menu } from "@/components/ui/menu";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -45,17 +45,13 @@ export function BookmarkFolderManagement({ folder, kind, viewerScope, onRenamed,
   if (folder.isDefault) return null;
   return <>
     <Menu.Root>
-      <Menu.Trigger render={<Button ref={triggerRef} variant="ghost" size="icon-compact" aria-label={`更多收藏夹操作：${folder.name}`} disabled={pending} />}>
+      <Menu.Trigger tooltip="更多收藏夹操作" render={<Button ref={triggerRef} variant="ghost" size="icon-compact" aria-label={`更多收藏夹操作：${folder.name}`} disabled={pending} />}>
         <WenyouIcon id="action.more" />
       </Menu.Trigger>
-      <Menu.Portal>
-        <Menu.Positioner align="start" sideOffset={4} className="z-[var(--layer-popup)]">
-          <Menu.Popup finalFocus={action ? false : triggerRef} className="w-40 rounded-[var(--radius-panel)] border border-border bg-popover p-1 text-popover-foreground shadow-popover outline-none">
-            <Menu.Item onClick={() => open("rename")} className="flex min-h-10 cursor-pointer items-center rounded-[var(--radius-control)] px-3 text-sm outline-none data-highlighted:bg-muted">重命名</Menu.Item>
-            <Menu.Item onClick={() => open("delete")} className="flex min-h-10 cursor-pointer items-center rounded-[var(--radius-control)] px-3 text-sm text-destructive outline-none data-highlighted:bg-muted">删除收藏夹</Menu.Item>
-          </Menu.Popup>
-        </Menu.Positioner>
-      </Menu.Portal>
+      <Menu.Content align="start" sideOffset={4} finalFocus={action ? false : triggerRef} className="w-40">
+            <Menu.Item onClick={() => open("rename")}>重命名</Menu.Item>
+            <Menu.Item onClick={() => open("delete")} destructive>删除收藏夹</Menu.Item>
+          </Menu.Content>
     </Menu.Root>
     <Dialog open={action !== null} onOpenChange={(value) => { if (!value && !pending) setAction(null); }}>
       <DialogPortal><DialogBackdrop /><DialogViewport>

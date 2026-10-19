@@ -1,4 +1,5 @@
 "use client";
+import { useSubmissionLock } from "@/hooks/use-submission-lock";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Dialog, DialogBackdrop, DialogCloseButton, DialogPopup, DialogPortal, DialogTitle, DialogViewport } from "@/components/ui/dialog";
@@ -9,7 +10,7 @@ import { getApiErrorMessage } from "@/api/errors";
 import { type AdminUser, useAdminUserActions } from "@/api/hooks/use-admin";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { FormField } from "@/components/ui/form-field";
 import { Textarea } from "@/components/ui/textarea";
 export const sanctionSchema = z.object({
   reason: z.string().trim().min(1, "请填写理由").refine((value) => Array.from(value).length <= 500, "最多 500 个字符"),
@@ -19,18 +20,22 @@ type SanctionValues = z.infer<typeof sanctionSchema>;
 
 export function UserAccountState({ user: selected }: { user: AdminUser }) {
   const actions = useAdminUserActions();
+  const submission = useSubmissionLock();
   const [open, setOpen] = useState(false);
+  const [submittingType, setSubmittingType] = useState<"SUSPENSION" | "BAN" | null>(null);
   const form = useForm<SanctionValues>({
     resolver: zodResolver(sanctionSchema),
     defaultValues: { reason: "", endsAt: "" },
   });
+  const pending = submission.pending || form.formState.isSubmitting || actions.sanction.isPending || actions.revoke.isPending;
   const applySanction = (type: "SUSPENSION" | "BAN") => {
-    void form.handleSubmit(async (values) => {
+    void form.handleSubmit(submission.guard(async (values) => {
       if (!selected) return;
       if (type === "SUSPENSION" && !values.endsAt) {
         form.setError("endsAt", { message: "暂停账号需要结束时间" });
         return;
       }
+      setSubmittingType(type);
       try {
         await actions.sanction.mutateAsync({
           id: selected.id,
@@ -44,17 +49,17 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
 
       } catch (error) {
         form.setError("root", { message: getApiErrorMessage(error, "修改失败") });
-      }
-    })();
+      } finally { setSubmittingType(null); }
+    }))();
   };
 
 
   return <section className="rounded-[var(--radius-card)] border border-border bg-card p-4">
     <h2 className="mb-3 text-base font-semibold">账号状态</h2>
     <div className="flex items-center gap-3 text-sm"><span>{selected.moderationStatus === "ACTIVE" ? "正常" : selected.moderationStatus === "SUSPENDED" ? "暂停" : "封禁"}</span><Button size="compact" variant="outline" onClick={() => setOpen(true)}>修改状态</Button></div>
-    <Dialog open={open} onOpenChange={(next) => { if (!actions.sanction.isPending && !actions.revoke.isPending) setOpen(next); }}>
+    <Dialog open={open} onOpenChange={(next) => { if (!pending) setOpen(next); }}>
       <DialogPortal><DialogBackdrop /><DialogViewport><DialogPopup data-admin-action-dialog className="max-w-xl p-4">
-        <div className="mb-4 flex items-center justify-between"><DialogTitle>账号状态</DialogTitle><DialogCloseButton label="关闭账号状态" disabled={actions.sanction.isPending || actions.revoke.isPending} /></div>
+        <div className="mb-4 flex items-center justify-between"><DialogTitle>账号状态</DialogTitle><DialogCloseButton label="关闭账号状态" disabled={pending} /></div>
     {form.formState.errors.root ? <p role="alert" className="mb-3 text-sm text-destructive">{form.formState.errors.root.message}</p> : null}
                   {selected.currentSanction ? (
                     <div className="rounded-[var(--radius-compact)] bg-destructive-soft p-4 text-sm text-destructive">
@@ -64,8 +69,8 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
                         size="compact"
                         variant="outline"
                         className="mt-3"
-                        disabled={actions.revoke.isPending}
-                        onClick={async () => {
+                        pending={pending}
+                        onClick={submission.guard(async () => {
                           try {
                             await actions.revoke.mutateAsync({ id: selected.id, reason: form.getValues("reason") || "管理员复核后解除处罚" });
                             toast.success("处罚已解除");
@@ -74,26 +79,22 @@ export function UserAccountState({ user: selected }: { user: AdminUser }) {
                           } catch (error) {
                             form.setError("root", { message: getApiErrorMessage(error, "解除失败") });
                           }
-                        }}
+                        })}
                       >解除处罚</Button>
                     </div>
                   ) : selected.role !== "USER" ? (
                     <p className="rounded-[var(--radius-compact)] bg-muted p-4 text-sm text-muted-foreground">管理员账号需由超级管理员管理。</p>
                   ) : (
                     <form className="space-y-5" onSubmit={(event) => event.preventDefault()}>
-                      <div className="space-y-2">
-                        <Label htmlFor="sanction-reason">处罚理由</Label>
-                        <Textarea id="sanction-reason" rows={4} {...form.register("reason")} />
-                        {form.formState.errors.reason ? <p className="text-xs text-destructive">{form.formState.errors.reason.message}</p> : null}
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="sanction-until">暂停至</Label>
-                        <Input id="sanction-until" type="datetime-local" {...form.register("endsAt")} />
-                        {form.formState.errors.endsAt ? <p className="text-xs text-destructive">{form.formState.errors.endsAt.message}</p> : null}
-                      </div>
+                      <FormField className="gap-2" id="sanction-reason" label="处罚理由" error={form.formState.errors.reason?.message}>
+                        {(controlProps) => <Textarea {...controlProps} rows={4} {...form.register("reason")} />}
+                      </FormField>
+                      <FormField className="gap-2" id="sanction-until" label="暂停至" error={form.formState.errors.endsAt?.message}>
+                        {(controlProps) => <Input {...controlProps} type="datetime-local" {...form.register("endsAt")} />}
+                      </FormField>
                       <div className="flex justify-end gap-2 border-t border-border pt-5">
-                        <Button type="button" variant="outline" disabled={actions.sanction.isPending} onClick={() => applySanction("SUSPENSION")}>暂停账号</Button>
-                        <Button type="button" variant="destructive" disabled={actions.sanction.isPending} onClick={() => applySanction("BAN")}>永久封禁</Button>
+                        <Button type="button" variant="outline" disabled={pending} pending={pending && submittingType === "SUSPENSION"} onClick={() => applySanction("SUSPENSION")}>暂停账号</Button>
+                        <Button type="button" variant="destructive" disabled={pending} pending={pending && submittingType === "BAN"} onClick={() => applySanction("BAN")}>永久封禁</Button>
                       </div>
                     </form>
                   )}

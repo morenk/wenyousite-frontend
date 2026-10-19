@@ -10,7 +10,8 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { useSetAvatar } from "@/api/hooks/use-set-avatar";
 import { getApiErrorMessage } from "@/api/errors";
-import { ImageUploadProgress } from "@/components/shared/image-upload-progress";
+import { ImageUploadStatus } from "@/components/shared/image-upload-status";
+import { useUploadOperation } from "@/hooks/use-upload-operation";
 import { UserAvatar } from "@/components/shared/user-avatar";
 import {
   isUploadAbortError,
@@ -54,7 +55,7 @@ export function AvatarUploader({
   const { setAvatar, removeAvatar } = useSetAvatar();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const chooseButtonRef = useRef<HTMLButtonElement>(null);
-  const uploadAbortRef = useRef<AbortController | null>(null);
+  const upload = useUploadOperation();
   const preparedAvatarRef = useRef<File | null>(null);
   const uploadedMediaIdRef = useRef<string | null>(null);
   const uploadedImageRef = useRef<UploadedImage | undefined>(undefined);
@@ -64,12 +65,9 @@ export function AvatarUploader({
   const [zoom, setZoom] = useState(1);
   const [croppedArea, setCroppedArea] = useState<Area | undefined>();
   const [cropOpen, setCropOpen] = useState(false);
-  const [isUploading, setIsUploading] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
   const [uploadProgress, setUploadProgress] =
     useState<UploadImageProgressValue | null>(null);
 
-  useEffect(() => () => uploadAbortRef.current?.abort(), []);
   useEffect(
     () => () => {
       if (imageSrc) URL.revokeObjectURL(imageSrc);
@@ -85,7 +83,7 @@ export function AvatarUploader({
     [],
   );
 
-  const pending = isUploading || isRemoving || setAvatar.isPending || removeAvatar.isPending;
+  const pending = upload.pending || setAvatar.isPending || removeAvatar.isPending;
 
   const invalidatePreparedAvatar = () => {
     preparedAvatarRef.current = null;
@@ -97,7 +95,7 @@ export function AvatarUploader({
     const generation = ++selectionGeneration.current;
     const file = e.target.files?.[0];
     e.target.value = "";
-    if (!file) return;
+    if (!file || upload.isPending()) return;
     const error = validateAvatarFile(file);
     if (error) {
       toast.error(error);
@@ -106,27 +104,25 @@ export function AvatarUploader({
     try {
       await assertImageCanBeProcessed(file, true);
     } catch (error) {
-      if (generation !== selectionGeneration.current) return;
+      if (generation !== selectionGeneration.current || upload.isPending()) return;
       toast.error(
         error instanceof Error ? error.message : "无法读取图片，请重新选择",
       );
       return;
     }
-    if (generation !== selectionGeneration.current) return;
+    if (generation !== selectionGeneration.current || upload.isPending()) return;
     setFailure(null);
     setImageSrc(URL.createObjectURL(file));
     invalidatePreparedAvatar();
     setCrop({ x: 0, y: 0 });
     setZoom(1);
     setCroppedArea(undefined);
-    invalidatePreparedAvatar();
     setCropOpen(true);
   };
 
   const closeCrop = () => {
     selectionGeneration.current++;
-    uploadAbortRef.current?.abort();
-    uploadAbortRef.current = null;
+    upload.cancel();
     setUploadProgress(null);
     setCropOpen(false);
     requestAnimationFrame(() => chooseButtonRef.current?.focus());
@@ -137,55 +133,64 @@ export function AvatarUploader({
   const handleConfirm = async () => {
     if (!imageSrc || !croppedArea || pending) return;
     setFailure(null);
-    const controller = new AbortController();
-    uploadAbortRef.current = controller;
-    setIsUploading(true);
+    const operation = upload.start();
+    if (!operation) return;
+    selectionGeneration.current++;
     try {
       let mediaId = uploadedMediaIdRef.current;
       if (!mediaId) {
         let file = preparedAvatarRef.current;
         if (!file) {
           const blob = await getCroppedBlob(imageSrc, croppedArea);
+          if (!operation.isCurrent()) return;
           file = createImageFileFromBlob(blob, "avatar");
           preparedAvatarRef.current = file;
         }
+        operation.setPhase("uploading");
         const uploaded = await uploadImageFile(file, {
-          signal: controller.signal,
-          onProgress: setUploadProgress,
+          signal: operation.signal,
+          onProgress: (progress) => { if (operation.isCurrent()) setUploadProgress(progress); },
           purpose: "AVATAR",
           clientNormalized: true,
         });
+        if (!operation.isCurrent()) return;
         mediaId = uploaded.mediaId;
         uploadedMediaIdRef.current = mediaId;
         uploadedImageRef.current = uploaded;
       }
+      if (!operation.isCurrent()) return;
+      operation.setPhase("saving");
+      setUploadProgress(null);
       await (onSaveAvatar ? onSaveAvatar(mediaId, uploadedImageRef.current) : setAvatar.mutateAsync(mediaId));
+      if (!operation.isCurrent()) return;
       toast.success("头像已更新");
       closeCrop();
       onClose?.();
     } catch (err) {
-      if (!isUploadAbortError(err)) {
+      if (operation.isCurrent() && !isUploadAbortError(err)) {
         setFailure(getApiErrorMessage(err, "头像上传失败，请稍后重试"));
       }
     } finally {
-      if (uploadAbortRef.current === controller) uploadAbortRef.current = null;
-      setUploadProgress(null);
-      setIsUploading(false);
+      if (operation.isCurrent()) setUploadProgress(null);
+      operation.finish();
     }
   };
 
   const handleRemove = async () => {
     if (pending) return;
     setFailure(null);
-    setIsRemoving(true);
+    const operation = upload.start("saving");
+    if (!operation) return;
+    selectionGeneration.current++;
     try {
       await (onRemoveAvatar ? onRemoveAvatar() : removeAvatar.mutateAsync());
+      if (!operation.isCurrent()) return;
       toast.success("头像已移除");
       onClose?.();
     } catch {
-      setFailure("操作失败，请稍后重试");
+      if (operation.isCurrent()) setFailure("操作失败，请稍后重试");
     } finally {
-      setIsRemoving(false);
+      operation.finish();
     }
   };
 
@@ -233,14 +238,16 @@ export function AvatarUploader({
               zoom={zoom}
               aspect={1}
               onCropChange={(nextCrop) => {
+                if (upload.isPending()) return;
                 invalidatePreparedAvatar();
                 setCrop(nextCrop);
               }}
               onZoomChange={(nextZoom) => {
+                if (upload.isPending()) return;
                 invalidatePreparedAvatar();
                 setZoom(nextZoom);
               }}
-              onCropComplete={(_area, areaPixels) => setCroppedArea(areaPixels)}
+              onCropComplete={(_area, areaPixels) => { if (!upload.isPending()) setCroppedArea(areaPixels); }}
             />
           </div>
           <div className="mt-3">
@@ -258,6 +265,7 @@ export function AvatarUploader({
               step={0.01}
               value={zoom}
               onChange={(event) => {
+                if (upload.isPending()) return;
                 invalidatePreparedAvatar();
                 setZoom(Number(event.target.value));
               }}
@@ -265,14 +273,12 @@ export function AvatarUploader({
               className="w-full accent-brand-strong"
             />
           </div>
-          {uploadProgress ? (
-            <ImageUploadProgress
-              progress={uploadProgress}
-              onCancel={() => uploadAbortRef.current?.abort()}
-              className="mt-3"
-              compact
-            />
-          ) : null}
+          <ImageUploadStatus
+            phase={upload.phase}
+            progress={uploadProgress}
+            onCancel={() => { if (upload.cancel()) setUploadProgress(null); }}
+            className="mt-3"
+          />
 
           <DialogFooter className="mt-6">
             <Button

@@ -48,7 +48,6 @@ import { AdminDashboardPanel } from "@/components/admin/admin-dashboard-panel";
 import { AdminInviteAcceptance } from "@/components/admin/admin-invite-acceptance";
 import { CaseWorkbench } from "@/components/admin/case-workbench";
 import { AdminAccountsPanel } from "@/components/admin/admin-accounts-panel";
-import { HiddenContentList } from "@/components/admin/hidden-content-list";
 import { ContentModerationPanel } from "@/components/admin/content-moderation-panel";
 
 afterEach(cleanup);
@@ -242,51 +241,6 @@ describe("station panels", () => {
     operations.unmount();
   });
 
-  it("隐藏内容列表展示当前状态并可填写理由直接恢复", async () => {
-    const restore = mutation();
-    hooks.useAdminContentActions.mockReturnValue({ hide: mutation(), restore });
-    hooks.useAdminHiddenContent.mockReturnValue({
-      data: {
-        items: [{
-          targetType: "POST",
-          targetId: "post-1",
-          summary: "被隐藏的楼层内容",
-          author: { id: "user-1", username: "小温" },
-          moderator: { id: "admin-1", username: "站务" },
-          hiddenAt: "2026-08-14T08:00:00.000Z",
-          reason: "违反社区规则",
-          canRestore: true,
-          restoreBlockedReason: null,
-          threadId: "thread-1",
-          parentPostId: null,
-          momentId: null,
-          parentCommentId: null,
-        }],
-        meta: { cursor: null, hasMore: false },
-      },
-      isLoading: false,
-      isFetching: false,
-      isError: false,
-    });
-
-    const view = renderWithUrl(<HiddenContentList />);
-    const panel = within(view.container);
-    expect(panel.getByText("被隐藏的楼层内容")).toBeInTheDocument();
-    expect(panel.getByText("违反社区规则")).toBeInTheDocument();
-    fireEvent.click(panel.getByRole("button", { name: "操作" }));
-    expect(screen.getByRole("dialog", { name: "帖子 / 楼层 / 回复操作" })).toHaveAttribute("data-slot", "dialog-popup");
-    fireEvent.change(screen.getByLabelText("恢复理由"), { target: { value: "复核后恢复" } });
-    fireEvent.click(screen.getByRole("button", { name: "确认恢复" }));
-
-    await waitFor(() => {
-      expect(restore.mutateAsync).toHaveBeenCalledWith({
-        type: "post",
-        id: "post-1",
-        reason: "复核后恢复",
-      });
-    });
-  });
-
   it("审计记录正文直接保留完整本地日期与时分", () => {
     const createdAt = new Date(2026, 7, 17, 11, 59, 31).toISOString();
     hooks.useAdminAuditLogs.mockReturnValue({
@@ -375,4 +329,29 @@ describe("station panels", () => {
     fireEvent.click(within(view.container).getByRole("button", { name: "复核" }));
     expect(screen.getByRole("dialog", { name: "复核 小温 的申诉" })).toHaveAttribute("data-admin-action-dialog");
   });
+  it("维护公告超长时显示字段错误并保留输入", async () => {
+    hooks.useAdminSettings.mockReturnValue({ data: {}, isLoading: false, isError: false });
+    const update = mutation(); hooks.useUpdateAdminSettings.mockReturnValue(update);
+    renderWithUrl(<OperationsSettingsPanel />);
+    fireEvent.change(screen.getByLabelText("公告标题"), { target: { value: "文".repeat(61) } });
+    fireEvent.change(screen.getByLabelText("公告正文"), { target: { value: "文".repeat(501) } });
+    fireEvent.submit(screen.getByLabelText("公告标题").closest("form")!);
+    await waitFor(() => expect(screen.getByLabelText("公告标题")).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByLabelText("公告标题")).toHaveAccessibleDescription("最多 60 个字符");
+    expect(screen.getByLabelText("公告正文")).toHaveAccessibleDescription("最多 500 个字符");
+    expect(screen.getByLabelText("公告标题")).toHaveValue("文".repeat(61));
+    expect(update.mutateAsync).not.toHaveBeenCalled();
+  });
+
+  it("直接处置表单将链接和理由错误关联到真实输入控件", async () => {
+    renderWithUrl(<ContentModerationPanel />);
+    fireEvent.click(screen.getByRole("button", { name: "直接处置内容" }));
+    fireEvent.click(screen.getByRole("button", { name: "确认隐藏" }));
+    await waitFor(() => expect(screen.getByLabelText("内容链接或编号")).toHaveAttribute("aria-invalid", "true"));
+    expect(screen.getByLabelText("内容链接或编号")).toHaveAccessibleDescription("请粘贴内容链接或填写内容编号");
+    expect(screen.getByLabelText("处置理由")).toHaveAccessibleDescription("请填写处置理由");
+    expect(screen.getByRole("combobox", { name: "执行动作" })).toBeInTheDocument();
+    expect(screen.getByRole("combobox", { name: "目标类型" })).toBeInTheDocument();
+  });
+
 });

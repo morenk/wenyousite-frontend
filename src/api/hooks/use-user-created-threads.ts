@@ -1,6 +1,7 @@
 /** 用户创建的帖子 API hook（GET /users/:id/created-threads，cursor 分页） */
 
 import { useInfiniteQuery } from "@tanstack/react-query";
+import { emptyCursorPage, getNextCursor } from "@/api/cursor-page";
 import { apiClient } from "@/api/client";
 import { BROWSING_RETURN_GC_TIME } from "@/api/query-policy";
 import { queryKeys } from "@/api/query-keys";
@@ -26,20 +27,12 @@ export function useUserCreatedThreads(userId: string | undefined) {
       if (error) throw error;
 
       if (!data?.data) {
-        return {
-          code: 0,
-          message: "ok",
-          data: [],
-          meta: { cursor: null, hasMore: false },
-        } satisfies CreatedThreadsResponse;
+        return emptyCursorPage<CreatedThreadsResponse["data"][number]>() satisfies CreatedThreadsResponse;
       }
       return data;
     },
     initialPageParam: undefined as string | undefined,
-    getNextPageParam: (lastPage) => {
-      if (!lastPage?.meta?.hasMore) return undefined;
-      return lastPage.meta.cursor ?? undefined;
-    },
+    getNextPageParam: getNextCursor,
     enabled: !!userId,
     staleTime: 60 * 1000,
     gcTime: BROWSING_RETURN_GC_TIME,

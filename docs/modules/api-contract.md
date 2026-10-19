@@ -154,3 +154,14 @@ Web 从 Backend 已提交 `2cdedbcdecee4991634cf4b256aa0f547b06d88c`（API5.38.0
 apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Color-Version: 1，保留既有角色提及头。supported 缺省为 false；支持时全部相关正文写入发送颜色版本，即使正文已去色。冻结请求保留“明确省略”状态，重试时不能因 meta 刷新自动改变请求能力。新写关闭不代表失去读取/保源能力；40016/40017 刷新 meta 并保留编辑输入。无能力读副本和覆盖拒绝由 Backend 实施，代理继续保留 Vary。
 
 发布顺序为兼容后端 → 可读保源消费者 → 显式批准开启新写。Web 锁定正式 Foundation v7.4.0；具体正文与复制规则见[正文协议](markdown-content-protocol.md#文本颜色-v1)，不删除现存协议或迁移历史数据。
+
+
+## 主题收藏与订阅总数
+
+固定 OpenAPI、同版本夹具和生成类型经标准 `contract:sync` / `generate:api` 同步自 Backend 已提交 `da68203a494c6d0f6d377c23399390c2cee397f3`（API `5.40.0-dev.20261018.1`）。复现同步与检查时指定 `WENYOUSITE_BACKEND_ROOT=/srv/wenyousite/wenyousite-backend` 和上述完整 `BACKEND_CONTRACT_REF`，只读取该 Git 提交，不读取其他任务的工作区修改。
+
+`GET /threads/{id}` 是总数的权威来源：`bookmarkCount` 统计未注销账号的实际收藏关系；`subscriberCount` 只统计未注销账号的官方更新显式订阅（`THREAD` 且 `targetUserId=null`），不含特定玩家的 `USER` 订阅或管理者自动通知。服务端在可见性验证后实时聚合，与当前查看者是否收藏/订阅无关，不从列表长度或本人关系状态推导。
+
+两个字段在共享 `ThreadDetailResponseDto` 中保持可选，以兼容旧后端以及复用该 DTO 的创建/更新响应。新版详情 GET 返回真实非负整数，真实零保留为 `0`；字段缺失表示未知，Web 不补零、不保留此前响应的旧总数。既有详情 Hook 直接保留生成类型和响应值，重新读取时采用最新详情响应。本次不扩展 Web 布局、统计控件或 mutation 行为，不把创建/更新响应当成统计来源。
+
+完整同步同时带入 Backend #54 已提交的颜色与对齐组合夹具；正文协议不变。整合 Web #73 已提交 `48eb3e926b9a926152427849e7742ab03fa4aa43` 的测试配置与永久回归，并将通用夹具断言接入同一语义比较：排除 Crepe 非持久 heading id，保留标题级别、对齐、全部文字与格式及序列化幂等校验；不改生产编辑器。Foundation 维持正式 v7.4.0，不增加视觉契约、Markdown 版本或数据迁移。消费者测试覆盖正数、真实零、字段独立缺失、全部缺失及重新读取后的更新/缺失，检查使用同一 Backend SHA。发布仍是兼容 Backend 先行；Web 本批仅保源兼容，不部署、不删除旧协议。

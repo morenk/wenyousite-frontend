@@ -83,10 +83,10 @@ describe("UserBookmarksSection", () => {
       isFetchingNextPage: false,
       isLoading: false,
       isError: true,
-      error: { code: 404 },
+      error: { code: 40401 },
     });
     render(<UserBookmarksSection userId="u1" />, { wrapper: createWrapper() });
-    expect(screen.getByText("该用户未公开收藏")).toBeInTheDocument();
+    expect(screen.getByText("用户不存在或未公开收藏")).toBeInTheDocument();
   });
 
   test("空收藏显示空态", () => {
