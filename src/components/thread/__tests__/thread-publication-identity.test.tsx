@@ -115,3 +115,37 @@ test("空角色保留配置入口并计入名额，不能选为发表身份", as
   expect(screen.getByRole("dialog", { name: "资料编辑器" })).toBeInTheDocument();
   expect(value.choose).not.toHaveBeenCalled();
 });
+
+test.each([
+  { enabled: false, eligible: true },
+  { enabled: true, eligible: false },
+  { enabled: false, eligible: false },
+])("开关/资格不可用时整个身份区为空且不改写草稿：%j", (availability) => {
+  for (const mode of ["ACCOUNT", "RP"]) {
+    for (const identities of [[], [role()]]) {
+      const value = controller({ mode, query: { data: collection(identities, availability) } });
+      const view = render(<ThreadPublicationIdentity controller={value} threadId="t1" />);
+      expect(view.container).toBeEmptyDOMElement();
+      expect(value.choose).not.toHaveBeenCalled();
+      expect(value.chooseCreated).not.toHaveBeenCalled();
+      view.unmount();
+    }
+  }
+});
+
+test.each([
+  { enabled: false, eligible: true },
+  { enabled: true, eligible: false },
+])("编辑过程中开关/资格失效时关闭身份资料入口：%j", async (availability) => {
+  const value = controller();
+  const view = render(<ThreadPublicationIdentity controller={value} threadId="t1" />);
+  await userEvent.click(screen.getByRole("button", { name: "发表身份" }));
+  await userEvent.click(screen.getByRole("menuitem", { name: "编辑白鸦的帖内资料" }));
+  expect(screen.getByRole("dialog", { name: "资料编辑器" })).toBeInTheDocument();
+  view.rerender(<ThreadPublicationIdentity controller={controller({
+    query: { data: collection([role()], availability) },
+  })} threadId="t1" />);
+  expect(view.container).toBeEmptyDOMElement();
+  expect(screen.queryByRole("dialog", { name: "资料编辑器" })).not.toBeInTheDocument();
+  expect(value.choose).not.toHaveBeenCalled();
+});

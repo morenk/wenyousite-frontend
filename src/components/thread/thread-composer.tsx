@@ -106,7 +106,8 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   const isReply = session.type === "reply";
   const submitLabel = uncertain ? "重试确认发表" : isEdit ? "保存修改" : isReply ? "回复" : "发布";
   const busy = pending || uploadImage.isPending;
-  const showIdentity = !isEdit && rpIdentitySupported && Boolean(threadId);
+  const showIdentity = !isEdit && rpIdentitySupported && Boolean(threadId)
+    && (!identity.query.data || (identity.query.data.enabled && identity.query.data.eligible));
 
   const submitOnce = async () => {
     if (busy || syncError) return;
