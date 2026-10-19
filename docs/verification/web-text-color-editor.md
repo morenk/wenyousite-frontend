@@ -6,7 +6,7 @@
 
 Foundation 锁定用户批准发布的 [v7.6.0](https://github.com/morenk/wenyousite-foundation/releases/tag/v7.6.0)，peeled SHA `1bbd5a5476b50c51d2bba1f2a218f9408a852c4a`、Tag 对象 `9bc7b530103fa1b929f90c6d307263d7bfbfc46b`。不使用未发布 SHA；不修改既有文本颜色 v1、全局 Markdown 或角色提及协议。能力入口要求支持标志和新写开关同时为真；关闭新写仍保留既有正文颜色。
 
-Auto-review 偏好已传递，宿主实际为 `approval_policy=never`，没有可用设置入口，未宣称已启用 Auto-review。本任务不包含 Web 合并或部署。
+Auto-review 偏好已传递，宿主实际为 `approval_policy=never`，没有可用设置入口，未宣称已启用 Auto-review。首轮交付只形成 PR；后续合并部署授权及复验见下方记录。
 
 ## 交互与自动检查
 
@@ -40,3 +40,19 @@ Auto-review 偏好已传递，宿主实际为 `approval_policy=never`，没有�
 每轮共 273 项、47 个文件。13 项跳过来自既有长讨论合成样本和负责人历史正文快照的可选入口（`E2E_DISCUSSION_FIXTURES` / `DISCUSSION_REPRO_FILE`），本次没有新增跳过或降低断言。文本颜色用例在完整套件中实际执行，含 SV 盘和色相条真实拖动、调色不改正文、应用/取消/撤销与发布保存。
 
 原始脱敏报告、门禁日志和 0600 资源身份证据持久保存于 `/srv/wenyousite/.artifacts/web-color-editor-20261020/` 的 `checks/` 与 `e2e/`；`delivery-receipt.json` 绑定最终提交 SHA、两轮结果和清理状态。连接凭据和测试私有配置不提交 Git。
+
+
+## 合并前整合复验
+
+负责人随后明确批准检查后合并 PR #82、仅部署 Web，并清理本任务分支和 Worktree、保留验收证据。GitHub 官方 API 核验该仓库没有 workflow，原 PR head 没有 check run、commit status 或 Actions run；空检查不是 CI 通过。负责人进一步明确批准“按本地完整门禁通过后继续合并部署”，没有新增 CI、绕过规则或使用旧 SHA 结果替代最终检查。
+
+合入最新 `origin/dev` 的 `bc142281e4cc3067bcdfbb472eb945140b8d9b9b`，生成整合提交 `46d5b58afe80b0eb16788f964a18c9dffbb932d3`，无冲突。新增基线只有已上线的 PR #76 身份入口规则；保留它对共享 ThreadComposer 的条件判断。该整合源码重新通过 `pnpm check` 全部门禁：410 个测试文件、5,390 项测试和生产构建。此后仅补交付文档，未修改运行源码。
+
+| 整合后完整运行 | 通过 / 跳过 / 失败 | 清理 |
+| --- | --- | --- |
+| `e2e_a60a2ffbd759e4bb6fde826a` | 260 / 13 / 0 | 三项清理 true；根目录及 PG/Redis/API 端口额外确认归零 |
+| `e2e_2063a05bfd4df5fe385b9f78` | 260 / 13 / 0 | 三项清理 true；根目录及 PG/Redis/API 端口额外确认归零 |
+
+两轮使用不同独立资源，运行前均核验实际 API 环境的邮件、推送和外部存储关闭。13 项仍为上文既有可选场景，没有新跳过。旧轮次只作为原交付历史，整合后的结果单独保存。
+
+最终复验日志、报告、资源身份证据和按 runId 区分的编辑正文／阅读截图保存在 Worktree 外 `/srv/wenyousite/.artifacts/web-color-editor-20261020/premerge/`；菜单与 RGB 面板的用户视觉验收仍引用 `preview/`。检查产生的普通生产构建根目录与 standalone 的 Build ID 均为 `zDwQ0ThQE-Cbd7PvIoYug`，实际 API rewrite 为 `http://127.0.0.1:3000`。E2E 产物使用独立 `.next-e2e`，不可部署。部署前复核运行源码等价、构建摘要和 release 内符号链接；实际合并／部署 SHA、只读烟雾与清理结果另存持久交付 receipt。
