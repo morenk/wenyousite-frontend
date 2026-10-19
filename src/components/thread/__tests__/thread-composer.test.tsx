@@ -15,6 +15,8 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 
 const mocks = vi.hoisted(() => ({
   rp: false,
+  identityEnabled: true,
+  identityEligible: true,
   deferChange: false,
   uploadPending: false,
   prepare: vi.fn(),
@@ -30,7 +32,7 @@ vi.mock("@/components/thread/thread-permissions-context", () => ({
   useThreadPermissions: () => ({ rpIdentitySupported: mocks.rp }),
 }));
 vi.mock("@/components/thread/use-thread-identity-submission", () => ({
-  useThreadIdentitySubmission: () => ({ prepare: mocks.prepare, requireConfirmation: mocks.requireConfirmation, query: { data: {} } }),
+  useThreadIdentitySubmission: () => ({ prepare: mocks.prepare, requireConfirmation: mocks.requireConfirmation, query: { data: { enabled: mocks.identityEnabled, eligible: mocks.identityEligible } } }),
 }));
 vi.mock("@/components/thread/thread-publication-identity", () => ({
   ThreadPublicationIdentity: ({ disabled }: { disabled: boolean }) => <button disabled={disabled}>身份选择</button>,
@@ -206,10 +208,30 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
   });
 
+  test.each([
+    { enabled: false, eligible: true },
+    { enabled: true, eligible: false },
+  ])("开关/资格失效后回复编辑器恢复标题并保留正文：%j", async ({ enabled, eligible }) => {
+    mocks.rp = true;
+    renderHarness();
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
+    mocks.identityEnabled = enabled;
+    mocks.identityEligible = eligible;
+    await userEvent.type(screen.getByTestId("milkdown-editor"), "继续编辑正文");
+    expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
+    expect(screen.getByText("发表回复")).toBeInTheDocument();
+    expect(screen.getByTestId("milkdown-editor")).toHaveValue("继续编辑正文");
+    await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
+  });
+
   afterEach(() => cleanup());
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.identityEnabled = true; mocks.identityEligible = true;
     mocks.rp = false; mocks.deferChange = false; mocks.uploadPending = false; mocks.prepare.mockResolvedValue(undefined);
     vi.stubGlobal("confirm", vi.fn(() => true));
     vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });

@@ -20,7 +20,8 @@ export function ThreadPublicationIdentity({
   if (query.isPending) return <p role="status" className="text-xs text-muted-foreground">正在加载发言身份…</p>;
   if (query.isError && !query.data) return <Button variant="ghost" type="button" size="sm" onClick={() => void query.refetch()}>身份加载失败，重试</Button>;
   const state = query.data;
-  const account = state?.account;
+  if (!state?.enabled || !state.eligible) return null;
+  const account = state.account;
   const identities = (state?.identities ?? []).map((role) => ({
     id: role.identityId,
     appearance: {
