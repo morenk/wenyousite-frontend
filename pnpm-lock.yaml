@@ -80,8 +80,8 @@ importers:
         specifier: 1.28.0
         version: 1.28.0(react@19.2.4)
       markdown-it:
-        specifier: 14.3.1
-        version: 14.3.1
+        specifier: 14.3.2
+        version: 14.3.2
       next:
         specifier: 16.3.8
         version: 16.3.8(patch_hash=6276f0a05e2c1143797fbbf8584566b24637dfc37a4f97ce0f37c7b0b0b4551b)(@babel/core@7.29.7(supports-color@10.2.2))(@playwright/test@1.62.0)(@types/node@20.19.43)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -3101,8 +3101,8 @@ packages:
     resolution: {integrity: sha512-hXdUTZYIVOt1Ex//jAQi+wTZZpUpwBj/0QsOzqegb3rGMMeJiSEu5xLHnYfBrRV4RH2+OCSOO95Is/7x1WJ4bw==}
     engines: {node: '>=10'}
 
-  markdown-it@14.3.1:
-    resolution: {integrity: sha512-4Ej49aYTDFIQ+uBkfX8GBvJGccoARxxPep+7aWTs55ozbjQJpW9M26Fe53vnGgvLeVzva/amzjQQaQu9w0vMhA==}
+  markdown-it@14.3.2:
+    resolution: {integrity: sha512-sHHjZ5fJKlgrG4qns2YwVcdNep35h5fERrfkD2YNsb9UFk0UIHarbiTaHKVMlPuWAoiilyK8Fv/jAm11slsY7Q==}
     hasBin: true
 
   markdown-table@3.0.4:
@@ -7538,7 +7538,7 @@ snapshots:
     dependencies:
       semver: 7.8.5
 
-  markdown-it@14.3.1:
+  markdown-it@14.3.2:
     dependencies:
       argparse: 2.0.1
       entities: 4.5.0
