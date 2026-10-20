@@ -710,6 +710,8 @@ for (const quoted of [false, true]) {
     const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
 
     await paragraph.evaluate((el) => {
+      // 先取得焦点，再设置 DOM 选区；反序会让 ProseMirror 的 focus 恢复旧光标。
+      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
       const text = el.firstChild!;
       const range = document.createRange();
       range.setStart(text, 1);
@@ -717,8 +719,11 @@ for (const quoted of [false, true]) {
       const selection = window.getSelection()!;
       selection.removeAllRanges();
       selection.addRange(range);
-      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
     });
+    await expect.poll(() => paragraph.evaluate((el) => {
+      const selection = window.getSelection();
+      return selection?.anchorNode === el.firstChild && selection.anchorOffset === 1 && selection.isCollapsed;
+    })).toBe(true);
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
