@@ -62,6 +62,9 @@ function EditorCore({
     handleValidityChange,
     markdownContractVersion,
     advertisedMarkdownContractVersion,
+    textFontSupported,
+    textFontWriteEnabled,
+    advertisedTextFontSupported,
     textColorSupported,
     textColorWriteEnabled,
     advertisedTextColorSupported,
@@ -92,18 +95,18 @@ function EditorCore({
     onSyncErrorChange,
   });
 
-  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; allowed: boolean } | null>(null);
+  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; font: boolean; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
     if (hostRef.current?.hasPendingUpload?.()) { toast.error("请先完成或移除音频上传"); return null; }
     const content = flush();
     if (content === null) return null;
     const cached = writeAssessmentRef.current;
-    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion || cached.color !== advertisedTextColorSupported) {
-      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, color: advertisedTextColorSupported, allowed: assessEditorInput(content, advertisedMarkdownContractVersion, advertisedTextColorSupported).edit };
+    if (!cached || cached.content !== content || cached.version !== advertisedMarkdownContractVersion || cached.color !== advertisedTextColorSupported || cached.font !== advertisedTextFontSupported) {
+      writeAssessmentRef.current = { content, version: advertisedMarkdownContractVersion, color: advertisedTextColorSupported, font: advertisedTextFontSupported, allowed: assessEditorInput(content, advertisedMarkdownContractVersion, advertisedTextColorSupported, advertisedTextFontSupported).edit };
     }
     return writeAssessmentRef.current!.allowed ? content : null;
-  }, [advertisedMarkdownContractVersion, advertisedTextColorSupported, flush, isComposing]);
+  }, [advertisedMarkdownContractVersion, advertisedTextColorSupported, advertisedTextFontSupported, flush, isComposing]);
 
   const handleValidity = useCallback((valid: boolean) => {
     setInvalid(!valid);
@@ -117,7 +120,7 @@ function EditorCore({
     return () => window.removeEventListener("beforeunload", preventLoss);
   }, [invalid]);
 
-  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported]);
+  const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported, textFontSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported, textFontSupported]);
   useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
   useEffect(() => {
     if (protectedContent) {
@@ -163,6 +166,8 @@ function EditorCore({
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
           mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
+          textFontVersion={textFontSupported ? 1 : undefined}
+          textFontWriteEnabled={allowTextColor && textFontWriteEnabled}
           textColorVersion={textColorSupported ? 1 : undefined}
           textColorWriteEnabled={allowTextColor && textColorWriteEnabled}
           textColorAccountId={user?.id}

@@ -43,8 +43,9 @@ export function useEditorDraftController({
   const advertisedVersion = apiMeta?.markdownContractVersion ?? 0;
   // v6是独立能力，不以全局版本号推断角色协议支持。
   const markdownContractVersion = apiMeta?.capabilities?.roleMentionsV6Supported ? 6 : advertisedVersion === 6 ? 0 : advertisedVersion;
+  const textFontSupported = apiMeta?.capabilities?.textFontV1Supported === true;
   const textColorSupported = apiMeta?.capabilities?.textColorV1Supported === true;
-  const capabilityKey = String(markdownContractVersion) + ":" + String(textColorSupported);
+  const capabilityKey = String(markdownContractVersion) + ":" + String(textColorSupported) + ":" + String(textFontSupported);
   const queryClient = useQueryClient();
   const { mutateAsync: saveDraftAutomatically } = useSaveDraft();
   const initialValue = defaultValue;
@@ -53,6 +54,7 @@ export function useEditorDraftController({
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(initialValue);
+  const [activeTextFontSupported, setActiveTextFontSupported] = useState(false);
   const [activeTextColorSupported, setActiveTextColorSupported] = useState(false);
   const [activeMarkdownContractVersion, setActiveMarkdownContractVersion] = useState(0);
   const [contractVersionReady, setContractVersionReady] = useState(false);
@@ -135,7 +137,7 @@ export function useEditorDraftController({
       if (current === null || current === undefined) return;
       source = current;
     }
-    const safeContent = assessEditorInput(source, markdownContractVersion, textColorSupported).edit
+    const safeContent = assessEditorInput(source, markdownContractVersion, textColorSupported, textFontSupported).edit
       ? sanitizeMilkdownMarkdown(source, { markdownContractVersion }) : source;
     clearTimeout(autoSaveTimerRef.current);
     autoSaveSequenceRef.current++;
@@ -146,9 +148,10 @@ export function useEditorDraftController({
     setVersion((current) => current + 1);
     setActiveMarkdownContractVersion(markdownContractVersion);
     setActiveTextColorSupported(textColorSupported);
+    setActiveTextFontSupported(textFontSupported);
     setContractVersionReady(true);
     if (safeContent !== initialValue) externalOnChangeRef.current?.(safeContent);
-  }, [capabilityReady, defaultValue, initialValue, markdownContractVersion, textColorSupported, capabilityKey, valid]);
+  }, [capabilityReady, defaultValue, initialValue, markdownContractVersion, textColorSupported, textFontSupported, capabilityKey, valid]);
 
   const handleValidityChange = useCallback((nextValid: boolean) => {
     externalSyncErrorRef.current?.(!nextValid);
@@ -183,7 +186,7 @@ export function useEditorDraftController({
       return;
     }
     if (hasEditorRef.current?.() && flushRef.current?.() === null) return;
-    if (!assessEditorInput(snapshot.content, markdownContractVersion, textColorSupported).edit) {
+    if (!assessEditorInput(snapshot.content, markdownContractVersion, textColorSupported, textFontSupported).edit) {
       toast.error("此草稿包含当前版本无法安全编辑的内容，原草稿和当前输入已保留");
       return;
     }
@@ -201,7 +204,7 @@ export function useEditorDraftController({
     externalOnChangeRef.current?.(safeContent);
     scheduleAutoSaveRef.current?.();
     toast.success("已恢复正文草稿");
-  }, [markdownContractVersion, textColorSupported]);
+  }, [markdownContractVersion, textColorSupported, textFontSupported]);
 
   const handleOpenDrafts = useCallback(() => {
     setDraftOpen(true);
@@ -231,7 +234,7 @@ export function useEditorDraftController({
             const content = flushRef.current ? flushRef.current() : latestContentRef.current;
             if (content === null || !content.trim() || !validRef.current
               || autoSaveSequenceRef.current !== sequence
-              || !assessEditorInput(content, markdownContractVersion, textColorSupported).edit) return null;
+              || !assessEditorInput(content, markdownContractVersion, textColorSupported, textFontSupported).edit) return null;
             setAutoSaveStatus("saving");
             const currentDraft = autoSaveDraftRef.current;
             return currentDraft
@@ -259,7 +262,7 @@ export function useEditorDraftController({
       clearTimeout(autoSaveTimerRef.current);
       scheduleAutoSaveRef.current = null;
     };
-  }, [autoSaveEnabled, currentContent, markdownContractVersion, textColorSupported, saveDraftAutomatically, valid]);
+  }, [autoSaveEnabled, currentContent, markdownContractVersion, textColorSupported, textFontSupported, saveDraftAutomatically, valid]);
 
   const handleAutoSaveChange = useCallback(
     (enabled: boolean, draft?: Pick<DraftItem, "id" | "version">) => {
@@ -282,6 +285,9 @@ export function useEditorDraftController({
     user,
     markdownContractVersion: activeMarkdownContractVersion,
     advertisedMarkdownContractVersion: markdownContractVersion,
+    textFontSupported: activeTextFontSupported,
+    textFontWriteEnabled: textFontSupported && apiMeta?.capabilities?.textFontV1WriteEnabled === true,
+    advertisedTextFontSupported: textFontSupported,
     textColorSupported: activeTextColorSupported,
     textColorWriteEnabled: textColorSupported && apiMeta?.capabilities?.textColorV1WriteEnabled === true,
     advertisedTextColorSupported: textColorSupported,

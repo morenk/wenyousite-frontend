@@ -16,6 +16,11 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "markdown-text-font-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
+    "markdown-text-font-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
+    "thread-font-catalog-v1.json": { schemaVersion: 1, fontVersion: 1, fonts: [] },
+    "thread-font-manifest-v1.json": { schemaVersion: 1, fonts: [] },
+    "thread-font-manifest-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "markdown-text-color-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
     "markdown-text-color-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "rp-identity-profile-post.v1.fixtures.json": { version: 1, contractVersion: "test", capability: "rpIdentityProfileSupported", cases: [] },

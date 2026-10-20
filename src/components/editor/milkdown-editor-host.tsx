@@ -1,6 +1,14 @@
+"use client";
+import { useVisibleTextFonts } from "./use-visible-text-fonts";
+import { useTextFontCatalog } from "@/api/hooks/use-text-font-catalog";
+import { normalizeTextFont } from "@/lib/markdown-text-font";
+import { validatedFontBase } from "@/lib/thread-font-runtime";
+import { EditorFontPreview } from "./editor-font-preview";
+import { editorTextFontSchema, editorTextFontAtomicPolicy } from "./editor-text-font";
+import { applyEditorTextFont, getEditorTextFont, editorTextFontTyping, clearEditorTextFontTyping } from "./editor-text-font-command";
 /** Milkdown 编辑器核心：仅由轻量动态入口加载。 */
 
-"use client";
+
 
 import { useEditorAudioView } from "./editor-audio-view";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
@@ -249,6 +257,8 @@ export interface MilkdownEditorHostProps {
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
+  textFontVersion?: 1;
+  textFontWriteEnabled?: boolean;
   textColorVersion?: 1;
   textColorWriteEnabled?: boolean;
   textColorAccountId?: string;
@@ -279,6 +289,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   audioUserId,
   mentionIdentities,
   markdownContractVersion,
+  textFontVersion,
+  textFontWriteEnabled = false,
   textColorVersion,
   textColorWriteEnabled = false,
   textColorAccountId,
@@ -304,6 +316,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [stickerAnchor, setStickerAnchor] = useState<HTMLElement | null>(null);
   const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
   const colorSelectionRef = useRef<SelectionBookmark | null>(null);
+  const [fontSelection, setFontSelection] = useState<{ enabled: boolean; fontId: string | null | undefined }>({ enabled: false, fontId: undefined });
+  const fontCatalog = useTextFontCatalog(textFontWriteEnabled);
   const [colorSelection, setColorSelection] = useState<{ enabled: boolean; color: string | null | undefined }>({ enabled: false, color: undefined });
   const capabilityReady = true;
   const alignmentEnabled = markdownContractVersion >= 4;
@@ -312,11 +326,15 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useEffect(() => {
     if (!loading && !textColorWriteEnabled) crepeRef.current?.editor.action((ctx) => clearEditorTextColorTyping(ctx.get(editorViewCtx)));
   }, [loading, textColorWriteEnabled]);
+  useEffect(() => {
+    if (!loading && !textFontWriteEnabled) crepeRef.current?.editor.action((ctx) => clearEditorTextFontTyping(ctx.get(editorViewCtx)));
+  }, [loading, textFontWriteEnabled]);
   const captureColorSelection = useCallback(() => {
     crepeRef.current?.editor.action((ctx) => {
       const state = ctx.get(editorViewCtx).state;
       colorSelectionRef.current = state.selection.getBookmark();
       setColorSelection(getEditorTextColor(state));
+      setFontSelection(getEditorTextFont(state));
     });
   }, []);
   const restoreColorSelection = () => {
@@ -335,6 +353,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useEffect(() => { audioActionRef.current = audioUpload.open; }, [audioUpload.open]);
   const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
   const hostRef = useRef<HTMLDivElement>(null);
+  useVisibleTextFonts(hostRef, loading);
   const onChangeRef = useRef(onChange);
   const onValidityRef = useRef(onValidityChange);
   const flushRef = useRef<(() => string | null) | null>(null);
@@ -877,6 +896,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         },
         markdownContractVersion,
         textColorVersion,
+        textFontVersion,
         onReady: (flush) => { flushRef.current = flush; },
         onValid: () => onValidityRef.current?.(true),
         onChange: (markdown) => {
@@ -899,6 +919,9 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
 
         .use(internalReferenceLinkView)
         .use(editorMentionCaretPlugin)
+        .use(editorTextFontSchema)
+        .use(editorTextFontAtomicPolicy)
+        .use(editorTextFontTyping)
         .use(editorTextColorSchema)
         .use(editorTextColorAtomicPolicy)
         .use(editorTextColorTyping)
@@ -919,7 +942,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
 
       return crepe;
     },
-    [capabilityReady, markdownContractVersion, textColorVersion],
+    [capabilityReady, markdownContractVersion, textColorVersion, textFontVersion],
   );
 
   useEffect(() => {
@@ -1129,8 +1152,25 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         />
       </div>
       <EditorHeadingMenu
-        key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled)}
+        key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled) + String(textFontWriteEnabled)}
         anchor={headingMenuAnchor}
+        fontControls={textFontVersion === 1 ? {
+          enabled: fontSelection.enabled && !disabled && !composingRef.current,
+          value: fontSelection.fontId,
+          accountId: textColorAccountId,
+          options: textFontWriteEnabled && fontCatalog.data?.manifest && validatedFontBase(fontCatalog.data.assetBaseUrl) ? fontCatalog.data.fonts.filter((font) => font.availability === "ready" && normalizeTextFont(font.id)).map((font) => ({ value: font.id, label: font.name })) : [],
+          loading: textFontWriteEnabled && fontCatalog.isLoading,
+          error: fontCatalog.isError ? "字体列表加载失败" : undefined,
+          onRetry: () => { void fontCatalog.refetch(); },
+          onApply: (fontId) => {
+            if (disabled || composingRef.current || (fontId !== null && (!textFontWriteEnabled || !fontCatalog.data?.manifest || !validatedFontBase(fontCatalog.data.assetBaseUrl) || !fontCatalog.data.fonts.some((font) => font.id === fontId && font.availability === "ready")))) return false;
+            const applied = crepeRef.current?.editor.action((ctx) => applyEditorTextFont(ctx.get(editorViewCtx), fontId, colorSelectionRef.current ?? undefined)) ?? false;
+            if (applied) setHeadingMenuAnchor(null);
+            return applied;
+          },
+          onCancel: () => { restoreColorSelection(); setHeadingMenuAnchor(null); },
+          renderPreview: (font) => <EditorFontPreview fontId={font.value} />,
+        } : undefined}
         colorControls={textColorWriteEnabled && textColorVersion === 1 ? {
           ...colorSelection,
           enabled: colorSelection.enabled && !disabled && !composingRef.current,

@@ -2,6 +2,7 @@
 
 export const queryKeys = {
   meta: ["api-meta"] as const,
+  textFonts: ["text-font-catalog"] as const,
   appDownloads: { android: ["app-downloads", "android"] as const },
   threadIdentities: {
     all: ["thread-identities"] as const,

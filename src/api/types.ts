@@ -3159,6 +3159,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/meta/text-fonts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsGetCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/mobile-releases": {
         parameters: {
             query?: never;
@@ -4383,6 +4399,11 @@ export interface components {
         };
         CreateThreadDto: {
             /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
+            /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
              */
@@ -4651,6 +4672,11 @@ export interface components {
             version: number;
         };
         SaveThreadAggregateDto: {
+            /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5316,6 +5342,11 @@ export interface components {
         };
         CreateSubthreadDto: {
             /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
+            /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
              */
@@ -5562,6 +5593,11 @@ export interface components {
         };
         UpsertBodyDto: {
             /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
+            /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
              */
@@ -5639,6 +5675,11 @@ export interface components {
             author: components["schemas"]["PostAuthorResponseDto"];
         };
         CreatePostDto: {
+            /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5744,6 +5785,11 @@ export interface components {
         };
         UpdatePostDto: {
             /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
+            /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
              */
@@ -5798,6 +5844,11 @@ export interface components {
         };
         CreateDraftDto: {
             /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
+            /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
              */
@@ -5829,6 +5880,11 @@ export interface components {
             version?: number;
         };
         UpdateDraftDto: {
+            /**
+             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @enum {integer}
+             */
+            textFontVersion?: 1;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -7012,6 +7068,10 @@ export interface components {
             outputContentType: "audio/mpeg";
         };
         ApiCapabilitiesResponseDto: {
+            /** @description 支持字体 v1 保源和旧端降级；缺失按 false */
+            textFontV1Supported?: boolean;
+            /** @description 允许新增/修改字体；关闭仍可保留或移除已有字体，缺失按 false */
+            textFontV1WriteEnabled?: boolean;
             /** @description 支持独立文本颜色 v1 保源/旧端降级；缺失按 false */
             textColorV1Supported?: boolean;
             /** @description 允许新增/修改颜色范围；关闭仍允许保留或移除已有颜色，缺失按 false */
@@ -7047,6 +7107,31 @@ export interface components {
             markdownContractVersion: number;
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
             mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];
+        };
+        TextFontManifestDto: {
+            /** @description 相对于 assetBaseUrl 的不可变路径；不得解释为任意外链 */
+            path: string;
+            sha256: string;
+            bytes: number;
+        };
+        TextFontFamilyDto: {
+            /** @description 正文 data-wenyou-font-v1 使用的固定身份 */
+            id: string;
+            name: string;
+            /**
+             * @description ready 表示构建产物已核验；实际加载还须 assetBaseUrl。pendingSource/pendingLicense 不可选择或新增写入。
+             * @enum {string}
+             */
+            availability: "ready" | "pendingSource" | "pendingLicense";
+        };
+        TextFontCatalogDto: {
+            /** @enum {number} */
+            fontVersion: 1;
+            catalogVersion: string;
+            /** @description 运营配置的自有静态分发前缀，末尾为 /；未发布时 null，不直接访问第三方上游。 */
+            assetBaseUrl: string | null;
+            manifest: components["schemas"]["TextFontManifestDto"] | null;
+            fonts: components["schemas"]["TextFontFamilyDto"][];
         };
         PublicMobileReleaseDto: {
             /** @enum {string} */
@@ -7960,6 +8045,9 @@ export interface components {
         MetaGetMeta200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ApiMetaResponseDto"];
         };
+        TextFontsGetCatalog200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TextFontCatalogDto"];
+        };
         MobileReleasesList200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["PublicMobileReleaseDto"][];
         };
@@ -8006,7 +8094,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 42901 | 42902 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40019 | 40020 | 40021 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 42901 | 42902 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -8037,6 +8125,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8047,7 +8137,7 @@ export interface operations {
                 headers: {
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8065,7 +8155,7 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8078,7 +8168,7 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8091,7 +8181,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8115,6 +8205,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 buildNumber: number;
@@ -8144,7 +8236,7 @@ export interface operations {
                     "x-amz-meta-application-id"?: "site.wenyou.app";
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8176,7 +8268,7 @@ export interface operations {
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
                     "Content-Range"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8189,7 +8281,7 @@ export interface operations {
             /** @description 构建不存在或未发布 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8204,7 +8296,7 @@ export interface operations {
                 headers: {
                     /** @description bytes *\/<总长度> */
                     "Content-Range"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8222,7 +8314,7 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8235,7 +8327,7 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8248,7 +8340,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8272,6 +8364,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 buildNumber: number;
@@ -8301,7 +8395,7 @@ export interface operations {
                     "x-amz-meta-application-id"?: "site.wenyou.app";
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8333,7 +8427,7 @@ export interface operations {
                     "x-amz-meta-version-name"?: string;
                     "x-amz-meta-version-code"?: string;
                     "Content-Range"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8346,7 +8440,7 @@ export interface operations {
             /** @description 构建不存在或未发布 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8361,7 +8455,7 @@ export interface operations {
                 headers: {
                     /** @description bytes *\/<总长度> */
                     "Content-Range"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8379,7 +8473,7 @@ export interface operations {
                     "X-Download-Limit-Reason"?: "device_daily_limit" | "ip_daily_limit" | "byte_budget" | "request_rate" | "concurrency" | "bandwidth";
                     /** @description 可选：第一方签名随机浏览器标识；HttpOnly、SameSite=Lax，生产 Secure；不是用户认证，旧 APP 可忽略 */
                     "Set-Cookie"?: string;
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8392,7 +8486,7 @@ export interface operations {
             /** @description 账本/目录依赖异常或网关未接通；文件缓存缺失/损坏、撤回/暂停也为 503；绝不回源 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8405,7 +8499,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8425,6 +8519,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8438,7 +8534,7 @@ export interface operations {
              */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8451,7 +8547,7 @@ export interface operations {
             /** @description The Health Check is not successful */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8464,7 +8560,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8484,6 +8580,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8497,7 +8595,7 @@ export interface operations {
             /** @description 验证码已发送 { emailSent, codeExpiresIn: 900 } */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8510,7 +8608,7 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（1 分钟 1 次） */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8524,7 +8622,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8546,6 +8644,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8559,7 +8659,7 @@ export interface operations {
             /** @description 注册成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8572,7 +8672,7 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8585,7 +8685,7 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8598,7 +8698,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8620,6 +8720,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8633,7 +8735,7 @@ export interface operations {
             /** @description 登录成功；Web 通过 httpOnly Cookie 接收 refresh token，移动客户端从响应体接收 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8646,7 +8748,7 @@ export interface operations {
             /** @description 账号或密码错误 或 账号被锁定 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8659,7 +8761,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8679,6 +8781,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8692,7 +8796,7 @@ export interface operations {
             /** @description 刷新成功；平台沿用服务端会话记录，不信任请求头 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8705,7 +8809,7 @@ export interface operations {
             /** @description refreshToken 无效/过期/已被盗用（确认重放时对应登录终端退出） */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8718,7 +8822,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8738,6 +8842,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8751,7 +8857,7 @@ export interface operations {
             /** @description 密码修改成功 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8764,7 +8870,7 @@ export interface operations {
             /** @description 未登录或旧密码错误 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8777,7 +8883,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8797,6 +8903,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8810,7 +8918,7 @@ export interface operations {
             /** @description 密码重置邮件已发送 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8823,7 +8931,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8843,6 +8951,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8856,7 +8966,7 @@ export interface operations {
             /** @description 密码重置成功 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8869,7 +8979,7 @@ export interface operations {
             /** @description 验证码错误 或 密码格式不符合要求 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8882,7 +8992,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8902,6 +9012,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8915,7 +9027,7 @@ export interface operations {
             /** @description 验证码已发送 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8928,7 +9040,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8941,7 +9053,7 @@ export interface operations {
             /** @description 新邮箱已被占用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8954,7 +9066,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -8974,6 +9086,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -8987,7 +9101,7 @@ export interface operations {
             /** @description 邮箱更换成功 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9000,7 +9114,7 @@ export interface operations {
             /** @description 验证码错误或过期 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9013,7 +9127,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9026,7 +9140,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9046,6 +9160,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9059,7 +9175,7 @@ export interface operations {
             /** @description 当前登录终端已撤销，客户端 Cookie 被清除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9072,7 +9188,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9092,6 +9208,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9101,7 +9219,7 @@ export interface operations {
             /** @description 最多返回 Web 与移动客户端各一个活跃登录终端 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9114,7 +9232,7 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（登录终端列表独立限流 60 次/分钟） */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9128,7 +9246,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9148,6 +9266,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -9159,7 +9279,7 @@ export interface operations {
             /** @description 指定登录终端已退出 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9172,7 +9292,7 @@ export interface operations {
             /** @description 登录终端不存在或已失效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9185,7 +9305,7 @@ export interface operations {
             /** @description 请求频繁，请稍后重试（退出登录终端独立限流 60 次/分钟） */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9199,7 +9319,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9222,6 +9342,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9231,7 +9353,7 @@ export interface operations {
             /** @description 匹配的用户列表（最多 10 条），含 id/username/avatar */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9244,7 +9366,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9257,7 +9379,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9284,6 +9406,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9293,7 +9417,7 @@ export interface operations {
             /** @description 最多返回 20 个可艾特用户，并返回是否允许 @全体玩家 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9306,7 +9430,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9319,7 +9443,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9339,6 +9463,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9348,7 +9474,7 @@ export interface operations {
             /** @description 含 email / 隐私设置 / _count.following / _count.followers */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9361,7 +9487,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9374,7 +9500,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9394,6 +9520,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9403,7 +9531,7 @@ export interface operations {
             /** @description 账号已注销 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9416,7 +9544,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9429,7 +9557,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9449,6 +9577,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9462,7 +9592,7 @@ export interface operations {
             /** @description 更新后的用户资料 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9475,7 +9605,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9488,7 +9618,7 @@ export interface operations {
             /** @description 用户名已被占用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9501,7 +9631,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9526,6 +9656,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9535,7 +9667,7 @@ export interface operations {
             /** @description 协作主题列表，按 updatedAt DESC、id DESC 稳定游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9548,7 +9680,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9561,7 +9693,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9581,6 +9713,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9590,7 +9724,7 @@ export interface operations {
             /** @description 更新后的用户资料（avatar 为 null） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9603,7 +9737,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9616,7 +9750,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9636,6 +9770,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9649,7 +9785,7 @@ export interface operations {
             /** @description 更新后的用户资料（含新头像） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9662,7 +9798,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9675,7 +9811,7 @@ export interface operations {
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9688,7 +9824,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9708,6 +9844,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9717,7 +9855,7 @@ export interface operations {
             /** @description 更新后的用户资料（profileCover 为 null） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9730,7 +9868,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9743,7 +9881,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9763,6 +9901,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -9776,7 +9916,7 @@ export interface operations {
             /** @description 更新后的用户资料（含新背景图） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9789,7 +9929,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9802,7 +9942,7 @@ export interface operations {
             /** @description mediaId 不存在或未完成处理 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9815,7 +9955,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9840,6 +9980,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -9851,7 +9993,7 @@ export interface operations {
             /** @description 用户的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9864,7 +10006,7 @@ export interface operations {
             /** @description 用户不存在或未公开收藏 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9877,7 +10019,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9902,6 +10044,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -9913,7 +10057,7 @@ export interface operations {
             /** @description 用户公开的动态收藏（cursor 分页） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9926,7 +10070,7 @@ export interface operations {
             /** @description 用户不存在或未公开收藏 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9939,7 +10083,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9966,6 +10110,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -9977,7 +10123,7 @@ export interface operations {
             /** @description 用户参与的帖子列表（cursor 分页） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -9990,7 +10136,7 @@ export interface operations {
             /** @description 用户不存在或未公开参与的帖子 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10003,7 +10149,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10028,6 +10174,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10039,7 +10187,7 @@ export interface operations {
             /** @description 用户创建的主题帖列表（cursor 分页） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10052,7 +10200,7 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10065,7 +10213,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10085,6 +10233,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10096,7 +10246,7 @@ export interface operations {
             /** @description 按当前查看者权限统计动态、创建主题、参与主题和回复总数 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10109,7 +10259,7 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10122,7 +10272,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10142,6 +10292,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10153,7 +10305,7 @@ export interface operations {
             /** @description 用户最近 10 条回复（含预览截断、所属帖子/子贴信息） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10166,7 +10318,7 @@ export interface operations {
             /** @description 用户不存在或未公开最近动态 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10179,7 +10331,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10199,6 +10351,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10210,7 +10364,7 @@ export interface operations {
             /** @description 公开资料。登录后附加 isFollowing/isFollowedBy/isBlocked/isBlockedBy */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10223,7 +10377,7 @@ export interface operations {
             /** @description 用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10236,7 +10390,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10256,6 +10410,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10267,7 +10423,7 @@ export interface operations {
             /** @description 关注结果（成功 / 已关注 / 不能关注自己） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10280,7 +10436,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10293,7 +10449,7 @@ export interface operations {
             /** @description 目标用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10306,7 +10462,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10326,6 +10482,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10337,7 +10495,7 @@ export interface operations {
             /** @description 已取消关注 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10350,7 +10508,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10370,6 +10528,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10381,7 +10541,7 @@ export interface operations {
             /** @description 已移除粉丝（含关系已不存在） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10394,7 +10554,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10407,7 +10567,7 @@ export interface operations {
             /** @description 当前账号无写入权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10420,7 +10580,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10440,6 +10600,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10449,7 +10611,7 @@ export interface operations {
             /** @description 我的关注用户列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10462,7 +10624,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10482,6 +10644,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10491,7 +10655,7 @@ export interface operations {
             /** @description 我的粉丝列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10504,7 +10668,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10524,6 +10688,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10535,7 +10701,7 @@ export interface operations {
             /** @description 指定用户的关注列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10548,7 +10714,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10568,6 +10734,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10579,7 +10747,7 @@ export interface operations {
             /** @description 指定用户的粉丝列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10592,7 +10760,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10612,6 +10780,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10623,7 +10793,7 @@ export interface operations {
             /** @description 拉黑结果 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10636,7 +10806,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10656,6 +10826,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10667,7 +10839,7 @@ export interface operations {
             /** @description 已取消拉黑 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10680,7 +10852,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10700,6 +10872,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10709,7 +10883,7 @@ export interface operations {
             /** @description 我的黑名单列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10722,7 +10896,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10747,6 +10921,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10756,7 +10932,7 @@ export interface operations {
             /** @description 通知列表（cursor 分页，按时间倒序） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10769,7 +10945,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10782,7 +10958,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10802,6 +10978,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10811,7 +10989,7 @@ export interface operations {
             /** @description { unreadCount: number } */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10824,7 +11002,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10837,7 +11015,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10857,6 +11035,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10868,7 +11048,7 @@ export interface operations {
             /** @description 已删除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10881,7 +11061,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10894,7 +11074,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10914,6 +11094,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -10929,7 +11111,7 @@ export interface operations {
             /** @description 标记结果（已标记为已读 / 已标记为未读） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10942,7 +11124,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10955,7 +11137,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10975,6 +11157,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -10984,7 +11168,7 @@ export interface operations {
             /** @description 全部已标记为已读 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -10997,7 +11181,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11010,7 +11194,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11030,6 +11214,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11042,7 +11228,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11055,7 +11241,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11075,6 +11261,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11083,7 +11271,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11096,7 +11284,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11123,6 +11311,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11132,7 +11322,7 @@ export interface operations {
             /** @description 我的收藏列表（cursor 分页，含帖子摘要） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11145,7 +11335,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11158,7 +11348,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11178,6 +11368,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11191,7 +11383,7 @@ export interface operations {
             /** @description 创建的收藏记录 */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11204,7 +11396,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11217,7 +11409,7 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11230,7 +11422,7 @@ export interface operations {
             /** @description 重复收藏 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11243,7 +11435,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11263,6 +11455,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11271,7 +11465,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11284,7 +11478,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11304,6 +11498,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11316,7 +11512,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11329,7 +11525,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11349,6 +11545,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11359,7 +11557,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11372,7 +11570,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11385,7 +11583,7 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11398,7 +11596,7 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11411,7 +11609,7 @@ export interface operations {
             /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11424,7 +11622,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11444,6 +11642,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11458,7 +11658,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11471,7 +11671,7 @@ export interface operations {
             /** @description 名称 trim 后须为 1–24 个字符 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11484,7 +11684,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11497,7 +11697,7 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11510,7 +11710,7 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11523,7 +11723,7 @@ export interface operations {
             /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11536,7 +11736,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11556,6 +11756,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11567,7 +11769,7 @@ export interface operations {
             /** @description 已取消收藏 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11580,7 +11782,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11593,7 +11795,7 @@ export interface operations {
             /** @description 收藏不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11606,7 +11808,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11626,6 +11828,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11640,7 +11844,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11653,7 +11857,7 @@ export interface operations {
             /** @description 收藏或收藏夹不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11666,7 +11870,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11686,6 +11890,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11695,7 +11901,7 @@ export interface operations {
             /** @description 草稿列表，每个含子贴标题和标签 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11708,7 +11914,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11721,7 +11927,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11758,6 +11964,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11767,7 +11975,7 @@ export interface operations {
             /** @description 分页列表，meta 含 cursor/hasMore。每个帖含 owner/subthreads/bodyPost.content(正文预览)/topicTags/_count */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11780,7 +11988,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11800,6 +12008,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -11813,7 +12023,7 @@ export interface operations {
             /** @description 草稿创建成功，返回完整 Thread 对象（含正文待掷骰子） */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11826,7 +12036,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11839,7 +12049,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11859,6 +12069,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11870,7 +12082,7 @@ export interface operations {
             /** @description Thread 完整对象（含 bodyPost 的待掷与正式骰子结果）。viewCount 异步 +1 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11883,7 +12095,7 @@ export interface operations {
             /** @description 主题帖不存在或已删除（PRIVATE 帖非成员也返回 404） */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11896,7 +12108,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11916,6 +12128,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -11927,7 +12141,7 @@ export interface operations {
             /** @description 主题帖已删除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11940,7 +12154,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11953,7 +12167,7 @@ export interface operations {
             /** @description 非 OWNER 不可删除 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11966,7 +12180,7 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11979,7 +12193,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -11999,6 +12213,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12014,7 +12230,7 @@ export interface operations {
             /** @description 更新成功返回 Thread 完整对象。发布时原子结算全部待掷骰子 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12027,7 +12243,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12040,7 +12256,7 @@ export interface operations {
             /** @description 无管理权限（非 OWNER/COLLABORATOR） */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12053,7 +12269,7 @@ export interface operations {
             /** @description 主题帖不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12066,7 +12282,7 @@ export interface operations {
             /** @description 乐观锁冲突（version 过期）或已发布帖重复发布 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12079,7 +12295,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12099,6 +12315,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12114,7 +12332,7 @@ export interface operations {
             /** @description ZIP 包含以帖子标题命名的 .md/.txt 正文文件、可选 media/ 和必要时的 export-notes.txt */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12127,7 +12345,7 @@ export interface operations {
             /** @description 导出选项格式不正确 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12140,7 +12358,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12153,7 +12371,7 @@ export interface operations {
             /** @description 无主题帖管理权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12166,7 +12384,7 @@ export interface operations {
             /** @description 主题帖不存在、已删除或尚未发布 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12179,7 +12397,7 @@ export interface operations {
             /** @description 超过 10000 条内容、16 MiB 正文或 64 MiB 图片上限 */
             413: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12192,7 +12410,7 @@ export interface operations {
             /** @description 已有导出进行中或请求过于频繁 */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12206,7 +12424,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12226,6 +12444,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12241,7 +12461,7 @@ export interface operations {
             /** @description 全部字段在同一事务内保存，返回最新完整主题帖 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12254,7 +12474,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12267,7 +12487,7 @@ export interface operations {
             /** @description 无管理权限或协作者尝试修改楼主专属字段 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12280,7 +12500,7 @@ export interface operations {
             /** @description 主题帖或默认子贴不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12293,7 +12513,7 @@ export interface operations {
             /** @description 主题帖、默认子贴或正文乐观锁冲突 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12306,7 +12526,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12326,6 +12546,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12337,7 +12559,7 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12350,7 +12572,7 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12363,7 +12585,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12383,6 +12605,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12394,7 +12618,7 @@ export interface operations {
             /** @description 主题帖 ID 与最新点赞数 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12407,7 +12631,7 @@ export interface operations {
             /** @description 主题帖不存在、已删除，或当前用户无权访问未发布/PRIVATE 主题 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12420,7 +12644,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12440,6 +12664,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12451,7 +12677,7 @@ export interface operations {
             /** @description 当前邀请链接；重复或并发请求不更换 token */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12464,7 +12690,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12477,7 +12703,7 @@ export interface operations {
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12490,7 +12716,7 @@ export interface operations {
             /** @description 主题帖不存在或不可访问 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12503,7 +12729,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12523,6 +12749,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -12534,7 +12762,7 @@ export interface operations {
             /** @description 邀请链接对象（threadId / token）。已存在则刷新 token */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12547,7 +12775,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12560,7 +12788,7 @@ export interface operations {
             /** @description 仅 OWNER / 未发布 / 非私密帖 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12573,7 +12801,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12593,6 +12821,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 token: string;
@@ -12604,7 +12834,7 @@ export interface operations {
             /** @description 帖子概要和 alreadyJoined 状态 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12617,7 +12847,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12630,7 +12860,7 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12643,7 +12873,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12663,6 +12893,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 token: string;
@@ -12674,7 +12906,7 @@ export interface operations {
             /** @description 加入成功或已加入时返回成员记录（thread.title / user 基本信息） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12687,7 +12919,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12700,7 +12932,7 @@ export interface operations {
             /** @description 邀请链接无效或已失效 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12713,7 +12945,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12733,6 +12965,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12743,7 +12977,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12756,7 +12990,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12776,6 +13010,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12786,7 +13022,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12799,7 +13035,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12819,6 +13055,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12838,7 +13076,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12851,7 +13089,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12871,6 +13109,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12882,7 +13122,7 @@ export interface operations {
             /** @description 已退出主题帖 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12895,7 +13135,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12915,6 +13155,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12925,7 +13167,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12938,7 +13180,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12958,6 +13200,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -12972,7 +13216,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -12985,7 +13229,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13005,6 +13249,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13017,7 +13263,7 @@ export interface operations {
             /** @description 标签已移除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13030,7 +13276,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13050,6 +13296,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13060,7 +13308,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13073,7 +13321,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13093,6 +13341,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13107,7 +13357,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13120,7 +13370,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13140,6 +13390,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13150,7 +13402,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13163,7 +13415,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13183,6 +13435,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13194,7 +13448,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13207,7 +13461,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13227,6 +13481,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13241,7 +13497,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13254,7 +13510,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13274,6 +13530,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13284,7 +13542,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13297,7 +13555,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13317,6 +13575,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13331,7 +13591,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13344,7 +13604,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13364,6 +13624,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13375,7 +13637,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13388,7 +13650,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13408,6 +13670,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13423,7 +13687,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13436,7 +13700,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13456,6 +13720,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -13471,7 +13737,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13484,7 +13750,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13507,6 +13773,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13516,7 +13784,7 @@ export interface operations {
             /** @description 标签列表（按名称排序），数量少时不缓存直接查库 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13529,7 +13797,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13549,6 +13817,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13562,7 +13832,7 @@ export interface operations {
             /** @description 创建成功返回标签对象（含 id / name / color / createdAt） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13575,7 +13845,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13588,7 +13858,7 @@ export interface operations {
             /** @description 标签名已存在 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13601,7 +13871,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13621,6 +13891,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -13632,7 +13904,7 @@ export interface operations {
             /** @description 标签详情对象（id / name / color / createdAt） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13645,7 +13917,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13665,6 +13937,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13673,7 +13947,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13686,7 +13960,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13706,6 +13980,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13718,7 +13994,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13731,7 +14007,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13751,6 +14027,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13763,7 +14041,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13776,7 +14054,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13796,6 +14074,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13808,7 +14088,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13821,7 +14101,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13841,6 +14121,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13853,7 +14135,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13866,7 +14148,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13886,6 +14168,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13898,7 +14182,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13911,7 +14195,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13931,6 +14215,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -13941,7 +14227,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13954,7 +14240,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13974,6 +14260,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -13986,7 +14274,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -13999,7 +14287,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14019,6 +14307,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 favoriteId: string;
@@ -14029,7 +14319,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14042,7 +14332,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14062,6 +14352,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14070,7 +14362,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14083,7 +14375,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14109,6 +14401,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14118,7 +14412,7 @@ export interface operations {
             /** @description 动态卡片游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14131,7 +14425,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14151,6 +14445,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14163,7 +14459,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14176,7 +14472,7 @@ export interface operations {
             /** @description 标题、正文、封面或图片状态不合法 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14189,7 +14485,7 @@ export interface operations {
             /** @description 幂等键复用或图片已被使用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14202,7 +14498,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14229,6 +14525,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14238,7 +14536,7 @@ export interface operations {
             /** @description 动态收藏游标分页，含私有收藏夹 ID */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14251,7 +14549,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14271,6 +14569,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14279,7 +14579,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14292,7 +14592,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14312,6 +14612,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -14324,7 +14626,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14337,7 +14639,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14357,6 +14659,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14367,7 +14671,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14380,7 +14684,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14393,7 +14697,7 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14406,7 +14710,7 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14419,7 +14723,7 @@ export interface operations {
             /** @description 默认夹不可删除或并发冲突；事务回滚，刷新后重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14432,7 +14736,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14452,6 +14756,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14466,7 +14772,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14479,7 +14785,7 @@ export interface operations {
             /** @description 名称 trim 后须为 1–24 个字符 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14492,7 +14798,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14505,7 +14811,7 @@ export interface operations {
             /** @description 账号无写入权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14518,7 +14824,7 @@ export interface operations {
             /** @description 收藏夹不存在或不属于当前用户 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14531,7 +14837,7 @@ export interface operations {
             /** @description 默认夹不可修改、名称重复或并发冲突；刷新后重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14544,7 +14850,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14564,6 +14870,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14574,7 +14882,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14587,7 +14895,7 @@ export interface operations {
             /** @description 动态不存在、已删除或因拉黑不可见 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14600,7 +14908,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14620,6 +14928,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14630,7 +14940,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14643,7 +14953,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14663,6 +14973,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14677,7 +14989,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14690,7 +15002,7 @@ export interface operations {
             /** @description 版本冲突或图片已被其他动态使用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14703,7 +15015,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14723,6 +15035,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14733,7 +15047,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14746,7 +15060,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14766,6 +15080,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14776,7 +15092,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14789,7 +15105,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14809,6 +15125,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14823,7 +15141,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14836,7 +15154,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14856,6 +15174,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14866,7 +15186,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14879,7 +15199,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14899,6 +15219,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14913,7 +15235,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14926,7 +15248,7 @@ export interface operations {
             /** @description 动态、收藏或收藏夹不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14939,7 +15261,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14968,6 +15290,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -14979,7 +15303,7 @@ export interface operations {
             /** @description 主评论游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -14992,7 +15316,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15012,6 +15336,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15026,7 +15352,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15039,7 +15365,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15059,6 +15385,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15069,7 +15397,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15082,7 +15410,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15102,6 +15430,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15113,7 +15443,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15126,7 +15456,7 @@ export interface operations {
             /** @description 动态或目标评论不存在、已删除或因拉黑不可见 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15139,7 +15469,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15168,6 +15498,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15180,7 +15512,7 @@ export interface operations {
             /** @description 楼中楼游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15193,7 +15525,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15213,6 +15545,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15224,7 +15558,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15237,7 +15571,7 @@ export interface operations {
             /** @description 无删除权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15250,7 +15584,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15275,6 +15609,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15286,7 +15622,7 @@ export interface operations {
             /** @description 用户动态游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15299,7 +15635,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15319,6 +15655,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -15329,7 +15667,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15342,7 +15680,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15362,6 +15700,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -15376,7 +15716,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15389,7 +15729,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15409,6 +15749,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15419,7 +15761,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15432,7 +15774,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15452,6 +15794,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15463,7 +15807,7 @@ export interface operations {
             /** @description 子贴已删除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15476,7 +15820,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15496,6 +15840,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15510,7 +15856,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15523,7 +15869,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15543,6 +15889,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -15557,7 +15905,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15570,7 +15918,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15590,6 +15938,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -15601,7 +15951,7 @@ export interface operations {
             /** @description 跨全部存活子贴、按创建时间定位的最新有效发言 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15614,7 +15964,7 @@ export interface operations {
             /** @description 主题帖不可访问，或主题帖内暂无有效楼层/回复 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15627,7 +15977,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15656,6 +16006,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 subthreadId: string;
@@ -15667,7 +16019,7 @@ export interface operations {
             /** @description 楼层列表（含楼中楼内联回复），cursor 分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15680,7 +16032,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15700,6 +16052,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 subthreadId: string;
@@ -15715,7 +16069,7 @@ export interface operations {
             /** @description 创建的帖子（含楼层号或 parentPostId） */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15728,7 +16082,7 @@ export interface operations {
             /** @description 回复目标缺少父楼层，或回复目标与父楼层不属于同一主楼层 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15741,7 +16095,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15754,7 +16108,7 @@ export interface operations {
             /** @description 无发帖权限（未加入子贴或权限不足） */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15767,7 +16121,7 @@ export interface operations {
             /** @description clientRequestId 已用于不同发帖载荷 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15780,7 +16134,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15813,6 +16167,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 subthreadId: string;
@@ -15823,7 +16179,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15836,7 +16192,7 @@ export interface operations {
             /** @description 参数互斥或游标无效（40007） */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15849,7 +16205,7 @@ export interface operations {
             /** @description 目标不存在或不可访问 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15862,7 +16218,7 @@ export interface operations {
             /** @description 目标被作者筛选排除（40010），可清筛选重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15875,7 +16231,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15908,6 +16264,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -15918,7 +16276,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15931,7 +16289,7 @@ export interface operations {
             /** @description 参数互斥或游标无效（40007） */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15944,7 +16302,7 @@ export interface operations {
             /** @description 目标不存在或不可访问 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15957,7 +16315,7 @@ export interface operations {
             /** @description 目标被作者筛选排除（40010），可清筛选重试 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15970,7 +16328,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -15990,6 +16348,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 subthreadId: string;
@@ -16000,7 +16360,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16013,7 +16373,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16042,6 +16402,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16053,7 +16415,7 @@ export interface operations {
             /** @description 楼中楼回复列表（平级挂载，含 replyToPostId 追踪回复目标），cursor 分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16066,7 +16428,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16086,6 +16448,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16096,7 +16460,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16109,7 +16473,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16129,6 +16493,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 subthreadId: string;
@@ -16144,7 +16510,7 @@ export interface operations {
             /** @description 正文帖子（kind=BODY，不占楼层号） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16157,7 +16523,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16170,7 +16536,7 @@ export interface operations {
             /** @description 无管理权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16183,7 +16549,7 @@ export interface operations {
             /** @description 子贴不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16196,7 +16562,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16216,6 +16582,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16227,7 +16595,7 @@ export interface operations {
             /** @description 帖子详情（含作者和导航上下文） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16240,7 +16608,7 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16253,7 +16621,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16273,6 +16641,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16284,7 +16654,7 @@ export interface operations {
             /** @description 帖子已删除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16297,7 +16667,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16310,7 +16680,7 @@ export interface operations {
             /** @description 非本人帖子，无权删除 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16323,7 +16693,7 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16336,7 +16706,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16356,6 +16726,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16371,7 +16743,7 @@ export interface operations {
             /** @description 更新后的帖子 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16384,7 +16756,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16397,7 +16769,7 @@ export interface operations {
             /** @description 非本人帖子，无权编辑 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16410,7 +16782,7 @@ export interface operations {
             /** @description 帖子不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16423,7 +16795,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16443,6 +16815,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16454,7 +16828,7 @@ export interface operations {
             /** @description 楼层已置顶 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16467,7 +16841,7 @@ export interface operations {
             /** @description 仅支持置顶主楼层，或当前子贴置顶数量已达上限 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16480,7 +16854,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16493,7 +16867,7 @@ export interface operations {
             /** @description 仅楼主或协作者可置顶 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16506,7 +16880,7 @@ export interface operations {
             /** @description 楼层不存在或当前不可访问 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16519,7 +16893,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16539,6 +16913,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16550,7 +16926,7 @@ export interface operations {
             /** @description 楼层已取消置顶 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16563,7 +16939,7 @@ export interface operations {
             /** @description 仅支持取消主楼层置顶 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16576,7 +16952,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16589,7 +16965,7 @@ export interface operations {
             /** @description 仅楼主或协作者可取消置顶 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16602,7 +16978,7 @@ export interface operations {
             /** @description 楼层不存在或当前不可访问 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16615,7 +16991,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16635,6 +17011,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -16644,7 +17022,7 @@ export interface operations {
             /** @description 当前用户全部草稿 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16657,7 +17035,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16670,7 +17048,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16690,6 +17068,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -16703,7 +17083,7 @@ export interface operations {
             /** @description 创建的草稿 */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16716,7 +17096,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16729,7 +17109,7 @@ export interface operations {
             /** @description 覆盖已有槽位时 version 缺失或已过期，或幂等键被复用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16742,7 +17122,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16762,6 +17142,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -16771,7 +17153,7 @@ export interface operations {
             /** @description 草稿位使用情况（5 槽已用数） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16784,7 +17166,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16797,7 +17179,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16817,6 +17199,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -16826,7 +17210,7 @@ export interface operations {
             /** @description 同一数据库快照中的草稿与槽位状态 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16839,7 +17223,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16852,7 +17236,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16872,6 +17256,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16883,7 +17269,7 @@ export interface operations {
             /** @description 草稿详情 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16896,7 +17282,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16909,7 +17295,7 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16922,7 +17308,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16945,6 +17331,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -16956,7 +17344,7 @@ export interface operations {
             /** @description 草稿已删除 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16969,7 +17357,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16982,7 +17370,7 @@ export interface operations {
             /** @description version 已过期 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -16995,7 +17383,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17015,6 +17403,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17030,7 +17420,7 @@ export interface operations {
             /** @description 更新后的草稿 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17043,7 +17433,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17056,7 +17446,7 @@ export interface operations {
             /** @description 草稿不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17069,7 +17459,7 @@ export interface operations {
             /** @description version 已过期 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17082,7 +17472,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17102,6 +17492,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17111,7 +17503,7 @@ export interface operations {
             /** @description 我的订阅列表（含订阅类型和关联信息） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17124,7 +17516,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17137,7 +17529,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17157,6 +17549,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17170,7 +17564,7 @@ export interface operations {
             /** @description 创建的订阅记录 */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17183,7 +17577,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17196,7 +17590,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17216,6 +17610,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17227,7 +17623,7 @@ export interface operations {
             /** @description 已取消订阅 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17240,7 +17636,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17253,7 +17649,7 @@ export interface operations {
             /** @description 订阅不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17266,7 +17662,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17286,6 +17682,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17298,7 +17696,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17311,7 +17709,7 @@ export interface operations {
             /** @description 已存在相同待处理举报 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17324,7 +17722,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17354,6 +17752,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17363,7 +17763,7 @@ export interface operations {
             /** @description 管理员举报队列 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17376,7 +17776,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17398,6 +17798,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17408,7 +17810,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17421,7 +17823,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17443,6 +17845,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17457,7 +17861,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17470,7 +17874,7 @@ export interface operations {
             /** @description 举报已结案或目标状态冲突 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17483,7 +17887,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17503,6 +17907,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17515,7 +17921,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17528,7 +17934,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17548,6 +17954,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17560,7 +17968,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17573,7 +17981,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17595,6 +18003,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17603,7 +18013,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17616,7 +18026,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17638,6 +18048,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17646,7 +18058,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17659,7 +18071,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17681,6 +18093,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17689,7 +18103,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17702,7 +18116,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17724,6 +18138,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17736,7 +18152,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17749,7 +18165,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17771,6 +18187,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17779,7 +18197,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17792,7 +18210,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17814,6 +18232,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17826,7 +18246,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17839,7 +18259,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17861,6 +18281,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17875,7 +18297,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17888,7 +18310,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17910,6 +18332,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -17924,7 +18348,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17937,7 +18361,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17959,6 +18383,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -17971,7 +18397,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -17984,7 +18410,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18004,6 +18430,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 token: string;
@@ -18014,7 +18442,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18027,7 +18455,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18057,6 +18485,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18066,7 +18496,7 @@ export interface operations {
             /** @description 治理案件队列 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18079,7 +18509,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18101,6 +18531,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -18111,7 +18543,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18124,7 +18556,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18146,6 +18578,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -18160,7 +18594,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18173,7 +18607,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18203,6 +18637,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18212,7 +18648,7 @@ export interface operations {
             /** @description 申诉处理队列 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18225,7 +18661,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18247,6 +18683,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -18261,7 +18699,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18274,7 +18712,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18294,6 +18732,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18306,7 +18746,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18319,7 +18759,7 @@ export interface operations {
             /** @description 账号密码错误或账号锁定 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18332,7 +18772,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18352,6 +18792,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18360,7 +18802,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18373,7 +18815,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18393,6 +18835,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18405,7 +18849,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18418,7 +18862,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18440,6 +18884,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18448,7 +18894,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18461,7 +18907,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18483,6 +18929,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18495,7 +18943,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18508,7 +18956,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18540,6 +18988,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18549,7 +18999,7 @@ export interface operations {
             /** @description 通知计划历史 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18562,7 +19012,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18584,6 +19034,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18596,7 +19048,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18609,7 +19061,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18631,6 +19083,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18643,7 +19097,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18656,7 +19110,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18678,6 +19132,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -18688,7 +19144,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18701,7 +19157,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18723,6 +19179,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18731,7 +19189,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18744,7 +19202,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18766,6 +19224,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18778,7 +19238,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18791,7 +19251,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18813,6 +19273,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18825,7 +19287,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18838,7 +19300,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18863,6 +19325,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18871,7 +19335,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18884,7 +19348,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18909,6 +19373,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18917,7 +19383,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18930,7 +19396,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18966,6 +19432,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -18975,7 +19443,7 @@ export interface operations {
             /** @description 公开内容和管理员隐藏项 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -18988,7 +19456,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19010,6 +19478,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -19021,7 +19491,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19034,7 +19504,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19056,6 +19526,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19070,7 +19542,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19083,7 +19555,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19116,6 +19588,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19125,7 +19599,7 @@ export interface operations {
             /** @description 管理员用户列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19138,7 +19612,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19160,6 +19634,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19170,7 +19646,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19183,7 +19659,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19205,6 +19681,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19219,7 +19697,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19232,7 +19710,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19254,6 +19732,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19268,7 +19748,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19281,7 +19761,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19303,6 +19783,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19317,7 +19799,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19330,7 +19812,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19352,6 +19834,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -19367,7 +19851,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19380,7 +19864,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19408,6 +19892,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19417,7 +19903,7 @@ export interface operations {
             /** @description 当前隐藏内容列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19430,7 +19916,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19452,6 +19938,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -19467,7 +19955,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19480,7 +19968,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19513,6 +20001,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19522,7 +20012,7 @@ export interface operations {
             /** @description 不可变管理员审计日志 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19535,7 +20025,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19568,6 +20058,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19577,7 +20069,7 @@ export interface operations {
             /** @description UTF-8 CSV，包含 BOM 并防止表格公式注入 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19590,7 +20082,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19610,6 +20102,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -19625,7 +20119,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19638,7 +20132,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19665,6 +20159,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19673,7 +20169,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19686,7 +20182,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19713,6 +20209,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19721,7 +20219,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19734,7 +20232,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19756,6 +20254,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19764,7 +20264,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19777,7 +20277,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19799,6 +20299,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19807,7 +20309,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19820,7 +20322,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19842,6 +20344,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19854,7 +20358,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19867,7 +20371,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19889,6 +20393,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -19903,7 +20409,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19916,7 +20422,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19938,6 +20444,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19946,7 +20454,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19959,7 +20467,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -19981,6 +20489,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -19993,7 +20503,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20006,7 +20516,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20028,6 +20538,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -20042,7 +20554,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20055,7 +20567,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20082,6 +20594,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20091,7 +20605,7 @@ export interface operations {
             /** @description 相关度优先的动态游标分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20104,7 +20618,7 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20117,7 +20631,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20144,6 +20658,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20153,7 +20669,7 @@ export interface operations {
             /** @description 完整主题帖列表卡片，按标题相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20166,7 +20682,7 @@ export interface operations {
             /** @description 搜索游标无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20179,7 +20695,7 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20192,7 +20708,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20215,6 +20731,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20224,7 +20742,7 @@ export interface operations {
             /** @description 用户结果，最多 20 条 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20237,7 +20755,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20266,6 +20784,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20275,7 +20795,7 @@ export interface operations {
             /** @description 相关度游标分页；meta 含 cursor/hasMore */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20288,7 +20808,7 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20301,7 +20821,7 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20314,7 +20834,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20337,6 +20857,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20346,7 +20868,7 @@ export interface operations {
             /** @description 兼容旧客户端的聚合搜索结果 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20359,7 +20881,7 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20372,7 +20894,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20401,6 +20923,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 threadId: string;
@@ -20412,7 +20936,7 @@ export interface operations {
             /** @description 相关度游标分页；搜索全部子贴，不限制单帖结果数量 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20425,7 +20949,7 @@ export interface operations {
             /** @description 关键词不足 2 个字符或游标无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20438,7 +20962,7 @@ export interface operations {
             /** @description 主题帖不存在，或当前用户无权访问私密帖 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20451,7 +20975,7 @@ export interface operations {
             /** @description 搜索超时，请缩小关键词范围后重试 */
             503: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20464,7 +20988,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20484,6 +21008,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20497,7 +21023,7 @@ export interface operations {
             /** @description 预签名 URL 和 mediaId（UPLOADING 状态） */
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20510,7 +21036,7 @@ export interface operations {
             /** @description 文件类型不支持或超过大小限制 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20523,7 +21049,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20536,7 +21062,7 @@ export interface operations {
             /** @description 小时配额超限42900；音频活动名额已满42901；UTC当日新签发输入预留超限42902 */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20550,7 +21076,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20570,6 +21096,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20583,7 +21111,7 @@ export interface operations {
             /** @description 确认结果（转 PROCESSING 状态） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20596,7 +21124,7 @@ export interface operations {
             /** @description 媒体状态或对象元数据无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20609,7 +21137,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20622,7 +21150,7 @@ export interface operations {
             /** @description 对象尚不存在或上传未完成（MEDIA_OBJECT_MISSING） */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20635,7 +21163,7 @@ export interface operations {
             /** @description 过期音频确认需重新取得活动名额，已满返回42901；保留mediaId稍后重试 */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20649,7 +21177,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20669,6 +21197,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -20680,7 +21210,7 @@ export interface operations {
             /** @description 同一 mediaId 的新预签名 PUT 地址 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20693,7 +21223,7 @@ export interface operations {
             /** @description 媒体状态不允许重新上传 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20706,7 +21236,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20719,7 +21249,7 @@ export interface operations {
             /** @description 媒体记录不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20732,7 +21262,7 @@ export interface operations {
             /** @description 音频活动名额已满42901；同mediaId不重复扣每日签发预留 */
             429: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20746,7 +21276,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20766,6 +21296,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -20777,7 +21309,7 @@ export interface operations {
             /** @description 图片处理状态（UPLOADING / PROCESSING / COMPLETED / FAILED） */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20790,7 +21322,7 @@ export interface operations {
             /** @description 未登录或 Token 无效 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20803,7 +21335,7 @@ export interface operations {
             /** @description 图片记录不存在或不属于当前用户 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20816,7 +21348,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20841,6 +21373,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20850,7 +21384,7 @@ export interface operations {
             /** @description 游标分页会话列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20863,7 +21397,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20883,6 +21417,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20895,7 +21431,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20908,7 +21444,7 @@ export interface operations {
             /** @description 存在拉黑关系或无权再次申请 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20921,7 +21457,7 @@ export interface operations {
             /** @description 消息请求仍待处理或已被拒绝 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20934,7 +21470,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20954,6 +21490,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -20962,7 +21500,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20975,7 +21513,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -20995,6 +21533,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 userId: string;
@@ -21005,7 +21545,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21018,7 +21558,7 @@ export interface operations {
             /** @description 目标用户不存在或已注销 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21031,7 +21571,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21051,6 +21591,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21061,7 +21603,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21074,7 +21616,7 @@ export interface operations {
             /** @description 会话不存在或当前用户不是参与者 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21087,7 +21629,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21113,6 +21655,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21124,7 +21668,7 @@ export interface operations {
             /** @description 游标分页消息列表 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21137,7 +21681,7 @@ export interface operations {
             /** @description 会话或消息游标不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21150,7 +21694,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21170,6 +21714,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21184,7 +21730,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21197,7 +21743,7 @@ export interface operations {
             /** @description 拉黑或会话不可发送 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21210,7 +21756,7 @@ export interface operations {
             /** @description 请求待处理/已拒绝或图片已被使用 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21223,7 +21769,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21243,6 +21789,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21257,7 +21805,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21270,7 +21818,7 @@ export interface operations {
             /** @description 不是请求接收方或请求状态不允许此操作 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21283,7 +21831,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21303,6 +21851,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21317,7 +21867,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21330,7 +21880,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21350,6 +21900,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21364,7 +21916,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21377,7 +21929,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21397,6 +21949,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21407,7 +21961,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21420,7 +21974,7 @@ export interface operations {
             /** @description 未登录 */
             401: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21433,7 +21987,7 @@ export interface operations {
             /** @description 不是发送者或消息当前不可撤回 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21446,7 +22000,7 @@ export interface operations {
             /** @description 已超过 10 分钟撤回时限 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21459,7 +22013,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21479,6 +22033,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21487,7 +22043,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21500,7 +22056,51 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    textFontsGetCatalog: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    "Cache-Control"?: string;
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextFontsGetCatalog200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21526,6 +22126,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21535,7 +22137,7 @@ export interface operations {
             /** @description 已发布版本说明 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21548,7 +22150,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21568,6 +22170,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 platform: "android";
@@ -21579,7 +22183,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21592,7 +22196,7 @@ export interface operations {
             /** @description 无已发布说明 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21605,7 +22209,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21633,6 +22237,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21642,7 +22248,7 @@ export interface operations {
             /** @description 版本说明编辑稿及快照，按构建号倒序 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21655,7 +22261,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21677,6 +22283,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21689,7 +22297,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21702,7 +22310,7 @@ export interface operations {
             /** @description 平台与构建号已存在，禁止重新绑定版本名 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21715,7 +22323,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21737,6 +22345,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21747,7 +22357,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21760,7 +22370,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21782,6 +22392,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21796,7 +22408,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21809,7 +22421,7 @@ export interface operations {
             /** @description revision 已变化或发布锁定 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21822,7 +22434,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21844,6 +22456,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -21858,7 +22472,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21871,7 +22485,7 @@ export interface operations {
             /** @description revision 已变化或发布锁定 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21884,7 +22498,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21904,6 +22518,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21912,7 +22528,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21925,7 +22541,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21945,6 +22561,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -21953,7 +22571,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21966,7 +22584,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -21991,6 +22609,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -22000,7 +22620,7 @@ export interface operations {
             /** @description 温油收支流水，cursor 分页 */
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22013,7 +22633,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22033,6 +22653,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -22047,7 +22669,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22060,7 +22682,7 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22073,7 +22695,7 @@ export interface operations {
             /** @description 自我打赏、拉黑关系或无主题访问权限 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22086,7 +22708,7 @@ export interface operations {
             /** @description 主题帖或收款用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22099,7 +22721,7 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22112,7 +22734,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22132,6 +22754,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -22146,7 +22770,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22159,7 +22783,7 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22172,7 +22796,7 @@ export interface operations {
             /** @description 自我打赏或存在拉黑关系 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22185,7 +22809,7 @@ export interface operations {
             /** @description 收款用户不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22198,7 +22822,7 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22211,7 +22835,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22231,6 +22855,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path: {
                 id: string;
@@ -22245,7 +22871,7 @@ export interface operations {
         responses: {
             201: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22258,7 +22884,7 @@ export interface operations {
             /** @description 金额不是不小于 2 的整数升 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22271,7 +22897,7 @@ export interface operations {
             /** @description 给自己加油或存在拉黑关系 */
             403: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22284,7 +22910,7 @@ export interface operations {
             /** @description 动态不存在 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22297,7 +22923,7 @@ export interface operations {
             /** @description 余额不足或幂等键复用于不同请求 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22310,7 +22936,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22340,6 +22966,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
             };
             path?: never;
             cookie?: never;
@@ -22348,7 +22976,7 @@ export interface operations {
         responses: {
             200: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22361,7 +22989,7 @@ export interface operations {
             /** @description 查询参数或游标无效 */
             400: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22374,7 +23002,7 @@ export interface operations {
             /** @description 阅读范围或图片不存在/不可见 */
             404: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22387,7 +23015,7 @@ export interface operations {
             /** @description 图片锚点已变化，或历史索引尚未就绪，请重新加载 */
             409: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
@@ -22400,7 +23028,7 @@ export interface operations {
             /** @description 未在此操作中单独列出的错误响应 */
             default: {
                 headers: {
-                    /** @description 追加 X-Markdown-Contract-Version 与 X-Text-Color-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
                     Vary?: string;
                     "X-Request-ID": components["headers"]["XRequestId"];
                     "X-API-Contract-Version": components["headers"]["XApiContractVersion"];

@@ -1,3 +1,4 @@
+import { normalizeTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import MarkdownIt from "markdown-it";
 import htmlInlineRule from "markdown-it/lib/rules_inline/html_inline.mjs";
 import { isMarkdownEscaped, maskMarkdownCode } from "@/lib/markdown-code";
@@ -7,7 +8,17 @@ import { parseInternalReference, tokenizeInternalReferenceText } from "@/lib/int
 
 export const TEXT_COLOR_ATTRIBUTE = "data-wenyou-color-v1";
 export const TEXT_COLOR_MARK = "wenyouTextColor";
-const openTag = /^<span data-wenyou-color-v1="(#[0-9a-fA-F]{6})">$/u;
+export function parseTextStyleOpenTag(value: string): { color: string | null; fontId: string | null } | null {
+  if (!/^<span(?: data-wenyou-(?:color|font)-v1="[^"<>]*"){1,2}>$/u.test(value)) return null;
+  const attributes = [...value.matchAll(/data-wenyou-(color|font)-v1="([^"<>]*)"/gu)];
+  if (new Set(attributes.map((match) => match[1])).size !== attributes.length) return null;
+  let color: string | null = null, fontId: string | null = null;
+  for (const match of attributes) {
+    if (match[1] === "color") { color = normalizeTextColor(match[2]); if (!color) return null; }
+    else { fontId = normalizeTextFont(match[2]); if (!fontId) return null; }
+  }
+  return { color, fontId };
+}
 const parser = new MarkdownIt({ html: true, linkify: true, typographer: false });
 parser.inline.ruler.at("html_inline", (state, silent) => {
   const start = state.pos;
@@ -52,7 +63,7 @@ export function validTextColorTokens(tokens: readonly Token[], source: string): 
   }
   for (let index = 0; index < tokens.length; index++) {
     const start = tokens[index]!;
-    if (start.type !== "html_inline" || start.level !== 0 || !openTag.test(start.content)) continue;
+    if (start.type !== "html_inline" || start.level !== 0 || !parseTextStyleOpenTag(start.content)) continue;
     let end = index + 1;
     while (end < tokens.length && tokens[end]!.type !== "html_inline") end++;
     const close = tokens[end];
@@ -68,11 +79,15 @@ export function validTextColorTokens(tokens: readonly Token[], source: string): 
 }
 
 export function hasTextColorSource(source: string): boolean {
-  return parser.parse(source, {}).some((block) => block.type === "inline" && validTextColorTokens(block.children ?? [], block.content).size > 0);
+  return parser.parse(source, {}).some((block) => block.type === "inline" && [...validTextColorTokens(block.children ?? [], block.content)].some((token) => parseTextStyleOpenTag(token.content)?.color));
+}
+
+export function hasTextFontSource(source: string): boolean {
+  return parser.parse(source, {}).some((block) => block.type === "inline" && [...validTextColorTokens(block.children ?? [], block.content)].some((token) => parseTextStyleOpenTag(token.content)?.fontId));
 }
 
 export type ColorMarkdownNode = {
-  type?: string; value?: string; color?: string; children?: ColorMarkdownNode[];
+  type?: string; value?: string; color?: string; fontId?: string; children?: ColorMarkdownNode[];
   data?: { hName?: string; hProperties?: Record<string, unknown> };
   position?: { start: { line: number; offset?: number }; end: { line: number; offset?: number } };
 };
@@ -86,7 +101,7 @@ export function remarkTextColor() {
       const result: ColorMarkdownNode[] = [];
       for (let index = 0; index < node.children.length; index++) {
         const child = node.children[index]!;
-        const match = child.type === "html" ? openTag.exec(child.value ?? "") : null;
+        const match = child.type === "html" ? parseTextStyleOpenTag(child.value ?? "") : null;
         if (match && ["paragraph", "heading"].includes(node.type ?? "")) {
           let end = index + 1;
           while (end < node.children.length && node.children[end]!.type !== "html") end++;
@@ -98,11 +113,11 @@ export function remarkTextColor() {
           if (close?.value === "</span>" && end > index + 1 && startLine === endLine
             && child.position?.start.offset !== undefined && close.position?.end.offset !== undefined
             && validTextColorTokens(parsed, fragment).size === 2) {
-            const color = match[1]!.toUpperCase();
+            const { color, fontId } = match;
             const children = node.children.slice(index + 1, end);
             children.forEach(visit);
-            result.push({ type: TEXT_COLOR_MARK, color, children,
-              data: { hName: "span", hProperties: { [TEXT_COLOR_ATTRIBUTE]: color } } });
+            result.push({ type: fontId ? TEXT_FONT_MARK : TEXT_COLOR_MARK, color: color ?? undefined, fontId: fontId ?? undefined, children,
+              data: { hName: "span", hProperties: { ...(fontId ? { [TEXT_FONT_ATTRIBUTE]: fontId } : {}), ...(color ? { [TEXT_COLOR_ATTRIBUTE]: color } : {}) } } });
             index = end;
             continue;
           }
@@ -116,20 +131,28 @@ export function remarkTextColor() {
   };
 }
 
+const isStyleNode = (node: ColorMarkdownNode) => node.type === TEXT_COLOR_MARK || node.type === TEXT_FONT_MARK;
 const inlineContainers = new Set(["strong", "emphasis", "delete", "link"]);
 /** Milkdown 会延续已打开的 mark；序列化前将颜色提升到最外层，拆分交叉的样式范围。 */
 export function hoistTextColors(children: ColorMarkdownNode[]): ColorMarkdownNode[] {
   return children.flatMap((node) => {
     if (!node.children) return [node];
     const nested = hoistTextColors(node.children);
-    if (!inlineContainers.has(node.type ?? "") || !nested.some((child) => child.type === TEXT_COLOR_MARK)) {
+    if (isStyleNode(node)) {
+      return nested.map((child) => {
+        if (!isStyleNode(child)) return { ...node, children: [child] };
+        const fontId = child.fontId ?? node.fontId;
+        return { ...child, type: fontId ? TEXT_FONT_MARK : TEXT_COLOR_MARK, fontId, color: child.color ?? node.color };
+      });
+    }
+    if (!inlineContainers.has(node.type ?? "") || !nested.some(isStyleNode)) {
       return [{ ...node, children: nested }];
     }
     const result: ColorMarkdownNode[] = [];
     let plain: ColorMarkdownNode[] = [];
     const flush = () => { if (plain.length) result.push({ ...node, children: plain }); plain = []; };
     for (const child of nested) {
-      if (child.type !== TEXT_COLOR_MARK) { plain.push(child); continue; }
+      if (!isStyleNode(child)) { plain.push(child); continue; }
       flush();
       result.push({ ...child, children: [{ ...node, children: child.children }] });
     }

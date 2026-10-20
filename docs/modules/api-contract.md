@@ -165,3 +165,9 @@ apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Co
 两个字段在共享 `ThreadDetailResponseDto` 中保持可选，以兼容旧后端以及复用该 DTO 的创建/更新响应。新版详情 GET 返回真实非负整数，真实零保留为 `0`；字段缺失表示未知，Web 不补零、不保留此前响应的旧总数。既有详情 Hook 直接保留生成类型和响应值，重新读取时采用最新详情响应。本次不扩展 Web 布局、统计控件或 mutation 行为，不把创建/更新响应当成统计来源。
 
 完整同步同时带入 Backend #54 已提交的颜色与对齐组合夹具；正文协议不变。整合 Web #73 已提交 `48eb3e926b9a926152427849e7742ab03fa4aa43` 的测试配置与永久回归，并将通用夹具断言接入同一语义比较：排除 Crepe 非持久 heading id，保留标题级别、对齐、全部文字与格式及序列化幂等校验；不改生产编辑器。Foundation 维持正式 v7.4.0，不增加视觉契约、Markdown 版本或数据迁移。消费者测试覆盖正数、真实零、字段独立缺失、全部缺失及重新读取后的更新/缺失，检查使用同一 Backend SHA。发布仍是兼容 Backend 先行；Web 本批仅保源兼容，不部署、不删除旧协议。
+
+## 文本字体 v1 能力协商
+
+本批精确同步 Backend `1cf51dd752a98e3733f3dc0c83b17add75be7e46`（API `5.41.0-dev.20261021.1`），生成类型及五份字体 schema/fixture/目录/manifest 同源。`apiClient` 独立发送 `X-Text-Font-Version: 1`；支持时所有主题、子帖、楼层/回复和草稿写入发送 `textFontVersion: 1`，包括删除全部字体，冻结请求不被后续 meta 刷新补入能力。`textFontV1Supported` 与 `textFontV1WriteEnabled` 独立，缺省关闭；40019/40020 刷新 meta 并保留输入，40021 表示非法字体源码。
+
+目录经共享 `queryKeys.textFonts` 与 `apiClient` 读取 `/api/v1/meta/text-fonts`，5 分钟过期。空 `assetBaseUrl` 不请求资源；ready 仅代表资源清单已核验，不代表发布或新写开放。16 款已具备正式资产，小城拉风体为 `pendingSource`，授权依据是负责人确认的项目使用授权，非 OFL；取得原文件及明确允许的资源策略前不转为 ready。发布顺序仍是兼容后端、可读保源消费者、自有资源独立发布、显式批准新写，详见[正文协议](markdown-content-protocol.md#文本字体-v1)。

@@ -875,3 +875,7 @@ img.sticker-display {
 .wenyou-prose span[data-wenyou-color-v1] :is(strong, em, del, s, a, code) {
   color: inherit;
 }
+
+/* 内容字体只作用于受控正文范围，内层组合 marks 不重置家族。 */
+[data-wenyou-font-v1] { font-synthesis: weight style; }
+[data-wenyou-font-v1] :is(strong, em, del, s, a, code) { font-family: inherit; font-synthesis: weight style; }

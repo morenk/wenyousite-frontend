@@ -35,7 +35,7 @@ test.each([undefined, false, true])("正文写能力由独立 supported=%s 决�
 });
 test("颜色和角色能力互不覆盖", () => {
   const { client } = fixture(true, false);
-  expect(markdownWriteCapability(client)).toEqual({ markdownContractVersion: undefined, textColorVersion: 1 });
+  expect(markdownWriteCapability(client)).toEqual({ markdownContractVersion: undefined, textFontVersion: undefined, textColorVersion: 1 });
 });
 test("BODY 冻结省略的颜色声明不会在重试时由新能力补入", async () => {
   const { client, wrapper } = fixture(false, true);

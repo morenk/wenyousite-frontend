@@ -76,3 +76,7 @@ Backend `7f95563edd8f461ebb7a66d7b458ec0349e39297` / API `5.39.0-dev.20261017.1`
 ## 主题互动总数兼容
 
 Backend `da68203a494c6d0f6d377c23399390c2cee397f3` 的详情 GET 新增 `bookmarkCount` / `subscriberCount`；生成 DTO 保持可选以兼容旧服务和创建/更新响应。Web 直接透传真实零/正数，缺失保留未知，不通过本人收藏状态或通知资格推断总量。本次不改变 Web UI、Foundation 或正文协议，不删除接口、字段与兼容路径；先发布兼容 Backend，消费者可独立回滚，现有业务关系不变。来源、语义及检查见 [API 契约](modules/api-contract.md#主题收藏与订阅总数)。
+
+## 文本字体 v1 保源兼容
+
+字体是独立 Markdown 扩展，不替代 Markdown5、角色提及 v6、颜色 v1 或 clipboard v2。缺字体能力的读请求取得去字体副本，并被兼容后端阻止覆盖原文；回滚不能选用不具备保护的旧消费者。撤销新写不删除已有 fontId、正文或内容寻址资源；删除兼容仍须独立满足治理清理门禁。本批无历史迁移、字体资源发布或线上开关变更。能力与顺序见[API 契约](modules/api-contract.md#文本字体-v1-能力协商)。

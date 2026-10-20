@@ -1,4 +1,4 @@
-/** 系统字体门禁：源码、生产应用产物不得重新引入自有字体。 */
+/** 系统字体门禁：界面不得重新引入自有字体；正文仅消费固定目录与校验加载器。 */
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve, relative, basename } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -46,9 +46,59 @@ function maskNameHomonym(name, content) {
   return result;
 }
 
+/** 固定正文目录中的协议 ID 不是 UI 字体声明；仅识别完整、逐字段一致的 JSON。 */
+function maskContentFontCatalog(name, content) {
+  if (!content.includes("wenkai")) return content;
+  const canonical = JSON.stringify(JSON.parse(readFileSync(resolve("contracts/thread-font-catalog-v1.json"), "utf8")));
+  const same = (value) => JSON.stringify(value) === canonical;
+  if (name.endsWith(".map")) {
+    try {
+      const map = JSON.parse(content);
+      if (Array.isArray(map.sources) && Array.isArray(map.sourcesContent)) {
+        map.sourcesContent = map.sourcesContent.map((source, index) => {
+          if (typeof source !== "string" || !/\/contracts\/thread-font-catalog-v1\.json(?:[.?]|$)/u.test(map.sources[index] ?? "")) return source;
+          try { return same(JSON.parse(source)) ? "[受控正文目录]" : source; } catch { return source; }
+        });
+        return JSON.stringify(map);
+      }
+    } catch { /* 非法 source map 不获得豁免。 */ }
+    return content;
+  }
+  if (!/\.[cm]?[jt]sx?$/.test(name)) return content;
+  const source = ts.createSourceFile(name, content, ts.ScriptTarget.Latest, true);
+  const spans = [];
+  // 只读取无计算、无展开的 JSON 字面量，不执行构建代码。
+  function literal(node) {
+    if (ts.isStringLiteral(node)) return node.text;
+    if (ts.isNumericLiteral(node)) return Number(node.text);
+    if (ts.isArrayLiteralExpression(node)) return node.elements.map(literal);
+    if (ts.isObjectLiteralExpression(node)) return Object.fromEntries(node.properties.map((property) => {
+      if (!ts.isPropertyAssignment(property) || !(ts.isIdentifier(property.name) || ts.isStringLiteral(property.name))) throw new Error("不是 JSON 属性");
+      return [property.name.text, literal(property.initializer)];
+    }));
+    throw new Error("不是 JSON 字面量");
+  }
+  function visit(node) {
+    if (ts.isObjectLiteralExpression(node)) {
+      try { if (same(literal(node))) { spans.push([node.getStart(source), node.end]); return; } } catch { /* 非目录对象继续递归检查。 */ }
+    }
+    if (ts.isCallExpression(node) && ts.isPropertyAccessExpression(node.expression) &&
+      node.expression.expression.getText(source) === "JSON" && node.expression.name.text === "parse" &&
+      node.arguments.length === 1 && ts.isStringLiteral(node.arguments[0])) {
+      try {
+        if (same(JSON.parse(node.arguments[0].text))) spans.push([node.arguments[0].getStart(source), node.arguments[0].end]);
+      } catch { /* 非目录 JSON 继续按旧字体门禁检查。 */ }
+    }
+    ts.forEachChild(node, visit);
+  }
+  visit(source);
+  for (const [start, end] of spans.reverse()) content = content.slice(0, start) + '"[受控正文目录]"' + content.slice(end);
+  return content;
+}
+
 export function fontViolations(name, content = "") {
   const failures = [];
-  content = maskNameHomonym(name, content);
+  content = maskContentFontCatalog(name, maskNameHomonym(name, content));
   if (retiredFontPattern.test(name) || retiredFontPattern.test(content)) failures.push("旧字体名称或 fonts.css 入口");
   if (fontExtensionPattern.test(name) && !functionalFontPattern.test(basename(name))) failures.push("自有字体文件");
   for (const match of content.matchAll(/(?:url\(\s*["']?|["'])([^\s"'()<>]+\.(?:woff2?|ttf|otf|eot)(?:[?#][^\s"'()<>]*)?)/gi)) {
@@ -95,5 +145,5 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     }
   }
   if (result.failures.length) throw new Error(`系统字体检查失败：\n${result.failures.join("\n")}`);
-  console.log(`系统字体检查通过：${directories.join("、")}，${result.files} 个文件，无旧字体、自有字体资产或失效入口`);
+  console.log(`系统字体检查通过：${directories.join("、")}，${result.files} 个文件，无旧界面字体、打包字体资产或失效入口`);
 }

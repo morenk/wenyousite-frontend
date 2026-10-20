@@ -13,9 +13,10 @@ export function useUpsertBody() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (input: components["schemas"]["UpsertBodyDto"] & { subthreadId: string; threadId: string }) => {
-      const { subthreadId, content, version, identityMode, identityId, identityToken, markdownContractVersion, textColorVersion } = input;
+      const { subthreadId, content, version, identityMode, identityId, identityToken, markdownContractVersion, textColorVersion, textFontVersion } = input;
       const capability = { ...markdownWriteCapability(queryClient),
         ...(Object.hasOwn(input, "markdownContractVersion") ? { markdownContractVersion } : {}),
+        ...(Object.hasOwn(input, "textFontVersion") ? { textFontVersion } : {}),
         ...(Object.hasOwn(input, "textColorVersion") ? { textColorVersion } : {}),
       };
       const { data, error } = await apiClient.PUT(

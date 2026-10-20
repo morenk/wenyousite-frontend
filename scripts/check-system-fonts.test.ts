@@ -43,6 +43,22 @@ describe("系统字体回归门禁", () => {
     }
     expect(fontViolations("Noto.woff2")).not.toEqual([]);
   });
+  test("完整固定正文目录可携带协议 ID，片段或 UI 字体声明仍拒绝", () => {
+    const catalog = JSON.parse(readFileSync("contracts/thread-font-catalog-v1.json", "utf8"));
+    const compiled = `module.exports=JSON.parse(${JSON.stringify(JSON.stringify(catalog))})`;
+    expect(fontViolations("chunk.js", compiled)).toEqual([]);
+    const object = JSON.stringify(catalog).replace(/"([a-zA-Z]+)":/gu, "$1:");
+    expect(fontViolations("chunk.js", "module.exports=" + object)).toEqual([]);
+    expect(fontViolations("chunk.js", "module.exports=" + object + ';const ui={fontFamily:"wenkai"}')).not.toEqual([]);
+    const map = { sources: ["../../contracts/thread-font-catalog-v1.json"], sourcesContent: [JSON.stringify(catalog)] };
+    expect(fontViolations("chunk.js.map", JSON.stringify(map))).toEqual([]);
+    expect(fontViolations("chunk.js.map", JSON.stringify({ ...map, sourcesContent: [JSON.stringify(catalog) + 'fontFamily="wenkai"'] }))).not.toEqual([]);
+    expect(fontViolations("chunk.js.map", JSON.stringify({ ...map, sources: ["random.json"] }))).not.toEqual([]);
+
+    expect(fontViolations("chunk.js", compiled + ';const ui={fontFamily:"wenkai"}')).not.toEqual([]);
+    expect(fontViolations("chunk.js", `JSON.parse('{"id":"wenkai"}')`)).not.toEqual([]);
+    expect(fontViolations("chunk.css", 'body{font-family:wenkai}')).not.toEqual([]);
+  });
   test("保留数学、图标字体与系统等宽栈", () => {
     for (const name of ["KaTeX_Main-Regular.abc123.woff2", "MaterialIcons-Regular.abc123.woff2"]) {
       expect(fontViolations(name)).toEqual([]);

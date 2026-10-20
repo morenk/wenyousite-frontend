@@ -2,12 +2,16 @@
 
 "use client";
 
+import { normalizeTextFont, textFontFamily, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { useVisibleTextFonts } from "@/components/editor/use-visible-text-fonts";
+
 import { normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
   createContext,
   useContext,
   isValidElement,
   useState,
+  useRef,
   type ComponentProps,
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
@@ -73,6 +77,7 @@ type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type SpanProps = ComponentProps<"span"> & ExtraProps & {
   "data-wenyou-color-v1"?: string;
+  "data-wenyou-font-v1"?: string;
   "data-dice-node-id"?: string;
   "data-dice-notation"?: string;
 };
@@ -113,7 +118,8 @@ function MarkdownSpan({ node: _node, ...props }: SpanProps) {
   const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
   if (roll) return <DiceInlineResult roll={roll} />;
   const color = normalizeTextColor(props["data-wenyou-color-v1"]);
-  return <span {...props} style={color ? { color } : undefined} />;
+  const fontId = normalizeTextFont(props["data-wenyou-font-v1"]);
+  return <span {...props} style={{ ...(color ? { color } : {}), ...(fontId ? { fontFamily: textFontFamily(fontId) } : {}) }} />;
 }
 
 function getNodeText(node: ReactNode): string {
@@ -295,7 +301,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
   const byNodeId = new Map(rolls.map((roll) => [roll.nodeId, roll]));
   return () => (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -347,7 +353,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
 function remarkBareInternalReferences() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode" || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode" || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -392,7 +398,7 @@ function readerLineBreak(node?: MarkdownNode): MarkdownNode {
 function remarkPreserveSoftLineBreaks() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (let index = 0; index < node.children.length; index++) {
         const child = node.children[index]!;
@@ -476,6 +482,8 @@ export function MarkdownContent({
   size = "reading",
   markdownContractVersion = ACTIVE_MARKDOWN_CONTRACT_VERSION,
 }: MarkdownContentProps) {
+  const fontRoot = useRef<HTMLDivElement>(null);
+  useVisibleTextFonts(fontRoot, content);
   const markdownOptions = { markdownContractVersion };
   const normalizedContent = prepareMarkdownForReader(content, markdownOptions);
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
@@ -503,6 +511,7 @@ export function MarkdownContent({
 
   return (
     <div
+      ref={fontRoot}
       data-slot="markdown-content"
       data-size={size}
       onCopy={handleCopy}

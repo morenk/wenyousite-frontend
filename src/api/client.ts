@@ -292,6 +292,7 @@ apiClient.use({
   onRequest({ request }) {
     request.headers.set("X-Markdown-Contract-Version", "6");
     request.headers.set("X-Text-Color-Version", "1");
+    request.headers.set("X-Text-Font-Version", "1");
     if (typeof window === "undefined") return;
 
     const url = new URL(request.url);

@@ -78,6 +78,7 @@ export const IMAGE_ALIGNMENT_MARKDOWN_CONTRACT_VERSION = 5;
 
 export interface MarkdownValidationOptions {
   textColorVersion?: 1;
+  textFontVersion?: 1;
   markdownContractVersion?: number;
 }
 
