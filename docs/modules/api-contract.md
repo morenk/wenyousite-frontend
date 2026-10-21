@@ -168,6 +168,8 @@ apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Co
 
 ## 文本字体 v1 能力协商
 
-本批精确同步 Backend `102b825379eb5da462f0ff765b29dc8fd7fb93ad`（API `5.41.0-dev.20261021.2`），生成类型及五份字体 schema/fixture/目录/manifest 同源。`apiClient` 独立发送 `X-Text-Font-Version: 1`；支持时所有主题、子帖、楼层/回复和草稿写入发送 `textFontVersion: 1`，包括删除全部字体，冻结请求不被后续 meta 刷新补入能力。`textFontV1Supported` 与 `textFontV1WriteEnabled` 独立，缺省关闭；40019/40020 刷新 meta 并保留输入，40021 表示非法字体源码。
+本批精确同步 Backend `d86734e5aa229c5401a092096b8845b3d17546b0`（API `5.42.0-dev.20261021.1`），生成类型、原字体 schema/fixture/目录/manifest 及独立运行策略 v2 JSON/schema/fixture 同源。`apiClient` 独立发送 `X-Text-Font-Version: 1`；支持时所有主题、子帖、楼层/回复和草稿写入发送 `textFontVersion: 1`，包括删除全部字体，冻结请求不被后续 meta 刷新补入能力。`textFontV1Supported` 与 `textFontV1WriteEnabled` 独立，缺省关闭；40019/40020 刷新 meta 并保留输入，40021 表示非法字体源码。
 
 目录经共享 `queryKeys.textFonts` 与 `apiClient` 读取 `/api/v1/meta/text-fonts`，5 分钟过期。空 `assetBaseUrl` 不请求资源；ready 仅代表资源清单已核验，不代表发布或新写开放。目录 1.1.1 登记 29 款，主要设计语言 `designLanguage` 为中文 13、日文 10、英文 6；29 款均为 ready，包含怪盗予告黑体。站酷小薇体是未发布候选，已移除，不涉及线上迁移。小城拉风体依据负责人确认的项目使用授权（非 OFL），使用固定哈希的原始 TTF 与独立额度。分类不等于完整字符覆盖，缺失或未来分类值显示未分类，不按名称推断。发布顺序仍是兼容后端、可读保源消费者、自有资源独立发布、显式批准新写，详见[正文协议](markdown-content-protocol.md#文本字体-v1)。
+
+独立运行策略经 `queryKeys.textFontPolicy` 与 `apiClient` 读取 `/api/v1/meta/text-fonts/runtime-policy`，5 分钟过期；目录和策略均按暂时错误静默退避，先前合法缓存仍可离线使用。策略严格校验并绑定 manifest SHA 后才启用文档级可回收驻留和滑动网络窗口；旧后端 404、未知版本或错绑使用旧限额，空资源地址始终系统回退。元数据传输与字库共用请求账本，预占并流式限制 64 KiB，公开请求不携带认证。详见[正文协议的资源生命周期](markdown-content-protocol.md#文本字体-v1)。

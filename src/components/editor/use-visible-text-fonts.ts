@@ -1,12 +1,16 @@
 "use client";
 import { createContext, useContext, useEffect, type RefObject } from "react";
-import { QueryClientContext } from "@tanstack/react-query";
+import { QueryObserver, QueryClientContext } from "@tanstack/react-query";
+import { textFontPolicyQueryOptions } from "@/api/hooks/use-text-font-policy";
+import { fontMetadataRetry } from "@/api/hooks/text-font-recovery";
+import { fontSessionPolicy } from "@/lib/thread-font-policy";
 import { textFontCatalogQueryOptions } from "@/api/hooks/use-text-font-catalog";
-import { TEXT_FONT_ATTRIBUTE, normalizeTextFont } from "@/lib/markdown-text-font";
+import type { FontSessionPolicy } from "@/lib/thread-font-session";
+import { observeFontDemands } from "./visible-font-demands";
 import { threadFontRuntime, type ThreadFontCatalog, type ThreadFontRuntime } from "@/lib/thread-font-runtime";
 
 /** 离线组件与浏览器验收可注入已核验的同协议目录/传输；产品默认走 apiClient。 */
-export const TextFontEnvironment = createContext<{ catalog: ThreadFontCatalog; runtime: ThreadFontRuntime } | null>(null);
+export const TextFontEnvironment = createContext<{ catalog: ThreadFontCatalog; runtime: ThreadFontRuntime; policy?: FontSessionPolicy | null } | null>(null);
 
 function scrollOwner(element: HTMLElement): HTMLElement | null {
   for (let parent: HTMLElement | null = element; parent; parent = parent.parentElement) {
@@ -34,45 +38,44 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
   useEffect(() => {
     const root = rootRef.current;
     if (!enabled || !root || (!client && !environment)) return;
-    let alive = true;
-    const visible = new Set<Element>(), seen = new Map<Element, string>();
+    let alive = true, users = 0, refreshing = false;
+    let catalog = environment?.catalog;
+    let policyValue: unknown = undefined;
     const runtime = environment?.runtime ?? threadFontRuntime();
-    const load = async (element: Element) => {
-      const fontId = normalizeTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE));
-      const text = element.textContent ?? "";
-      if (!fontId || !text || !root.contains(element)) return;
-      const key = fontId + ":" + text;
-      if (seen.get(element) === key) return;
-      seen.set(element, key);
-      onStatus?.("loading");
-      try {
-        const catalog = environment?.catalog ?? await client!.fetchQuery(textFontCatalogQueryOptions());
-        const result = await runtime.load(catalog, fontId, text);
-        if (!alive || !root.contains(element) || seen.get(element) !== key) return;
-        applyFontWithoutScrollJump(root, () => root.style.setProperty("--wenyou-content-font-" + fontId, result.family));
-        element.setAttribute("data-font-load", result.status);
-        onStatus?.(result.status);
-      } catch {
-        // 网络、缓存和字体解码失败均只改变显示回退，不能改 Markdown 或 fontId。
-        if (alive && root.contains(element)) { element.setAttribute("data-font-load", "fallback"); onStatus?.("fallback"); }
-      }
+    let unsubscribe: (() => void) | undefined;
+    const refresh = () => {
+      if (refreshing) return; refreshing = true;
+      queueMicrotask(() => { refreshing = false; if (alive) tracking.refresh(); });
     };
-    const observer = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) { visible.add(entry.target); void load(entry.target); }
-        else visible.delete(entry.target);
-      }
-    }, { rootMargin: "0px" });
-    const scan = () => {
-      for (const element of root.querySelectorAll("[" + TEXT_FONT_ATTRIBUTE + "]")) {
-        if (!seen.has(element)) { if (observer) observer.observe(element); else { visible.add(element); void load(element); } }
-        else if (visible.has(element)) void load(element);
-      }
-      for (const element of seen.keys()) if (!root.contains(element)) { observer?.unobserve(element); seen.delete(element); visible.delete(element); }
+    const metadata = () => {
+      if (environment || unsubscribe || !client) return;
+      const observer = new QueryObserver(client, textFontCatalogQueryOptions());
+      const policyObserver = new QueryObserver(client, textFontPolicyQueryOptions());
+      const releaseCatalog = observer.subscribe(result => {
+        const next = result.error && !fontMetadataRetry(0, result.error) ? undefined : result.data;
+        if (next !== catalog) { catalog = next; if (!catalog) runtime.invalidate(); refresh(); }
+      });
+      const releasePolicy = policyObserver.subscribe(result => {
+        const next = result.error && !fontMetadataRetry(0, result.error) ? null : result.data;
+        if (next !== policyValue) { policyValue = next; refresh(); }
+      });
+      unsubscribe = () => { releaseCatalog(); releasePolicy(); };
+      catalog = observer.getCurrentResult().data;
+      policyValue = policyObserver.getCurrentResult().data;
     };
-    const mutations = new MutationObserver(scan);
-    mutations.observe(root, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: [TEXT_FONT_ATTRIBUTE] });
-    scan();
-    return () => { alive = false; observer?.disconnect(); mutations.disconnect(); };
+    const tracking = observeFontDemands(root, (fontId, text, emit) => {
+      users++; metadata(); onStatus?.("loading");
+      const policy = environment ? environment.policy ?? null : catalog && policyValue !== undefined ? fontSessionPolicy(policyValue, catalog) : undefined;
+      const release = catalog && policy !== undefined ? runtime.watch(catalog, policy, fontId, text, emit) : (() => { emit({family:"var(--wenyou-font-body-family, system-ui)",status:"fallback"}); return () => {}; })();
+      return () => {
+        release(); users--;
+        queueMicrotask(() => { if (!users) { unsubscribe?.(); unsubscribe = undefined; } });
+      };
+    }, (element, fontId, result) => {
+      applyFontWithoutScrollJump(root, () => root.style.setProperty("--wenyou-content-font-" + fontId, result.family));
+      element.setAttribute("data-font-load", result.status); onStatus?.(result.status);
+    });
+    return () => { alive = false; tracking.disconnect(); unsubscribe?.(); };
+
   }, [client, environment, rootRef, contentVersion, onStatus, enabled]);
 }

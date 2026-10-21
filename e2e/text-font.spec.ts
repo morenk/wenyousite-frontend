@@ -36,6 +36,8 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   }, { method, path, data, headers: font ? headers : { Authorization: headers.Authorization, "X-Text-Color-Version": "1", "X-Markdown-Contract-Version": "6" } });
   const meta = (await request("GET", "/api/v1/meta")).body.data;
   expect(meta.capabilities.textFontV1Supported).toBe(true);
+  const runtimePolicy = (await request("GET", "/api/v1/meta/text-fonts/runtime-policy")).body.data;
+  expect(runtimePolicy.policyVersion).toBe(2); expect(runtimePolicy.manifestSha256).toBe(manifestHash);
   expect(meta.capabilities.textFontV1WriteEnabled).toBe(true);
   await openFreshThreadDraft(page);
   await page.getByLabel("主题帖标题").fill("字体隔离验收 " + Date.now());
@@ -52,7 +54,9 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("option", { name: "文楷", exact: true }).click();
   expect(await initial.innerHTML()).toBe(before); expect(assets).toHaveLength(0);
   await page.getByRole("button", { name: "预览", exact: true }).click();
-  await expect.poll(() => assets.length).toBe(1);
+  await expect.poll(() => assets.length).toBeGreaterThanOrEqual(1);
+  // v2 可静默重试暂时失败；预览仍只请求当前 manifest，不预载字体全集。
+  expect(new Set(assets)).toEqual(new Set([`https://offline-fonts.wenyou.site/fonts/v1/${manifestHash}.json`]));
   expect(await initial.innerHTML()).toBe(before);
   await page.getByRole("button", { name: "应用", exact: true }).click();
   await expect(initial.locator('[data-wenyou-font-v1="wenkai"]')).toHaveText("正文中文 Aa");

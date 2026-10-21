@@ -1,4 +1,5 @@
 import createClient from "openapi-fetch";
+import { fetchTextFontMetadata } from "./text-font-fetch";
 import type { paths } from "./types";
 import {
   clearAuthSession,
@@ -285,7 +286,8 @@ const authenticatedFetch = createAuthenticatedFetch((input, init) =>
 
 export const apiClient = createClient<paths>({
   baseUrl: getBaseUrl(),
-  fetch: authenticatedFetch,
+  fetch: (request) => /^\/api\/v1\/meta\/text-fonts(?:\/runtime-policy)?$/u.test(new URL(request.url).pathname)
+    ? fetchTextFontMetadata(request) : authenticatedFetch(request),
 });
 
 apiClient.use({

@@ -3159,6 +3159,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/meta/text-fonts/runtime-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsGetRuntimePolicy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/meta/text-fonts": {
         parameters: {
             query?: never;
@@ -7108,6 +7124,151 @@ export interface components {
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
             mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];
         };
+        FontOriginalAssetDto: {
+            /** @enum {string} */
+            fontId: "xiaocheng-lafeng";
+            /** @description 必须匹配 manifest 中已授权原件的固定 SHA */
+            sha256: string;
+            /** @enum {number} */
+            bytes: 18410600;
+            /**
+             * @description 同一注册域并发预留／驻留原件至多一份，不按时间窗口续增
+             * @enum {number}
+             */
+            maxResidentCopies: 1;
+        };
+        FontNetworkWindowDto: {
+            /**
+             * @description 滚动时间窗口；续额不重置驻留或原生注册账本
+             * @enum {number}
+             */
+            windowMs: 60000;
+            /**
+             * @description 包含元数据、通知文件、原件、失败和重试的请求预留次数
+             * @enum {number}
+             */
+            maxRequests: 64;
+            /** @description 普通窗口预留字节；Mobile 原件计入此额度，Web 原件使用独立额度 */
+            maxBytes: number;
+            /**
+             * @description Web 原件独立额度；Mobile 固定 0，原件计入普通 24 MiB。失败不即时退款，窗口到期可再尝试
+             * @enum {number}
+             */
+            originalWindowBytes: 0 | 18410600;
+            /** @enum {number} */
+            maxConcurrent: 1 | 2;
+            /** @enum {number} */
+            timeoutMs: 15000;
+        };
+        FontWebResidencyDto: {
+            /** @enum {string} */
+            mode: "lease-lru";
+            /**
+             * @description 同一文档的多个阅读窗口共用一个运行时
+             * @enum {string}
+             */
+            scope: "document";
+            /**
+             * @description 当前目录全部家族均可参与活动集合，不是历史累计次数；原件也占一个名额
+             * @enum {number}
+             */
+            maxFamilies: 29;
+            /**
+             * @description 活动与待注册 face 数；只有实际解除注册并释放引用后才归还
+             * @enum {number}
+             */
+            maxFaces: 64;
+            /**
+             * @description 普通片按移动 SFNT 字节预占；经哈希校验后与 WOFF2.totalSfntSize 取较大值，解码前补足；不是压缩字节或引擎 RSS
+             * @enum {number}
+             */
+            maxSfntBytes: 16777216;
+            /**
+             * @description 固定原件独占的驻留输入额度，不可借给其他资源
+             * @enum {number}
+             */
+            originalSfntBytes: 18410600;
+        };
+        FontWebRuntimeDto: {
+            network: components["schemas"]["FontNetworkWindowDto"];
+            residency: components["schemas"]["FontWebResidencyDto"];
+        };
+        FontRegistrationSnapshotDto: {
+            /** @description 按 mobile 资产 SHA 去重的全集数量 */
+            assetCount: number;
+            /** @description 去重 SFNT 文件字节之和，不是 native 内存上限 */
+            totalAssetBytes: number;
+            /** @description 按资产 SHA＋family 去重的注册全集数量 */
+            registrationCount: number;
+            /** @description 按注册键汇总输入字节，防止同资产多别名绕过账本 */
+            totalRegistrationAssetBytes: number;
+        };
+        FontSnapshotSafetyCeilingDto: {
+            /**
+             * @description 消费者本地固定接受边界，不能直接服从远端扩大
+             * @enum {number}
+             */
+            maxSnapshotAssets: 1024;
+            /**
+             * @description 消费者本地固定注册输入边界，不代表设备内存安全
+             * @enum {number}
+             */
+            maxSnapshotAssetBytes: 268435456;
+        };
+        FontMobileRegistrationDto: {
+            /** @enum {string} */
+            mode: "fixed-manifest";
+            /** @enum {string} */
+            scope: "engine";
+            /** @enum {string} */
+            key: "asset-sha256-and-family";
+            /**
+             * @description 原生调用前登记；同键最多调用一次，下载失败不算原生尝试
+             * @enum {number}
+             */
+            maxAttemptsPerKey: 1;
+            /**
+             * @description 原生失败保留占用和隔离记录，不随重试或目录版本清零
+             * @enum {string}
+             */
+            failedAttempt: "quarantine-and-retain-charge";
+            snapshot: components["schemas"]["FontRegistrationSnapshotDto"];
+            safetyCeiling: components["schemas"]["FontSnapshotSafetyCeilingDto"];
+        };
+        FontMobileRuntimeDto: {
+            network: components["schemas"]["FontNetworkWindowDto"];
+            registration: components["schemas"]["FontMobileRegistrationDto"];
+        };
+        FontRetryPolicyDto: {
+            /** @description 第 n 次连续暂时失败的抖动上限；末项持续复用，成功后清零 */
+            delayCeilingsMs: number[];
+            /**
+             * @description floor(U×(ceiling+1))，U∈[0,1)；Retry-After 与窗口等待取更晚时间
+             * @enum {string}
+             */
+            jitter: "full";
+            /** @description 仅 408、429、500、502、503、504 视为暂时 HTTP 错误 */
+            retryableHttpStatuses: number[];
+            /** @enum {boolean} */
+            retryNetworkErrors: true;
+            /** @enum {boolean} */
+            retryTimeouts: true;
+            /** @enum {boolean} */
+            respectRetryAfter: true;
+        };
+        TextFontRuntimePolicyDto: {
+            /**
+             * @description 独立运行策略；未识别版本时继续 legacy limits
+             * @enum {number}
+             */
+            policyVersion: 2;
+            /** @description 必须等于已校验目录描述符和 manifest 实际 SHA；不匹配不启用策略 */
+            manifestSha256: string;
+            originalAsset: components["schemas"]["FontOriginalAssetDto"];
+            web: components["schemas"]["FontWebRuntimeDto"];
+            mobile: components["schemas"]["FontMobileRuntimeDto"];
+            retry: components["schemas"]["FontRetryPolicyDto"];
+        };
         TextFontManifestDto: {
             /** @description 相对于 assetBaseUrl 的不可变路径；不得解释为任意外链 */
             path: string;
@@ -8049,6 +8210,9 @@ export interface components {
         };
         MetaGetMeta200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["ApiMetaResponseDto"];
+        };
+        TextFontsGetRuntimePolicy200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["TextFontRuntimePolicyDto"];
         };
         TextFontsGetCatalog200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TextFontCatalogDto"];
@@ -22056,6 +22220,49 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MetaGetMeta200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    textFontsGetRuntimePolicy: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextFontsGetRuntimePolicy200Response"];
                 };
             };
             /** @description 未在此操作中单独列出的错误响应 */

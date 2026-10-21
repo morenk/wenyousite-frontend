@@ -19,3 +19,11 @@ test("全部受保护时不超预算，替换按新条目实际字节计数",asy
 test.each([undefined,{open:()=>{throw new Error("storage denied")}}])("存储不可用不阻断字体读取 %s",async(factory)=>{
  vi.stubGlobal("indexedDB",factory);const cache=new IndexedDbThreadFontCache();expect(await cache.get("a")).toBeNull();await expect(cache.put("a",bytes(2),4,new Set())).resolves.toBeUndefined();await expect(cache.delete("a")).resolves.toBeUndefined();
 });
+test("连续轮换活动资源只保护当前集合，持久缓存大小和条目数保持有界",async()=>{
+ const cache=new IndexedDbThreadFontCache();
+ for(let i=0;i<100;i++)await cache.put(String(i),bytes(10000),65536,new Set([String(i-1)]));
+ const db=await new Promise<IDBDatabase>((resolve,reject)=>{const req=indexedDB.open("wenyou-thread-font-assets-v1",1);req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+ const entries=await new Promise<{size:number}[]>((resolve,reject)=>{const req=db.transaction("assets").objectStore("assets").getAll();req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error)});
+ expect(entries.reduce((total,entry)=>total+entry.size,0)).toBeLessThanOrEqual(65536);expect(entries.length).toBeLessThanOrEqual(6);
+ expect(await cache.get("0")).toBeNull();expect((await cache.get("99"))?.byteLength).toBe(10000);db.close();
+});
