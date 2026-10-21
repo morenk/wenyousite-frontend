@@ -1,7 +1,7 @@
 "use client";
 import { useVisibleTextFonts } from "./use-visible-text-fonts";
 import { useTextFontCatalog } from "@/api/hooks/use-text-font-catalog";
-import { normalizeTextFont } from "@/lib/markdown-text-font";
+import { textFontOptions } from "./editor-text-font-options";
 import { validatedFontBase } from "@/lib/thread-font-runtime";
 import { EditorFontPreview } from "./editor-font-preview";
 import { editorTextFontSchema, editorTextFontAtomicPolicy } from "./editor-text-font";
@@ -1158,7 +1158,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           enabled: fontSelection.enabled && !disabled && !composingRef.current,
           value: fontSelection.fontId,
           accountId: textColorAccountId,
-          options: textFontWriteEnabled && fontCatalog.data?.manifest && validatedFontBase(fontCatalog.data.assetBaseUrl) ? fontCatalog.data.fonts.filter((font) => font.availability === "ready" && normalizeTextFont(font.id)).map((font) => ({ value: font.id, label: font.name })) : [],
+          options: textFontWriteEnabled && fontCatalog.data?.manifest && validatedFontBase(fontCatalog.data.assetBaseUrl) ? textFontOptions(fontCatalog.data.fonts) : [],
           loading: textFontWriteEnabled && fontCatalog.isLoading,
           error: fontCatalog.isError ? "字体列表加载失败" : undefined,
           onRetry: () => { void fontCatalog.refetch(); },
@@ -1169,7 +1169,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
             return applied;
           },
           onCancel: () => { restoreColorSelection(); setHeadingMenuAnchor(null); },
-          renderPreview: (font) => <EditorFontPreview fontId={font.value} />,
+          renderPreview: (font) => <EditorFontPreview fontId={font.value} designLanguage={fontCatalog.data?.fonts.find(entry => entry.id === font.value)?.designLanguage} />,
         } : undefined}
         colorControls={textColorWriteEnabled && textColorVersion === 1 ? {
           ...colorSelection,

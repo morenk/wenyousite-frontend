@@ -7119,6 +7119,11 @@ export interface components {
             id: string;
             name: string;
             /**
+             * @description 主要设计语言，仅用于目录分组；不表示字符覆盖完整，也不依据名称或汉字数量推断。
+             * @enum {string}
+             */
+            designLanguage: "zh" | "ja" | "en";
+            /**
              * @description ready 表示构建产物已核验；实际加载还须 assetBaseUrl。pendingSource/pendingLicense 不可选择或新增写入。
              * @enum {string}
              */

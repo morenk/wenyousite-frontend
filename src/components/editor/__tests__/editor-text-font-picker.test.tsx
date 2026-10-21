@@ -4,7 +4,7 @@ import { afterEach, expect, test, vi } from "vitest";
 import { EditorTextFontPicker, readRecentTextFonts, type EditorFontControls } from "../editor-text-font-picker";
 
 // 合成选项仅测界面，不是候选目录或正式 fontId。
-const options = Array.from({ length: 17 }, (_, index) => ({ value: `fixture-option-${index}`, label: `测试字体 ${index + 1}` }));
+const options = Array.from({ length: 29 }, (_, index) => ({ value: `fixture-option-${index}`, label: `测试字体 ${index + 1}` }));
 afterEach(() => { cleanup(); localStorage.clear(); });
 function setup(overrides: Partial<EditorFontControls> = {}) {
   const controls: EditorFontControls = {
@@ -21,7 +21,7 @@ async function choose(label: string) {
   await user.click(await screen.findByRole("option", { name: label }));
 }
 
-test("打开17项列表不挂载字体预览；选项变化不写正文，显式预览只处理一项", async () => {
+test("打开29项列表不挂载字体预览；选项变化不写正文，显式预览只处理一项", async () => {
   const { controls } = setup();
   expect(screen.getByRole("combobox", { name: "字体" })).toHaveTextContent("混合字体");
   expect(screen.getByRole("button", { name: "应用" })).toBeDisabled();
@@ -61,11 +61,33 @@ test("成功应用才按账号记录白名单最近项，去重限4；损坏与�
   await userEvent.setup().click(screen.getByRole("combobox", { name: "字体" }));
   const recentGroup = screen.getByRole("group", { name: "最近使用" });
   expect(within(recentGroup).getAllByRole("option")).toHaveLength(4);
-  expect(screen.getAllByRole("option")).toHaveLength(18);
+  expect(screen.getAllByRole("option")).toHaveLength(30);
   localStorage.setItem("wenyou:text-fonts:test-account", "{");
   expect(readRecentTextFonts("test-account", options)).toEqual([]);
   localStorage.setItem("wenyou:text-fonts:test-account", '{}');
   expect(readRecentTextFonts("test-account", options)).toEqual([]);
+});
+
+test("按适配层分组展示29项，最近项不重复；跨组选择仍对应原选项且不预载", async () => {
+  // 数量和顺序均为合成 UI 样本，不定义正式语言目录。
+  const grouped = options.map((option, index) => ({ ...option, group: ["中文", "日文", "英文"][index % 3]! }));
+  localStorage.setItem("wenyou:text-fonts:test-account", JSON.stringify([grouped[1]!.value]));
+  const { controls } = setup({ options: grouped });
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("combobox", { name: "字体" }));
+  expect(screen.getAllByRole("option")).toHaveLength(30);
+  expect(within(screen.getByRole("group", { name: "最近使用" })).getAllByRole("option")).toHaveLength(1);
+  for (const label of ["中文", "日文", "英文"]) {
+    const expected = grouped.filter((option) => option.group === label && option.value !== grouped[1]!.value);
+    expect(within(screen.getByRole("group", { name: label })).getAllByRole("option").map((option) => option.textContent)).toEqual(expected.map((option) => option.label));
+  }
+  await user.click(within(screen.getByRole("group", { name: "英文" })).getByRole("option", { name: grouped[26]!.label }));
+  expect(controls.renderPreview).not.toHaveBeenCalled();
+  expect(controls.onApply).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("button", { name: "预览" }));
+  expect(controls.renderPreview).toHaveBeenCalledExactlyOnceWith(grouped[26]);
+  await user.click(screen.getByRole("button", { name: "应用" }));
+  expect(controls.onApply).toHaveBeenCalledExactlyOnceWith(grouped[26]!.value);
 });
 
 test("加载、错误和禁用保留取消出口；目录重试不调用正文命令", () => {

@@ -1,9 +1,14 @@
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import fontCatalog from "../contracts/thread-font-catalog-v1.json";
 import type { components } from "../src/api/types";
 import { expect } from "@playwright/test";
 import { test } from "./fixtures/isolation";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 import { requireIsolationRunner } from "../scripts/e2e-isolation-gate.mjs";
+
+const manifestBytes = readFileSync("contracts/thread-font-manifest-v1.json");
+const manifestHash = createHash("sha256").update(manifestBytes).digest("hex");
 
 test("字体与颜色的选区应用、真实保存、旧端保护、复制及草稿恢复", async ({ page }) => {
   test.setTimeout(180000);
@@ -14,7 +19,7 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
     if (route.request().method() !== "GET") return route.continue();
     await route.fulfill({ json: { code: 0, data: { ...fontCatalog,
       assetBaseUrl: "https://offline-fonts.wenyou.site/",
-      manifest: { path: "fonts/v1/ad22427e048b90f798bddafc308195786600ee006459f54144610d1bbe35d5c3.json", sha256: "ad22427e048b90f798bddafc308195786600ee006459f54144610d1bbe35d5c3", bytes: 3207159 },
+      manifest: { path: `fonts/v1/${manifestHash}.json`, sha256: manifestHash, bytes: manifestBytes.byteLength },
     } } });
   });
   const assets: string[] = [];
@@ -43,6 +48,7 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("button", { name: "字体", exact: true }).click();
   const before = await initial.innerHTML();
   await page.getByRole("combobox", { name: "字体" }).click();
+  for (const name of ["中文", "日文", "英文"]) await expect(page.getByRole("group", { name, exact: true })).toBeVisible();
   await page.getByRole("option", { name: "文楷", exact: true }).click();
   expect(await initial.innerHTML()).toBe(before); expect(assets).toHaveLength(0);
   await page.getByRole("button", { name: "预览", exact: true }).click();
@@ -58,13 +64,17 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   const thread: components["schemas"]["ThreadDetailResponseDto"] = (await request("GET", "/api/v1/threads/" + threadId)).body.data;
   const body = thread.subthreads.find(s => s.id === thread.defaultSubthreadId)!.bodyPost!;
   expect(body.content).toContain('<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**正文中文 Aa**</span>');
-  const source = '<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> 普通文字';
+  const source = '<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> 普通文字 <span data-wenyou-font-v1="xiaocheng-lafeng">原件正文</span> <span data-wenyou-font-v1="yuji-boku">あいうえお</span>';
   const created = await request("POST", "/api/v1/subthreads/" + thread.defaultSubthreadId + "/posts", { content: source, textFontVersion: 1, textColorVersion: 1, markdownContractVersion: 6, clientRequestId: crypto.randomUUID() });
   expect(created.status).toBe(201); const post = created.body.data;
   await page.reload(); const floor = page.locator("#post-" + post.id);
   await expect(floor.locator('[data-wenyou-font-v1="wenkai"]')).toHaveCount(1);
+  await expect(floor.locator('[data-wenyou-font-v1="xiaocheng-lafeng"]')).toHaveText("原件正文");
+  await expect(floor.locator('[data-wenyou-font-v1="yuji-boku"]')).toHaveText("あいうえお");
   await expect(floor.locator('[data-wenyou-font-v1] strong')).toHaveCSS("color", "rgb(209, 67, 67)");
-  await expect(floor.locator('[data-wenyou-font-v1]')).toHaveAttribute("data-font-load", "fallback");
+  for (const fontId of ["wenkai", "xiaocheng-lafeng", "yuji-boku"]) {
+    await expect(floor.locator(`[data-wenyou-font-v1="${fontId}"]`)).toHaveAttribute("data-font-load", "fallback");
+  }
   await floor.screenshot({ path: ".e2e-results/" + run.manifest.runId + "-text-font-fallback.png" });
   const legacy = await request("GET", "/api/v1/posts/" + post.id, undefined, false);
   expect(legacy.body.data.content).not.toContain("data-wenyou-font-v1");
@@ -79,15 +89,19 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("menuitem", { name: "复制内容", exact: true }).click();
   await page.waitForFunction(() => !!(window as unknown as { copied?: unknown }).copied);
   const copied = await page.evaluate(() => (window as unknown as { copied: { html: string; text: string } }).copied);
-  expect(copied.html).toContain('data-wenyou-font-v1="wenkai"'); expect(copied.html).toContain('data-wenyou-color-v1="#D14343"');
+  expect(copied.html).toContain('data-wenyou-font-v1="xiaocheng-lafeng"'); expect(copied.html).toContain('data-wenyou-font-v1="yuji-boku"'); expect(copied.html).toContain('data-wenyou-font-v1="wenkai"'); expect(copied.html).toContain('data-wenyou-color-v1="#D14343"');
   await floor.getByRole("button", { name: "更多楼层操作", exact: true }).click(); await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
   const editor = page.getByRole("textbox", { name: "编辑正文", exact: true });
   await expect(editor.locator('[data-wenyou-font-v1="wenkai"]')).toHaveCount(9);
+  await expect(editor.locator('[data-wenyou-font-v1="xiaocheng-lafeng"]')).toHaveText("原件正文");
+  await expect(editor.locator('[data-wenyou-font-v1="yuji-boku"]')).toHaveText("あいうえお");
   await editor.press("Control+End"); await page.keyboard.insertText(" Web编辑");
   const saving = page.waitForResponse(r => r.request().method() === "PATCH" && new URL(r.url()).pathname.endsWith("/posts/" + post.id));
   await page.getByRole("button", { name: "保存修改", exact: true }).click(); expect((await saving).status()).toBe(200);
   const saved = (await request("GET", "/api/v1/posts/" + post.id)).body.data;
   expect(saved.content).toContain('data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343"'); expect(saved.content).toContain("**中文😀**"); expect(saved.content).toContain("Web编辑");
+  expect(saved.content).toContain('<span data-wenyou-font-v1="xiaocheng-lafeng">原件正文</span>');
+  expect(saved.content).toContain('<span data-wenyou-font-v1="yuji-boku">あいうえお');
   const state: components["schemas"]["DraftStateResponseDto"] = (await request("GET", "/api/v1/drafts/state")).body.data;
   const previous = state.drafts.find(d => d.slot === 1);
   const draft = previous ? await request("PATCH", "/api/v1/drafts/" + previous.id, { content: source, version: previous.version, textFontVersion: 1, textColorVersion: 1, markdownContractVersion: 6 }) : await request("POST", "/api/v1/drafts", { content: source, slot: 1, textFontVersion: 1, textColorVersion: 1, markdownContractVersion: 6, clientRequestId: crypto.randomUUID() });

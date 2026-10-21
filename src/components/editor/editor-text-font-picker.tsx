@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrig
 export interface EditorFontOption {
   value: string;
   label: string;
+  /** 由契约适配层提供显示分组；选择器不推断语言或字符覆盖。 */
+  group?: string;
 }
 
 export interface EditorFontControls {
@@ -60,13 +62,20 @@ export function EditorTextFontPicker({ controls }: { controls: EditorFontControl
   const item = (entry: EditorFontOption) => <SelectItem key={entry.value} value={controls.options.indexOf(entry)}>{entry.label}</SelectItem>;
   const recentOptions = recent.flatMap((value) => controls.options.filter((entry) => entry.value === value));
   const otherOptions = controls.options.filter((entry) => !recent.includes(entry.value));
+  const groups = new Map<string, EditorFontOption[]>();
+  for (const entry of otherOptions) {
+    const label = entry.group ?? (recentOptions.length > 0 ? "全部字体" : "");
+    const entries = groups.get(label) ?? [];
+    entries.push(entry);
+    groups.set(label, entries);
+  }
   return <div className="grid w-72 max-w-full gap-3 p-2">
     <Select value={selected === null ? -1 : option ? controls.options.indexOf(option) : null} onValueChange={choose} disabled={disabled}>
       <SelectTrigger aria-label="字体" size="sm" className="w-full"><SelectValue placeholder={selected === undefined ? "混合字体" : "选择字体"}>{selected === null ? "系统默认" : option?.label}</SelectValue></SelectTrigger>
       <SelectContent layer="nested" alignItemWithTrigger={false} className="max-h-64">
         <SelectItem value={-1}>系统默认</SelectItem>
         {recentOptions.length > 0 && <SelectGroup><SelectLabel>最近使用</SelectLabel>{recentOptions.map(item)}</SelectGroup>}
-        {otherOptions.length > 0 && <SelectGroup>{recentOptions.length > 0 && <SelectLabel>全部字体</SelectLabel>}{otherOptions.map(item)}</SelectGroup>}
+        {Array.from(groups, ([label, entries]) => <SelectGroup key={label}>{label && <SelectLabel>{label}</SelectLabel>}{entries.map(item)}</SelectGroup>)}
       </SelectContent>
     </Select>
     {controls.loading && <p role="status" className="text-xs text-muted-foreground">正在加载字体列表…</p>}
