@@ -21,8 +21,9 @@ export function fontSessionPolicy(value: unknown, catalog: ThreadFontCatalog): F
   const { network, residency } = policy.web;
   return {
     manifestSha256: policy.manifestSha256,
-    download: { concurrency: network.maxConcurrent, windowMs: network.windowMs, requestsPerWindow: network.maxRequests, bytesPerWindow: network.maxBytes, originalBytesPerWindow: network.originalWindowBytes },
-    residency: { families: residency.maxFamilies, faces: residency.maxFaces, bytes: residency.maxSfntBytes, originalBytes: residency.originalSfntBytes },
+    download: { concurrency: network.maxConcurrent, windowMs: network.windowMs, requestsPerWindow: network.maxRequests, bytesPerWindow: network.maxBytes, originalBytesPerWindow: 0 },
+    residency: { families: residency.maxFamilies, faces: residency.maxFaces, bytes: residency.maxSfntBytes, originalBytes: 0 },
+    transferTimeout: { mode: "progress", firstByteMs: network.timeoutMs, idleMs: network.timeoutMs, maxDurationMs: network.maxTransferMs },
     timeoutMs: network.timeoutMs, cacheBytes: ceilings.maxPersistentCacheBytes, maxAssetBytes: ceilings.maxAssetBytes,
     retryBaseMs: policy.retry.delayCeilingsMs[0]!, retryMaxMs: policy.retry.delayCeilingsMs.at(-1)!,
   };

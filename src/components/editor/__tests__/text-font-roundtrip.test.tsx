@@ -43,7 +43,7 @@ for (const item of fixtures.validCases) for (const projection of ["source", "fon
    const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(saved));
    expect(semantic(reopened?.toJSON())).toEqual(semantic(initial.toJSON()));
    expect(serializeEditorMarkdown(ctx, reopened!, capability)).toBe(saved);
-   if (projection === "source" || projection === "fontOnly") expect(saved).toContain('data-wenyou-font-v1="wenkai"');
+   if (projection === "source" || projection === "fontOnly") expect(saved).toContain(source.match(/data-wenyou-font-v1="[^"]+"/u)![0]);
   });
  });
 }

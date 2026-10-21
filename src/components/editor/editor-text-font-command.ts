@@ -3,7 +3,7 @@ import { closeHistory, isHistoryTransaction } from "@milkdown/kit/prose/history"
 import type { EditorView } from "@milkdown/kit/prose/view";
 import type { Node } from "@milkdown/kit/prose/model";
 import { $prose } from "@milkdown/kit/utils";
-import { normalizeTextFont, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { normalizeTextFont, isSelectableTextFont, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import { parseMentionTarget } from "@/lib/mention";
 import { parseInternalReference } from "@/lib/internal-reference";
 
@@ -54,7 +54,7 @@ export function getEditorTextFont(state: EditorState): { enabled: boolean; fontI
 
 export function applyEditorTextFont(view: EditorView, value: string | null, bookmark?: SelectionBookmark) {
   const fontId = value === null ? null : normalizeTextFont(value);
-  if (value !== null && !fontId) return false;
+  if (value !== null && (!fontId || !isSelectableTextFont(fontId))) return false;
   const type = view.state.schema.marks[TEXT_FONT_MARK];
   if (!type) return false;
   let tr = view.state.tr;

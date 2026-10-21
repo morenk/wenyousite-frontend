@@ -1,3 +1,4 @@
+import type { FontTransferTimeoutPolicy } from "./thread-font-transfer-timeout";
 import { normalizeTextFont } from "./markdown-text-font";
 import { IndexedDbThreadFontCache, type ThreadFontAssetCache } from "./thread-font-cache";
 import { FontAssetLoader, FontResourceError } from "./thread-font-assets";
@@ -10,7 +11,7 @@ export interface FontSessionPolicy {
   manifestSha256: string;
   download: FontDownloadPolicy;
   residency: FontResidencyPolicy;
-  timeoutMs: number; cacheBytes: number; retryBaseMs: number; retryMaxMs: number; maxAssetBytes: number;
+  timeoutMs: number; transferTimeout: FontTransferTimeoutPolicy; cacheBytes: number; retryBaseMs: number; retryMaxMs: number; maxAssetBytes: number;
 }
 export interface FontSessionResult { family: string; status: "loading" | "ready" | "fallback"; reason?: string }
 interface Demand {
@@ -41,7 +42,7 @@ export class ThreadFontSession {
   private registrationBytes = 0;
   private peakRegistrationBytes = 0;
   private readonly connectionChanged = () => {
-    this.scheduler?.setPaused(typeof navigator !== "undefined" && navigator.onLine === false);
+    this.scheduler?.setPaused(typeof navigator !== "undefined" && (navigator.onLine === false || document.visibilityState === "hidden"));
     this.wake();
   };
   constructor(private readonly transport: typeof fetch = (...args) => fetch(...args), private readonly cache: ThreadFontAssetCache = new IndexedDbThreadFontCache(), private readonly install: (part: ThreadFontShard, bytes: ArrayBuffer) => Promise<(() => void) | void> = installFont, private readonly options: {random?:()=>number; scheduler?: FontDownloadScheduler} = {}) { this.scheduler = options.scheduler; }
@@ -64,7 +65,7 @@ export class ThreadFontSession {
       if (this.scheduler) this.scheduler.updatePolicy(policy.download); else this.scheduler = new FontDownloadScheduler(policy.download);
       this.residency = new FontResidency(policy.residency, this.capacityChanged);
       const loader = new FontAssetLoader({base,transport:this.transport,cache:this.cache,scheduler:this.scheduler,
-        timeoutMs:policy.timeoutMs,cacheBytes:policy.cacheBytes,retryBaseMs:policy.retryBaseMs,retryMaxMs:policy.retryMaxMs,
+        timeoutMs:policy.timeoutMs,transferTimeout:policy.transferTimeout,cacheBytes:policy.cacheBytes,retryBaseMs:policy.retryBaseMs,retryMaxMs:policy.retryMaxMs,
         verify:verifyFontBytes,protectedHashes:()=>this.protectedHashes(),random:this.options.random});
       this.source = {key,catalog,policy,loader};
     }
@@ -85,7 +86,7 @@ export class ThreadFontSession {
   private listen() {
     if (this.listeners || typeof window==="undefined") return;
     this.listeners=true;window.addEventListener("focus",this.connectionChanged);window.addEventListener("online",this.connectionChanged);window.addEventListener("offline",this.connectionChanged);document.addEventListener("visibilitychange",this.connectionChanged);
-    this.scheduler?.setPaused(navigator.onLine===false);
+    this.scheduler?.setPaused(navigator.onLine===false || document.visibilityState === "hidden");
   }
   private release(demand: Demand) {
     if (!this.demands.delete(demand.id)) return;

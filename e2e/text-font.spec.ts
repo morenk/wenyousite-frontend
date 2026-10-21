@@ -50,6 +50,8 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("button", { name: "字体", exact: true }).click();
   const before = await initial.innerHTML();
   await page.getByRole("combobox", { name: "字体" }).click();
+  await expect(page.getByRole("option")).toHaveCount(29); // 28款加系统默认
+  await expect(page.getByRole("option", { name: "小城拉风体", exact: true })).toHaveCount(0);
   for (const name of ["中文", "日文", "英文"]) await expect(page.getByRole("group", { name, exact: true })).toBeVisible();
   await page.getByRole("option", { name: "文楷", exact: true }).click();
   expect(await initial.innerHTML()).toBe(before); expect(assets).toHaveLength(0);
@@ -68,16 +70,19 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   const thread: components["schemas"]["ThreadDetailResponseDto"] = (await request("GET", "/api/v1/threads/" + threadId)).body.data;
   const body = thread.subthreads.find(s => s.id === thread.defaultSubthreadId)!.bodyPost!;
   expect(body.content).toContain('<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**正文中文 Aa**</span>');
-  const source = '<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> 普通文字 <span data-wenyou-font-v1="xiaocheng-lafeng">原件正文</span> <span data-wenyou-font-v1="kaitou-yokoku-gothic">怪盗 あいうえお</span> <span data-wenyou-font-v1="yuji-boku">あいうえお</span>';
+  // 退役字体不能通过真实 API 新建；历史保源另由共享语料及阅读验收覆盖。
+  const retired = await request("POST", "/api/v1/subthreads/" + thread.defaultSubthreadId + "/posts", { content: '<span data-wenyou-font-v1="xiaocheng-lafeng">拒绝新增</span>', textFontVersion: 1, textColorVersion: 1, markdownContractVersion: 6, clientRequestId: crypto.randomUUID() });
+  expect(retired.status).toBe(409); expect(retired.body.code).toBe(40020);
+  const source = '<span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343">**中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> 普通文字 <span data-wenyou-font-v1="longcang">分片正文</span> <span data-wenyou-font-v1="kaitou-yokoku-gothic">怪盗 あいうえお</span> <span data-wenyou-font-v1="yuji-boku">あいうえお</span>';
   const created = await request("POST", "/api/v1/subthreads/" + thread.defaultSubthreadId + "/posts", { content: source, textFontVersion: 1, textColorVersion: 1, markdownContractVersion: 6, clientRequestId: crypto.randomUUID() });
   expect(created.status).toBe(201); const post = created.body.data;
   await page.reload(); const floor = page.locator("#post-" + post.id);
   await expect(floor.locator('[data-wenyou-font-v1="wenkai"]')).toHaveCount(1);
-  await expect(floor.locator('[data-wenyou-font-v1="xiaocheng-lafeng"]')).toHaveText("原件正文");
+  await expect(floor.locator('[data-wenyou-font-v1="longcang"]')).toHaveText("分片正文");
   await expect(floor.locator('[data-wenyou-font-v1="kaitou-yokoku-gothic"]')).toHaveText("怪盗 あいうえお");
   await expect(floor.locator('[data-wenyou-font-v1="yuji-boku"]')).toHaveText("あいうえお");
   await expect(floor.locator('[data-wenyou-font-v1] strong')).toHaveCSS("color", "rgb(209, 67, 67)");
-  for (const fontId of ["wenkai", "xiaocheng-lafeng", "kaitou-yokoku-gothic", "yuji-boku"]) {
+  for (const fontId of ["wenkai", "longcang", "kaitou-yokoku-gothic", "yuji-boku"]) {
     await expect(floor.locator(`[data-wenyou-font-v1="${fontId}"]`)).toHaveAttribute("data-font-load", "fallback");
   }
   await floor.screenshot({ path: ".e2e-results/" + run.manifest.runId + "-text-font-fallback.png" });
@@ -94,12 +99,12 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("menuitem", { name: "复制内容", exact: true }).click();
   await page.waitForFunction(() => !!(window as unknown as { copied?: unknown }).copied);
   const copied = await page.evaluate(() => (window as unknown as { copied: { html: string; text: string } }).copied);
-  expect(copied.html).toContain('data-wenyou-font-v1="xiaocheng-lafeng"'); expect(copied.html).toContain('data-wenyou-font-v1="yuji-boku"'); expect(copied.html).toContain('data-wenyou-font-v1="wenkai"'); expect(copied.html).toContain('data-wenyou-color-v1="#D14343"');
+  expect(copied.html).toContain('data-wenyou-font-v1="longcang"'); expect(copied.html).toContain('data-wenyou-font-v1="yuji-boku"'); expect(copied.html).toContain('data-wenyou-font-v1="wenkai"'); expect(copied.html).toContain('data-wenyou-color-v1="#D14343"');
   await floor.getByRole("button", { name: "更多楼层操作", exact: true }).click(); await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
   expect(copied.html).toContain('data-wenyou-font-v1="kaitou-yokoku-gothic"');
   const editor = page.getByRole("textbox", { name: "编辑正文", exact: true });
   await expect(editor.locator('[data-wenyou-font-v1="wenkai"]')).toHaveCount(9);
-  await expect(editor.locator('[data-wenyou-font-v1="xiaocheng-lafeng"]')).toHaveText("原件正文");
+  await expect(editor.locator('[data-wenyou-font-v1="longcang"]')).toHaveText("分片正文");
   await expect(editor.locator('[data-wenyou-font-v1="yuji-boku"]')).toHaveText("あいうえお");
   await editor.press("Control+End"); await page.keyboard.insertText(" Web编辑");
   const saving = page.waitForResponse(r => r.request().method() === "PATCH" && new URL(r.url()).pathname.endsWith("/posts/" + post.id));
@@ -107,7 +112,7 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   const saved = (await request("GET", "/api/v1/posts/" + post.id)).body.data;
   expect(saved.content).toContain('data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343"'); expect(saved.content).toContain("**中文😀**"); expect(saved.content).toContain("Web编辑");
   expect(saved.content).toContain('<span data-wenyou-font-v1="kaitou-yokoku-gothic">怪盗 あいうえお</span>');
-  expect(saved.content).toContain('<span data-wenyou-font-v1="xiaocheng-lafeng">原件正文</span>');
+  expect(saved.content).toContain('<span data-wenyou-font-v1="longcang">分片正文</span>');
   expect(saved.content).toContain('<span data-wenyou-font-v1="yuji-boku">あいうえお');
   const state: components["schemas"]["DraftStateResponseDto"] = (await request("GET", "/api/v1/drafts/state")).body.data;
   const previous = state.drafts.find(d => d.slot === 1);

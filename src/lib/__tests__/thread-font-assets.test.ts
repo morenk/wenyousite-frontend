@@ -1,11 +1,12 @@
 import { afterEach, expect, test, vi } from "vitest";
 import { FontAssetLoader } from "../thread-font-assets";
+import type { FontTransferTimeoutPolicy } from "../thread-font-transfer-timeout";
 import { FontDownloadScheduler } from "../thread-font-scheduler";
 const descriptor={path:"fonts/v1/test.woff2",sha256:"test",bytes:4};
 const response=()=>new Response(new Uint8Array(4),{headers:{"content-type":"font/woff2"}});
-function fixture(transport=vi.fn<typeof fetch>(async()=>response())) {
+function fixture(transport=vi.fn<typeof fetch>(async()=>response()), transferTimeout?: FontTransferTimeoutPolicy) {
  const scheduler=new FontDownloadScheduler({concurrency:2,windowMs:1000,requestsPerWindow:64,bytesPerWindow:1000,originalBytesPerWindow:20});
- const loader=new FontAssetLoader({base:"https://assets.wenyou.site/",transport,scheduler,cache:{get:async()=>null,put:async()=>{},delete:async()=>{}},timeoutMs:100,retryBaseMs:1000,retryMaxMs:60000,cacheBytes:1000,verify:async bytes=>bytes.byteLength===4,protectedHashes:()=>new Set(),random:()=>1});
+ const loader=new FontAssetLoader({base:"https://assets.wenyou.site/",transport,scheduler,cache:{get:async()=>null,put:async()=>{},delete:async()=>{}},timeoutMs:100,transferTimeout,retryBaseMs:1000,retryMaxMs:60000,cacheBytes:1000,verify:async bytes=>bytes.byteLength===4,protectedHashes:()=>new Set(),random:()=>1});
  return{transport,loader,scheduler};
 }
 afterEach(()=>vi.useRealTimers());
@@ -48,4 +49,25 @@ test("短 Retry-After 不绕过连续故障的指数退避，成功后恢复首�
  }
  f.transport.mockResolvedValueOnce(response());await f.loader.get(descriptor,signal);
  await expect(f.loader.get(descriptor,signal)).rejects.toMatchObject({retryAt:performance.now()+1000});
+});
+
+const progressTimeout = {mode:"progress",firstByteMs:15000,idleMs:15000,maxDurationMs:600000} as const;
+test("实际流式资产每10秒收到非空块，超过15秒仍完整校验并释放缓冲",async()=>{
+ vi.useFakeTimers();let stream!:ReadableStreamDefaultController<Uint8Array>;
+ const body=new ReadableStream<Uint8Array>({start(controller){stream=controller}});
+ const f=fixture(vi.fn<typeof fetch>(async()=>new Response(body,{headers:{"content-type":"font/woff2"}})),progressTimeout);
+ const result=f.loader.get(descriptor,new AbortController().signal);await vi.advanceTimersByTimeAsync(0);
+ for(let i=0;i<4;i++){await vi.advanceTimersByTimeAsync(10000);stream.enqueue(new Uint8Array([i]));await vi.advanceTimersByTimeAsync(0)}
+ stream.close();expect(new Uint8Array(await result)).toEqual(new Uint8Array([0,1,2,3]));expect(f.transport).toHaveBeenCalledTimes(1);
+ expect(f.loader.snapshot).toMatchObject({inFlight:0,bufferedBytes:0,failures:0,downloadBytes:4});expect(vi.getTimerCount()).toBe(0);
+});
+test("停流15秒取消reader并保留完整窗口预留，重试仍等窗口",async()=>{
+ vi.useFakeTimers();let stream!:ReadableStreamDefaultController<Uint8Array>;const cancel=vi.fn();
+ const body=new ReadableStream<Uint8Array>({start(controller){stream=controller},cancel});
+ const f=fixture(vi.fn<typeof fetch>(async()=>new Response(body,{headers:{"content-type":"font/woff2"}})),progressTimeout);
+ f.scheduler.updatePolicy({concurrency:2,windowMs:60000,requestsPerWindow:64,bytesPerWindow:4,originalBytesPerWindow:0});
+ const result=expect(f.loader.get(descriptor,new AbortController().signal)).rejects.toMatchObject({message:"network"});await vi.advanceTimersByTimeAsync(0);stream.enqueue(new Uint8Array(1));await vi.advanceTimersByTimeAsync(0);
+ await vi.advanceTimersByTimeAsync(15000);await result;expect(cancel).toHaveBeenCalledTimes(1);expect(f.loader.snapshot).toMatchObject({inFlight:0,bufferedBytes:0,failures:1});expect(f.scheduler.snapshot.windowBytes).toBe(4);
+ await vi.advanceTimersByTimeAsync(1000);const demand=new AbortController();const retry=f.loader.get(descriptor,demand.signal);const cancelled=expect(retry).rejects.toMatchObject({name:"AbortError"});await vi.advanceTimersByTimeAsync(0);
+ expect(f.scheduler.snapshot.queued).toBe(1);expect(f.transport).toHaveBeenCalledTimes(1);demand.abort();await cancelled;
 });

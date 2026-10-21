@@ -7124,19 +7124,6 @@ export interface components {
             capabilities: components["schemas"]["ApiCapabilitiesResponseDto"];
             mobileCompatibility: components["schemas"]["MobileCompatibilityDto"];
         };
-        FontOriginalAssetDto: {
-            /** @enum {string} */
-            fontId: "xiaocheng-lafeng";
-            /** @description 必须匹配 manifest 中已授权原件的固定 SHA */
-            sha256: string;
-            /** @enum {number} */
-            bytes: 18410600;
-            /**
-             * @description 同一注册域并发预留／驻留原件至多一份，不按时间窗口续增
-             * @enum {number}
-             */
-            maxResidentCopies: 1;
-        };
         FontNetworkWindowDto: {
             /**
              * @description 滚动时间窗口；续额不重置驻留或原生注册账本
@@ -7144,21 +7131,29 @@ export interface components {
              */
             windowMs: 60000;
             /**
-             * @description 包含元数据、通知文件、原件、失败和重试的请求预留次数
+             * @description 包含元数据、通知文件、失败和重试的请求预留次数
              * @enum {number}
              */
             maxRequests: 64;
-            /** @description 普通窗口预留字节；Mobile 原件计入此额度，Web 原件使用独立额度 */
+            /** @description 窗口预留字节；所有当前分片与通知均使用此额度 */
             maxBytes: number;
-            /**
-             * @description Web 原件独立额度；Mobile 固定 0，原件计入普通 24 MiB。失败不即时退款，窗口到期可再尝试
-             * @enum {number}
-             */
-            originalWindowBytes: 0 | 18410600;
             /** @enum {number} */
             maxConcurrent: 1 | 2;
-            /** @enum {number} */
+            /**
+             * @description 仅非空正文数据块重置 idle；响应头及空块不算进度，排队不计时
+             * @enum {string}
+             */
+            timeoutMode: "idle-with-total-cap";
+            /**
+             * @description 实际请求开始后等待首个有效字节、以及连续无有效字节进度的时限；不是总传输时限
+             * @enum {number}
+             */
             timeoutMs: 15000;
+            /**
+             * @description 从实际请求开始到响应体结束的独立总时限，持续有进度也不得续期；元数据与字体均适用
+             * @enum {number}
+             */
+            maxTransferMs: 600000;
         };
         FontWebResidencyDto: {
             /** @enum {string} */
@@ -7169,10 +7164,10 @@ export interface components {
              */
             scope: "document";
             /**
-             * @description 当前目录全部家族均可参与活动集合，不是历史累计次数；原件也占一个名额
+             * @description 当前目录全部家族均可参与活动集合，不是历史累计次数
              * @enum {number}
              */
-            maxFamilies: 29;
+            maxFamilies: 28;
             /**
              * @description 活动与待注册 face 数；只有实际解除注册并释放引用后才归还
              * @enum {number}
@@ -7183,11 +7178,6 @@ export interface components {
              * @enum {number}
              */
             maxSfntBytes: 16777216;
-            /**
-             * @description 固定原件独占的驻留输入额度，不可借给其他资源
-             * @enum {number}
-             */
-            originalSfntBytes: 18410600;
         };
         FontWebRuntimeDto: {
             network: components["schemas"]["FontNetworkWindowDto"];
@@ -7264,7 +7254,6 @@ export interface components {
             policyVersion: 2;
             /** @description 必须等于已校验目录描述符和 manifest 实际 SHA；不匹配不启用策略 */
             manifestSha256: string;
-            originalAsset: components["schemas"]["FontOriginalAssetDto"];
             web: components["schemas"]["FontWebRuntimeDto"];
             mobile: components["schemas"]["FontMobileRuntimeDto"];
             retry: components["schemas"]["FontRetryPolicyDto"];

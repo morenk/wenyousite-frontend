@@ -143,3 +143,10 @@ test("富文粘贴保源字体、原子无字体，随后手输仍用显式字�
  });
  expect(segments).toEqual([["原", null], ["粘贴", "zhuque"], ["续", "wenkai"], ["图后", "wenkai"]]);
 }));
+
+test("退役字体历史正文保源，不能新设该字体，仍可显式恢复默认",async()=>withEditor('<span data-wenyou-font-v1="xiaocheng-lafeng">**历史正文**</span>',(view,ctx)=>{
+ const source=view.state.doc;expect(source.textContent).toBe("历史正文");const saved=serializeEditorMarkdown(ctx,source,{markdownContractVersion:6,textFontVersion:1});expect(saved).toContain('data-wenyou-font-v1="xiaocheng-lafeng"');
+ view.dispatch(view.state.tr.setSelection(new AllSelection(view.state.doc)));expect(applyEditorTextFont(view,"xiaocheng-lafeng")).toBe(false);expect(view.state.doc.eq(source)).toBe(true);
+ expect(applyEditorTextFont(view,null)).toBe(true);expect(view.state.doc.textContent).toBe("历史正文");expect(view.state.doc.firstChild!.firstChild!.marks.map(m=>m.type.name)).toContain("strong");
+ expect(serializeEditorMarkdown(ctx,view.state.doc,{markdownContractVersion:6,textFontVersion:1})).not.toContain("data-wenyou-font");
+}));

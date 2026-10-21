@@ -51,3 +51,11 @@ test("通用编辑器预置字体也不激活；作用域关闭时站内粘贴�
  fireEvent.paste(editor, { clipboardData: { files: [], types: ["text/html"], getData: (type: string) => type === "text/html" ? '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><p><span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#2563EB"><strong>新字</strong></span></p></div>' : "新字" } });
  const saved = ref.current?.flush(); expect(saved).toContain("新字"); expect(saved).toContain('data-wenyou-color-v1="#2563EB"'); expect(saved).not.toContain('data-wenyou-font-v1="wenkai"'); expect(env.load).not.toHaveBeenCalled();
 });
+
+test("历史小城正文安全默认回退，保留文字颜色粗体且不请求字库",async()=>{
+ const env=environment(),historical=source.replaceAll("great-vibes","xiaocheng-lafeng");
+ const {container}=render(<TextFontEnvironment.Provider value={env.value}><MarkdownContent allowTextFont content={historical}/></TextFontEnvironment.Provider>);
+ await act(async()=>{});expect(container).toHaveTextContent("ABC");expect(container.querySelector("strong")).toHaveTextContent("ABC");
+ expect(container.querySelector('[data-wenyou-color-v1="#D14343"]')).not.toBeNull();expect(container.textContent).not.toContain("data-wenyou-font");expect(env.load).not.toHaveBeenCalled();
+ expect(container.querySelector('[data-wenyou-font-v1="xiaocheng-lafeng"]')).toHaveAttribute("data-font-load","fallback");
+});

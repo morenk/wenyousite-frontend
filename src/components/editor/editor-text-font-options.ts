@@ -1,5 +1,5 @@
 import type { components } from "@/api/types";
-import { normalizeTextFont } from "@/lib/markdown-text-font";
+import { isSelectableTextFont } from "@/lib/markdown-text-font";
 import type { EditorFontOption } from "./editor-text-font-picker";
 
 export function textFontGroup(language: unknown): string {
@@ -16,6 +16,6 @@ export function textFontPreviewSample(language: unknown): string {
 }
 
 export function textFontOptions(fonts: readonly components["schemas"]["TextFontFamilyDto"][]): EditorFontOption[] {
-  return fonts.filter(font => font.availability === "ready" && normalizeTextFont(font.id))
+  return fonts.filter(font => font.availability === "ready" && isSelectableTextFont(font.id))
     .map(font => ({ value: font.id, label: font.name, group: textFontGroup(font.designLanguage) }));
 }

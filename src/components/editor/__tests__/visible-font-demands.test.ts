@@ -23,3 +23,16 @@ test("目录刷新重建可见租约，正文删除清理所有引用",async()=>
  const f=setup();f.visible(true);f.observer.refresh();expect(f.released).toHaveBeenCalledTimes(1);expect(f.request).toHaveBeenCalledTimes(2);
  f.element.remove();await vi.waitFor(()=>expect(f.released).toHaveBeenCalledTimes(2));f.observer.disconnect();
 });
+test("后台立即释放包括选区在内的需求，回前台恢复一次且不改变选区",()=>{
+ const f=setup();f.visible(true);
+ const range=document.createRange();range.setStart(f.element.firstChild!,1);range.setEnd(f.element.firstChild!,2);document.getSelection()!.addRange(range);
+ const visibility=vi.spyOn(document,"visibilityState","get");visibility.mockReturnValue("hidden");document.dispatchEvent(new Event("visibilitychange"));
+ expect(f.released).toHaveBeenCalledTimes(1);expect(document.getSelection()?.toString()).toBe("B");
+ f.visible(true);f.observer.refresh();expect(f.request).toHaveBeenCalledTimes(1);
+ visibility.mockReturnValue("visible");document.dispatchEvent(new Event("visibilitychange"));document.dispatchEvent(new Event("visibilitychange"));
+ expect(f.request).toHaveBeenCalledTimes(2);expect(document.getSelection()?.toString()).toBe("B");f.observer.disconnect();visibility.mockRestore();
+});
+test("后台首次进入不请求，前台恢复可见需求",()=>{
+ const visibility=vi.spyOn(document,"visibilityState","get").mockReturnValue("hidden");const f=setup();f.visible(true);expect(f.request).not.toHaveBeenCalled();
+ visibility.mockReturnValue("visible");document.dispatchEvent(new Event("visibilitychange"));expect(f.request).toHaveBeenCalledTimes(1);f.observer.disconnect();visibility.mockRestore();
+});

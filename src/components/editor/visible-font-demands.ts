@@ -1,4 +1,4 @@
-import { normalizeTextFont, TEXT_FONT_ATTRIBUTE } from "@/lib/markdown-text-font";
+import { normalizeTextFont, isSelectableTextFont, TEXT_FONT_ATTRIBUTE } from "@/lib/markdown-text-font";
 import type { FontSessionResult } from "@/lib/thread-font-session";
 interface Entry { visible: boolean; key?: string; release?: () => void; timer?: ReturnType<typeof setTimeout>; generation: number }
 /** 可见性控制下载租约；短暂离屏不抖动，选区/光标所用分片保持引用。 */
@@ -17,7 +17,7 @@ export function observeFontDemands(root: HTMLElement, request: (fontId: string, 
     clearTimeout(entry.timer);entry.timer=undefined;entry.generation++;entry.release?.();entry.release=undefined;entry.key=undefined;
   };
   const update = (element: Element, entry: Entry, force = false) => {
-    if (!root.contains(element)) {release(entry);return;}
+    if (!root.contains(element) || document.visibilityState === "hidden") {release(entry);return;}
     if (!entry.visible && !(entry.release && selected(element))) {
       if(entry.release&&!entry.timer)entry.timer=setTimeout(()=>{entry.timer=undefined;if(!entry.visible&&!selected(element))release(entry)},releaseDelayMs);
       return;
@@ -25,6 +25,7 @@ export function observeFontDemands(root: HTMLElement, request: (fontId: string, 
     clearTimeout(entry.timer);entry.timer=undefined;
     const fontId=normalizeTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE)),text=element.textContent??"";
     if(!fontId||!text){release(entry);return;}
+    if(!isSelectableTextFont(fontId)){release(entry);apply(element,fontId,{family:"var(--wenyou-font-body-family, system-ui)",status:"fallback"});return;}
     const key=fontId+":"+text;
     if(!force&&entry.release&&entry.key===key)return;
     release(entry);entry.key=key;const generation=entry.generation;
@@ -45,9 +46,9 @@ export function observeFontDemands(root: HTMLElement, request: (fontId: string, 
   };
   const selectionChanged=()=>{for(const[element,entry]of entries)update(element,entry)};
   const mutations=new MutationObserver(scan);mutations.observe(root,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:[TEXT_FONT_ATTRIBUTE]});
-  document.addEventListener("selectionchange",selectionChanged);scan();
+  document.addEventListener("selectionchange",selectionChanged);document.addEventListener("visibilitychange",selectionChanged);scan();
   return {
     refresh:()=>{for(const[element,entry]of entries)update(element,entry,true)},
-    disconnect:()=>{alive=false;observer?.disconnect();mutations.disconnect();document.removeEventListener("selectionchange",selectionChanged);for(const entry of entries.values())release(entry);entries.clear()},
+    disconnect:()=>{alive=false;observer?.disconnect();mutations.disconnect();document.removeEventListener("selectionchange",selectionChanged);document.removeEventListener("visibilitychange",selectionChanged);for(const entry of entries.values())release(entry);entries.clear()},
   };
 }

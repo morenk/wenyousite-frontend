@@ -5,7 +5,8 @@ import catalogSource from "../../../contracts/thread-font-catalog-v1.json";
 import { ThreadFontRuntime, threadFontManifestSchema, type ThreadFontCatalog } from "../thread-font-runtime";
 import type { ThreadFontAssetCache } from "../thread-font-cache";
 
-const manifestSource = JSON.parse(readFileSync("contracts/thread-font-manifest-v1.json", "utf8"));
+const legacy = JSON.parse(readFileSync("src/lib/__tests__/fixtures/thread-font-original-v1.json", "utf8"));
+const manifestSource = legacy.manifest;
 const original = manifestSource.fonts.find((font: { id: string }) => font.id === "xiaocheng-lafeng");
 const originalDescriptor = original.shards[0].web;
 const budgetSchema = JSON.parse(readFileSync("contracts/thread-font-manifest-v1.schema.json", "utf8")).properties.fonts.items.oneOf[0].properties.budgetException.const;
@@ -32,7 +33,7 @@ async function fixture() {
   const other = { id: "wenkai", availability: "ready", deliveryMode: "subset", license: "OFL-1.1", baseWeight: 400, baseStyle: "normal", notices, shards: [{ id: "core", family: "WYF1-0000000000000000-core", unicodeRanges: ["U+0041"], web: small }] };
   const manifest = { ...manifestSource, limits: { ...manifestSource.limits, maxWebSessionBytes: 200000 }, fonts: [{ ...original, notices }, other] };
   const descriptor = await add(encode(JSON.stringify(manifest)), "json");
-  const catalog = { fontVersion: 1, catalogVersion: manifestSource.catalogVersion, fonts: catalogSource.fonts, assetBaseUrl: "https://assets.wenyou.site/", manifest: descriptor } as ThreadFontCatalog;
+  const catalog = { fontVersion: 1, catalogVersion: manifestSource.catalogVersion, fonts: [...catalogSource.fonts.filter(font => font.id !== "xiaocheng-lafeng"), ...legacy.catalog.fonts], assetBaseUrl: "https://assets.wenyou.site/", manifest: descriptor } as ThreadFontCatalog;
   // 只替换合成大载荷的摘要以测试额度，不把测试字节当作真实字体；真实解码另由离线浏览器验收。
   const digest = webcrypto.subtle.digest.bind(webcrypto.subtle);
   vi.spyOn(webcrypto.subtle, "digest").mockImplementation(async (algorithm, data) => {
