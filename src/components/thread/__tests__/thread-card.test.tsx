@@ -282,3 +282,12 @@ describe("ThreadCard", () => {
     );
   });
 });
+
+test("帖子摘要投影字体正文为默认文字，保留源preview且无字体加载标记", () => {
+ const preview = '<span data-wenyou-font-v1="great-vibes" data-wenyou-color-v1="#D14343">**Hello 正文**</span>';
+ const thread = { ...baseThread, preview };
+ const { container } = renderThreadCard(thread);
+ expect(screen.getByText("Hello 正文")).toBeInTheDocument();
+ expect(container.querySelector("[data-wenyou-font-v1], [data-font-load], [style*='font-family']")).toBeNull();
+ expect(thread.preview).toBe(preview);
+});

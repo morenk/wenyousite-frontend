@@ -27,6 +27,7 @@ export type { MilkdownEditorProps } from "./milkdown-editor-types";
 function EditorCore({
   defaultValue,
   allowTextColor = false,
+  allowTextFont = false,
   audioDraftKey,
   mediaAudios,
   mediaDisplays,
@@ -167,7 +168,8 @@ function EditorCore({
           mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
           textFontVersion={textFontSupported ? 1 : undefined}
-          textFontWriteEnabled={allowTextColor && textFontWriteEnabled}
+          textFontRenderingEnabled={allowTextFont && textFontSupported}
+          textFontWriteEnabled={allowTextFont && textFontWriteEnabled}
           textColorVersion={textColorSupported ? 1 : undefined}
           textColorWriteEnabled={allowTextColor && textColorWriteEnabled}
           textColorAccountId={user?.id}

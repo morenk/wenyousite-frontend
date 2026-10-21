@@ -4,6 +4,15 @@ import { parseMentionTarget } from "@/lib/mention";
 import { parseInternalReference } from "@/lib/internal-reference";
 import { $prose, $markSchema } from "@milkdown/kit/utils";
 import { normalizeTextFont, textFontFamily, TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import type { Ctx } from "@milkdown/kit/ctx";
+
+export function configureEditorTextFontRendering(ctx: Ctx, enabled: boolean) {
+  if (enabled) return;
+  ctx.update(editorTextFontSchema.key, previous => schemaCtx => ({
+    ...previous(schemaCtx),
+    toDOM: () => ["span", {}, 0],
+  }));
+}
 
 /** 字体标记共用保源与取色；DOM 只接受受控属性，不从 style 读取字体。 */
 export const editorTextFontSchema = $markSchema(TEXT_FONT_MARK, () => ({

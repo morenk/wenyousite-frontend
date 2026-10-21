@@ -28,12 +28,12 @@ export function applyFontWithoutScrollJump(root: HTMLElement, apply: () => void)
   if (owner && range && before !== undefined) owner.scrollTop += range.getBoundingClientRect().top - before;
 }
 
-export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, contentVersion?: unknown, onStatus?: (status: "loading" | "ready" | "fallback") => void) {
+export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, contentVersion?: unknown, onStatus?: (status: "loading" | "ready" | "fallback") => void, enabled = true) {
   const client = useContext(QueryClientContext);
   const environment = useContext(TextFontEnvironment);
   useEffect(() => {
     const root = rootRef.current;
-    if (!root || (!client && !environment)) return;
+    if (!enabled || !root || (!client && !environment)) return;
     let alive = true;
     const visible = new Set<Element>(), seen = new Map<Element, string>();
     const runtime = environment?.runtime ?? threadFontRuntime();
@@ -74,5 +74,5 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
     mutations.observe(root, { childList: true, characterData: true, subtree: true, attributes: true, attributeFilter: [TEXT_FONT_ATTRIBUTE] });
     scan();
     return () => { alive = false; observer?.disconnect(); mutations.disconnect(); };
-  }, [client, environment, rootRef, contentVersion, onStatus]);
+  }, [client, environment, rootRef, contentVersion, onStatus, enabled]);
 }

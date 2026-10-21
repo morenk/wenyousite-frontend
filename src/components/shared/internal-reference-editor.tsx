@@ -4,7 +4,7 @@ import { forwardRef, useEffect, useImperativeHandle, useRef } from "react";
 import { baseKeymap } from "@milkdown/kit/prose/commands";
 import { history, redo, undo } from "@milkdown/kit/prose/history";
 import { keymap } from "@milkdown/kit/prose/keymap";
-import { Schema, type Mark, type Node as ProseNode } from "@milkdown/kit/prose/model";
+import { Schema, Slice, type Mark, type Node as ProseNode } from "@milkdown/kit/prose/model";
 import { EditorState } from "@milkdown/kit/prose/state";
 import { EditorView } from "@milkdown/kit/prose/view";
 import {
@@ -18,6 +18,21 @@ import {
   tokenizeInternalReferenceText,
 } from "@/lib/internal-reference";
 import { cn } from "@/lib/utils";
+import { parseSiteClipboardHtml, projectSiteClipboardText } from "@/lib/site-clipboard";
+
+/** 只投影已校验站内载体到动态的纯文本/传送门协议，不带字体、颜色或任意外链格式。 */
+function projectSitePaste(html: string): string | null {
+  const payload = parseSiteClipboardHtml(html);
+  if (!payload) return null;
+  const template = document.createElement("template");
+  template.innerHTML = payload.html;
+  for (const anchor of template.content.querySelectorAll("a")) {
+    const reference = parseInternalReference(anchor.getAttribute("href") ?? "");
+    const label = anchor.textContent ?? "";
+    anchor.replaceWith(document.createTextNode(reference ? serializeInternalReference(label, reference.href) ?? label : label));
+  }
+  return projectSiteClipboardText(template.content.firstElementChild!);
+}
 
 const editorSchema = new Schema({
   nodes: {
@@ -209,6 +224,17 @@ export const InternalReferenceEditor = forwardRef<
         },
       },
       handlePaste: (editorView, event) => {
+        const projected = projectSitePaste(event.clipboardData?.getData("text/html") ?? "");
+        if (projected !== null) {
+          event.preventDefault();
+          if (!projected) return true;
+          const content = createEditorDocument(projected).content;
+          const transaction = editorView.state.tr.replaceSelection(new Slice(content, 1, 1))
+            .removeStoredMark(editorView.state.schema.marks.link).scrollIntoView();
+          if (!fitsLimit(transaction.doc)) { notifyLimit(); return true; }
+          editorView.dispatch(transaction);
+          return true;
+        }
         const plain = event.clipboardData?.getData("text/plain") ?? "";
         const reference = parseInternalReference(plain.trim());
         if (reference) {

@@ -11,6 +11,8 @@ export interface MilkdownEditorProps {
   defaultValue?: string;
   /** 仅主题、子帖、楼层和回复正文显式启用取色。 */
   allowTextColor?: boolean;
+  /** 仅主题、子帖、楼层和回复正文启用字体显示、加载与站内粘贴。 */
+  allowTextFont?: boolean;
   audioDraftKey?: string;
   mediaAudios?: readonly MarkdownMediaAudio[];
   mediaDisplays?: readonly MarkdownMediaDisplay[];

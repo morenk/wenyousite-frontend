@@ -152,3 +152,25 @@ describe("InternalReferenceEditor", () => {
     expect(editor.querySelector("strong")).toBeNull();
   });
 });
+
+test("主题站内载体粘入动态只保留文字、换行及合法传送门，移除字体和不支持格式", () => {
+ const onChange = vi.fn();
+ render(<InternalReferenceEditor value="" onChange={onChange} maxLength={1000} ariaLabel="动态正文"/>);
+ const editor = screen.getByRole("textbox", { name: "动态正文" });
+ const html = '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><p><span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#D14343"><strong>正文</strong> <a href="/join/AbCdEfGh_123-XYZ">入团</a> <a href="https://example.com">外链</a></span></p><p>第二段<br>换行</p></div>';
+ fireEvent.paste(editor, { clipboardData: { getData: (type: string) => type === "text/html" ? html : "正文 入团 外链\n\n第二段\n换行" } });
+ expect(onChange).toHaveBeenLastCalledWith("正文 [入团](/join/AbCdEfGh_123-XYZ) 外链\n\n第二段\n换行");
+ expect(editor.querySelectorAll("a")).toHaveLength(1);
+ expect(editor.querySelector("a")).toHaveAttribute("href", "/join/AbCdEfGh_123-XYZ");
+ expect(editor.querySelector("[data-wenyou-font-v1], [data-wenyou-color-v1], strong, em")).toBeNull();
+});
+
+test("动态拒绝超长站内投影，保留原文；外部字体HTML不激活字库或外链", () => {
+ const onChange = vi.fn(), onLimitExceeded = vi.fn();
+ render(<InternalReferenceEditor value="原文" onChange={onChange} onLimitExceeded={onLimitExceeded} maxLength={4} ariaLabel="动态正文"/>);
+ const editor = screen.getByRole("textbox", { name: "动态正文" });
+ fireEvent.paste(editor, { clipboardData: { getData: (type: string) => type === "text/html" ? '<div data-wenyou-clipboard="2" data-wenyou-clipboard-source="reader"><p><a href="/join/AbCdEfGh_123-XYZ">过长</a></p></div>' : "过长" } });
+ expect(onChange).not.toHaveBeenCalled(); expect(onLimitExceeded).toHaveBeenCalled(); expect(editor).toHaveTextContent("原文");
+ fireEvent.paste(editor, { clipboardData: { getData: (type: string) => type === "text/html" ? '<span style="font-family:evil">字</span>' : "字" } });
+ expect(editor).toHaveTextContent("字原文"); expect(editor.querySelector("[style], [data-wenyou-font-v1], a")).toBeNull();
+});

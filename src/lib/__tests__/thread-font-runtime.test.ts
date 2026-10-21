@@ -34,7 +34,7 @@ test("固定Unicode范围按实际码点选片，包含扩展平面",()=>{
  expect(rangesContain(["U+20000-20010"],0x20000)).toBe(true);expect(rangesContain(["U+0041"],66)).toBe(false);
  expect(requiredFontShards([{unicodeRanges:["U+0041"]},{unicodeRanges:["U+20000"]}] as never,"A𠀀A")).toHaveLength(2);
 });
-test.each(["shinsyoku-mincho", "bouken-gothic", "hakkou-mincho"])("正式目录 %s 的日文样文按假名选择补充分片，不能只加载core", (id) => {
+test.each(["shinsyoku-mincho", "bouken-gothic", "hakkou-mincho", "kaitou-yokoku-gothic"])("正式目录 %s 的日文样文按假名选择补充分片，不能只加载core", (id) => {
  const manifest = threadFontManifestSchema.parse(JSON.parse(readFileSync("contracts/thread-font-manifest-v1.json", "utf8")));
  const font = manifest.fonts.find(font => font.id === id);
  if (!font || font.availability !== "ready") throw new Error("缺少正式字体样本");
@@ -57,7 +57,9 @@ test("manifest、许可、字体先验哈希，重复阅读和多段共用一次
  expect((await reopened.load(f.catalog,f.fonts[0]!.id,"A")).status).toBe("ready");expect(offline).not.toHaveBeenCalled();expect(reopened.stats.cacheHits).toBe(4);
 });
 test("无base、待源、未知ID与无内容不请求；纯缺字只有manifest",async()=>{
- const f=await fixture();for(const [catalog,id,text] of [[null,"wenkai","A"],[{...f.catalog,assetBaseUrl:null},"wenkai","A"],[f.catalog,"unknown","A"],[f.catalog,"kaitou-yokoku-gothic","A"],[f.catalog,f.fonts[0]!.id,""]] as const)expect((await f.runtime.load(catalog,id,text)).status).toBe("fallback");
+ const f=await fixture();
+ const pendingCatalog = { ...f.catalog, fonts: f.catalog.fonts.map(font => ({ ...font, availability: "pendingSource" as const })) };
+ for(const [catalog,id,text] of [[null,"wenkai","A"],[{...f.catalog,assetBaseUrl:null},"wenkai","A"],[f.catalog,"unknown","A"],[pendingCatalog,"kaitou-yokoku-gothic","A"],[f.catalog,f.fonts[0]!.id,""]] as const)expect((await f.runtime.load(catalog,id,text)).status).toBe("fallback");
  expect(f.transport).not.toHaveBeenCalled();expect((await f.runtime.load(f.catalog,f.fonts[0]!.id,"😀")).reason).toBe("missing-glyph");expect(f.transport).toHaveBeenCalledTimes(1);
 });
 test("损坏缓存删除后仅下载一次，失败不会重复请求",async()=>{
@@ -100,4 +102,40 @@ test("目录撤下或base清空后不沿用已经注册的字体", async () => {
  const before=f.transport.mock.calls.length;
  const result=await f.runtime.load({...f.catalog,assetBaseUrl:null},f.fonts[0]!.id,"A");
  expect(result.status).toBe("fallback");expect(result.family).not.toContain("WYF1");expect(f.transport).toHaveBeenCalledTimes(before);
+});
+
+test("同字体后续全缺字不覆盖先前成功注册的family，也不重下资源", async () => {
+ const f = await fixture();
+ const loaded = await f.runtime.load(f.catalog, f.fonts[0]!.id, "A");
+ const requests = f.transport.mock.calls.length;
+ const missing = await f.runtime.load(f.catalog, f.fonts[0]!.id, "😀");
+ expect(missing).toEqual({ family: loaded.family, status: "fallback", reason: "missing-glyph" });
+ expect(missing.family).toContain(f.fonts[0]!.shards[0]!.family);
+ expect(f.transport).toHaveBeenCalledTimes(requests);
+});
+
+test.each(["previous", "concurrent"])("追加分片失败保留%s成功的字形，不以失败片覆盖已安装family", async order => {
+ const f = await fixture();
+ const first = f.fonts[0]!.shards[0]!;
+ const extra = { ...first, id: "u003000", family: "WYF1-0000000000000000-u003000", unicodeRanges: ["U+3042"], web: { ...await descriptor("kana-font"), format: "woff2", contentType: "font/woff2" } };
+ const manifest = { ...f.manifest, fonts: [{ ...f.fonts[0]!, shards: [first, extra] }] };
+ const md = await descriptor(JSON.stringify(manifest), "json");
+ f.assets.set(md.path, encode(JSON.stringify(manifest)));
+ const catalog = { ...f.catalog, manifest: md };
+ const send = f.transport.getMockImplementation()!;
+ f.transport.mockImplementation(async (...args) => {
+  if (String(args[0]).endsWith(extra.web.path)) throw new Error("kana-offline");
+  return send(...args);
+ });
+ if (order === "previous") expect((await f.runtime.load(catalog, firstFontId(), "A")).status).toBe("ready");
+ // 同批另一个片先失败，已有片稍后安装完成也必须进入最终family链。
+ if (order === "concurrent") f.install.mockImplementation(async () => { await new Promise(resolve => setTimeout(resolve, 10)); });
+ const result = await f.runtime.load(catalog, firstFontId(), order === "previous" ? "あ" : "Aあ");
+ expect(result).toEqual({ family: expect.stringContaining(first.family), status: "fallback", reason: "kana-offline" });
+ expect(result.family).not.toContain(extra.family);
+ expect(f.install).toHaveBeenCalledTimes(1);
+ expect((await f.runtime.load(catalog, firstFontId(), "A")).family).toBe(result.family);
+ expect((await f.runtime.load(catalog, firstFontId(), "あ")).family).toBe(result.family);
+ expect(f.transport.mock.calls.filter(([input]) => String(input).endsWith(extra.web.path))).toHaveLength(1);
+ function firstFontId() { return f.fonts[0]!.id; }
 });

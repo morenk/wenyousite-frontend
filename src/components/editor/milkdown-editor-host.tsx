@@ -4,7 +4,7 @@ import { useTextFontCatalog } from "@/api/hooks/use-text-font-catalog";
 import { textFontOptions } from "./editor-text-font-options";
 import { validatedFontBase } from "@/lib/thread-font-runtime";
 import { EditorFontPreview } from "./editor-font-preview";
-import { editorTextFontSchema, editorTextFontAtomicPolicy } from "./editor-text-font";
+import { editorTextFontSchema, editorTextFontAtomicPolicy, configureEditorTextFontRendering } from "./editor-text-font";
 import { applyEditorTextFont, getEditorTextFont, editorTextFontTyping, clearEditorTextFontTyping } from "./editor-text-font-command";
 /** Milkdown 编辑器核心：仅由轻量动态入口加载。 */
 
@@ -142,7 +142,7 @@ import {
   editorIconSvg,
 } from "@/lib/editor-icons";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
-import { editorMarkdownPastePlugin } from "@/components/editor/markdown-literal-paste";
+import { createEditorMarkdownPastePlugin } from "@/components/editor/markdown-literal-paste";
 import {
   configureEditorMarkdownSerializer,
   createEditorMarkdownBridge,
@@ -258,6 +258,7 @@ export interface MilkdownEditorHostProps {
   mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
   textFontVersion?: 1;
+  textFontRenderingEnabled?: boolean;
   textFontWriteEnabled?: boolean;
   textColorVersion?: 1;
   textColorWriteEnabled?: boolean;
@@ -290,6 +291,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   mentionIdentities,
   markdownContractVersion,
   textFontVersion,
+  textFontRenderingEnabled = false,
   textFontWriteEnabled = false,
   textColorVersion,
   textColorWriteEnabled = false,
@@ -353,7 +355,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useEffect(() => { audioActionRef.current = audioUpload.open; }, [audioUpload.open]);
   const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
   const hostRef = useRef<HTMLDivElement>(null);
-  useVisibleTextFonts(hostRef, loading);
+  useVisibleTextFonts(hostRef, loading, undefined, textFontRenderingEnabled);
   const onChangeRef = useRef(onChange);
   const onValidityRef = useRef(onValidityChange);
   const flushRef = useRef<(() => string | null) | null>(null);
@@ -916,6 +918,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         .config((ctx) => configureEditorAlignmentParser(ctx, { markdownContractVersion }))
         .config((ctx) => configureEditorAlignmentSchemas(ctx, { markdownContractVersion }))
         .config(configureEditorMarkdownSerializer)
+        .config(ctx => configureEditorTextFontRendering(ctx, textFontRenderingEnabled))
 
         .use(internalReferenceLinkView)
         .use(editorMentionCaretPlugin)
@@ -925,7 +928,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         .use(editorTextColorSchema)
         .use(editorTextColorAtomicPolicy)
         .use(editorTextColorTyping)
-        .use(editorMarkdownPastePlugin)
+        .use(createEditorMarkdownPastePlugin({ allowTextFont: textFontRenderingEnabled }))
         .use(alignmentPlugin)
         .use(editorAttentionBoundaryParser)
         .use(editorSoftBreakParser)
@@ -942,7 +945,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
 
       return crepe;
     },
-    [capabilityReady, markdownContractVersion, textColorVersion, textFontVersion],
+    [capabilityReady, markdownContractVersion, textColorVersion, textFontVersion, textFontRenderingEnabled],
   );
 
   useEffect(() => {
@@ -1154,7 +1157,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       <EditorHeadingMenu
         key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled) + String(textFontWriteEnabled)}
         anchor={headingMenuAnchor}
-        fontControls={textFontVersion === 1 ? {
+        fontControls={textFontRenderingEnabled && textFontVersion === 1 ? {
           enabled: fontSelection.enabled && !disabled && !composingRef.current,
           value: fontSelection.fontId,
           accountId: textColorAccountId,

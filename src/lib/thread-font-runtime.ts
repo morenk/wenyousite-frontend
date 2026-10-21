@@ -147,12 +147,14 @@ export class ThreadFontRuntime {
   }
   async load(catalog: ThreadFontCatalog | null | undefined, fontId: string, text: string): Promise<FontLoadResult> {
     const family = () => [...(this.installed.get(fontId) ?? []).map((name) => '"' + name + '"'), systemFamily].join(", ");
+    let available = false;
     try {
       const base = validatedFontBase(catalog?.assetBaseUrl ?? null);
       if (!catalog || catalog.fontVersion !== 1 || !normalizeTextFont(fontId) || !base || !catalog.manifest || !text || !catalog.fonts.some((font) => font.id === fontId && font.availability === "ready")) throw new Error("unavailable");
       const manifest = await this.manifest(catalog, base);
       const font = manifest.fonts.find((item) => item.id === fontId);
       if (!font || font.availability !== "ready") throw new Error("unavailable");
+      available = true;
       const parts = requiredFontShards(font.shards, text);
       if (!parts.length) throw new Error("missing-glyph");
       if (!this.families.has(fontId)) {
@@ -163,7 +165,7 @@ export class ThreadFontRuntime {
         this.protectedHashes.add(notice.sha256);
         this.notices.set(notice.sha256, await this.getAsset(base, notice));
       }
-      await Promise.all(parts.map((part) => {
+      const results = await Promise.allSettled(parts.map((part) => {
         let face = this.faces.get(part.web.sha256);
         if (!face) {
           face = (async () => {
@@ -185,10 +187,14 @@ export class ThreadFontRuntime {
         }
         return face;
       }));
+      const failed = results.find(result => result.status === "rejected");
+      if (failed?.status === "rejected") throw failed.reason;
       return { family: family(), status: "ready" };
     } catch (error) {
       this.stats.fallback++;
-      return { family: systemFamily, status: "fallback", reason: error instanceof Error ? error.message : "unavailable" };
+      // 缺字或新片失败只回退未覆盖字符，不能清掉同家族其他正文已注册的字形。
+      // 目录撤下、来源清空或 manifest 不可验证时仍回到纯系统字体。
+      return { family: available ? family() : systemFamily, status: "fallback", reason: error instanceof Error ? error.message : "unavailable" };
     }
   }
 }
