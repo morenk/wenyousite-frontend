@@ -188,3 +188,37 @@ test.each([true, false])("站内结构化粘贴按目标字体能力%s投影，�
  expect(saved.includes('data-wenyou-font-v1="great-vibes"')).toBe(allowTextFont);
  expect(saved).toContain('data-wenyou-color-v1="#2563EB"'); expect(saved).toContain("***新字***"); expect(saved).toContain("[链接](https://example.com)");
 }, allowTextFont));
+
+for (const origin of ["reader", "aligned-reader", "editor"] as const) {
+ test(`${origin}历史退役字体粘入新正文：仅去字体，保留颜色与全部格式，原文仍保源`, async () => {
+  const source = (origin === "aligned-reader" ? "[wenyousite-align-v1-center]: #\n" : "")
+   + '<span data-wenyou-font-v1="xiaocheng-lafeng" data-wenyou-color-v1="#D14343">**历史中文😀** *斜体* ~~删除~~ [链接](https://example.com) `字面`</span> <span data-wenyou-font-v1="wenkai" data-wenyou-color-v1="#2563EB">现有字体</span>';
+  let html = "";
+  if (origin === "editor") {
+   await withEditor(source, ctx => {
+    const view = ctx.get(editorViewCtx), original = view.state.doc;
+    const copied = document.createElement("div");
+    copied.append(view.someProp("clipboardSerializer")!.serializeFragment(original.content));
+    html = copied.innerHTML;
+    expect(serializeEditorMarkdown(ctx, original, capability)).toContain('data-wenyou-font-v1="xiaocheng-lafeng"');
+    expect(view.state.doc.eq(original)).toBe(true);
+   });
+  } else {
+   const rendered = render(<MarkdownContent allowTextFont content={source}/>);
+   html = createReaderClipboardPayload(rendered.container).html;
+   rendered.unmount();
+  }
+  expect(html).toContain('data-wenyou-font-v1="xiaocheng-lafeng"');
+  await withEditor("", ctx => {
+   const view = ctx.get(editorViewCtx), before = view.state.doc;
+   paste(view, html);
+   const saved = serializeEditorMarkdown(ctx, view.state.doc, capability);
+   expect(saved).not.toContain("xiaocheng-lafeng");
+   expect(saved).toContain('data-wenyou-font-v1="wenkai"');
+   const expected = ctx.get(parserCtx)(prepareEditorMarkdown(source.replace('data-wenyou-font-v1="xiaocheng-lafeng" ', "")))!;
+   expect(semantic(view.state.doc.toJSON())).toEqual(semantic(expected.toJSON()));
+   expect(semantic(ctx.get(parserCtx)(prepareEditorMarkdown(saved))?.toJSON())).toEqual(semantic(expected.toJSON()));
+   expect(undo(view.state, view.dispatch)).toBe(true); expect(view.state.doc.eq(before)).toBe(true);
+  });
+ });
+}

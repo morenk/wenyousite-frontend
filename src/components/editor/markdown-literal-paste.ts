@@ -21,7 +21,7 @@ import {
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
 import { withoutAutomaticTrailingContent } from "./editor-trailing-paragraph";
-import { TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { isSelectableTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -106,12 +106,11 @@ function finishHandledClipboardEvent(event: ClipboardEvent | DragEvent) {
   event.stopImmediatePropagation();
 }
 
-function pasteStructuredSiteFragment(view: EditorView, html: string, allowTextFont: boolean): boolean {
+function pasteStructuredSiteFragment(view: EditorView, html: string): boolean {
   const template = document.createElement("template");
   template.innerHTML = html;
   const envelope = template.content.firstElementChild;
   if (!envelope) return false;
-  if (!allowTextFont) envelope.querySelectorAll(`[${TEXT_FONT_ATTRIBUTE}]`).forEach(element => element.removeAttribute(TEXT_FONT_ATTRIBUTE));
   if (!view.state.schema.nodes["image-block"]) {
     envelope.querySelectorAll('img[data-type="image-block"]').forEach((image) => {
       image.replaceWith(document.createTextNode("[图片]"));
@@ -154,10 +153,19 @@ function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent, allowT
   const html = event.clipboardData?.getData("text/html") ?? "";
   const payload = parseSiteClipboardHtml(html);
   if (!payload) return false;
+  // 粘贴会新建内容：退役字体只在原文载入／编辑时保源，不随复制新增。
+  const template = document.createElement("template");
+  template.innerHTML = payload.html;
+  template.content.querySelectorAll(`[${TEXT_FONT_ATTRIBUTE}]`).forEach(element => {
+    if (!allowTextFont || !isSelectableTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE))) {
+      element.removeAttribute(TEXT_FONT_ATTRIBUTE);
+    }
+  });
+  const pastedHtml = template.innerHTML;
   const pasted = !allowTextFont || payload.source === "editor"
-    || payload.html.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
-    ? pasteStructuredSiteFragment(view, payload.html, allowTextFont)
-    : view.pasteHTML(payload.html, event);
+    || pastedHtml.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
+    ? pasteStructuredSiteFragment(view, pastedHtml)
+    : view.pasteHTML(pastedHtml, event);
   if (!pasted) return false;
   finishHandledClipboardEvent(event);
   view.focus();
