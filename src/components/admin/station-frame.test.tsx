@@ -84,8 +84,25 @@ describe("StationFrame navigation", () => {
     expect(container.querySelector('[data-slot="station-shell"]'))
       .not.toHaveClass("min-w-[1600px]");
     expect(container.querySelector('[data-slot="station-content"]'))
-      .toHaveClass("min-w-0", "pl-52");
+      .toHaveClass("min-w-0", "md:pl-52");
     expect(container.querySelector('[data-slot="station-workspace"]'))
       .toHaveClass("min-w-0", "max-w-full", "p-4");
   });
+
+
+  it("窄屏导航展开后可Escape或选择链接收起，工作区状态不丢失", async () => {
+ const user = userEvent.setup();
+ render(<StationFrame title="字体管理"><StatefulWorkspace /></StationFrame>);
+ await user.click(screen.getByRole("button", { name: "第 1 页" }));
+ await user.click(screen.getByRole("button", { name: "展开管理导航" }));
+ expect(screen.getByRole("button", { name: "收起管理导航" })).toHaveAttribute("aria-expanded", "true");
+ screen.getByRole("link", { name: "正文字体" }).focus();
+ await user.keyboard("{Escape}");
+ expect(screen.getByRole("button", { name: "展开管理导航" })).toHaveFocus();
+ expect(screen.getByRole("button", { name: "第 2 页" })).toBeInTheDocument();
+ await user.click(screen.getByRole("button", { name: "展开管理导航" }));
+ await user.click(screen.getByRole("link", { name: "正文字体" }));
+ expect(screen.getByRole("button", { name: "展开管理导航" })).toHaveAttribute("aria-expanded", "false");
+ expect(screen.getByRole("button", { name: "第 2 页" })).toBeInTheDocument();
+});
 });

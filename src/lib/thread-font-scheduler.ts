@@ -21,8 +21,9 @@ export class FontDownloadScheduler {
   private paused = false;
   private timer?: ReturnType<typeof setTimeout>;
   readonly stats = { started: 0, peakConcurrent: 0 };
-  constructor(private policy: FontDownloadPolicy) {}
+  constructor(private policy: FontDownloadPolicy, private readonly tightenOnly=false) {}
   updatePolicy(policy: FontDownloadPolicy) {
+    if(this.tightenOnly)policy={concurrency:Math.min(this.policy.concurrency,policy.concurrency),windowMs:Math.max(this.policy.windowMs,policy.windowMs),requestsPerWindow:Math.min(this.policy.requestsPerWindow,policy.requestsPerWindow),bytesPerWindow:Math.min(this.policy.bytesPerWindow,policy.bytesPerWindow),originalBytesPerWindow:Math.min(this.policy.originalBytesPerWindow,policy.originalBytesPerWindow)};
     this.policy = { ...policy };
     for (const job of [...this.jobs]) if (job.bytes > (job.original ? policy.originalBytesPerWindow : policy.bytesPerWindow)) job.rejectSize();
     this.pump();

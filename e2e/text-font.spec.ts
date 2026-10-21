@@ -13,6 +13,13 @@ const manifestHash = createHash("sha256").update(manifestBytes).digest("hex");
 test("字体与颜色的选区应用、真实保存、旧端保护、复制及草稿恢复", async ({ page }) => {
   test.setTimeout(180000);
   const run = await requireIsolationRunner();
+  // 此用例保留 v1-only 服务端能力回归；动态 v2 的真实能力与上传链路由独立用例验收。
+  await page.route("**/api/v1/meta", async route => {
+    const response = await route.fetch(); const json = await response.json();
+    json.data.capabilities.textFontV2Supported = false;
+    json.data.capabilities.textFontV2WriteEnabled = false;
+    await route.fulfill({ response, json });
+  });
   // 正式 runner 未发布字体资源；仅替换目录资源配置并在浏览器内模拟离线。
   // API 写入仍经本轮隔离代理，字体外网请求在发出前被此路由消费。
   await page.route("**/api/v1/meta/text-fonts", async route => {

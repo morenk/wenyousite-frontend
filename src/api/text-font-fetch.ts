@@ -13,6 +13,7 @@ export function fetchTextFontMetadata(request: Request, transport: typeof fetch 
       const response = await transport(new Request(request, { headers, signal: timeout.signal, credentials: "omit", redirect: "error" }));
       timeout.check();
       // HTTP 分类在响应头到达时确定；错误正文不能靠持续数据拖延拒绝。
+      if (response.status === 304) return response;
       if (!response.ok) {
         await response.body?.cancel();
         if (response.status === 404 && new URL(request.url).pathname.endsWith("/meta/text-fonts/runtime-policy")) return new Response(null, { status: 404, headers: response.headers });

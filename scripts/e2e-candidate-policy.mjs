@@ -65,3 +65,10 @@ export function assertDeployableBuild(directory) {
     throw new Error("拒绝将 E2E 隔离候选构建组装为部署 release");
   }
 }
+
+
+/** 用例失败可以已清理；清理证据不代表浏览器验收通过。 */
+export function verifiedRunCleanup(runId, removed, events) {
+  return Boolean(runId && removed && events.some(event => event.runId === runId && event.resourcesCleaned === true &&
+    (event.event === "passed" || (event.event === "resources-cleaned" && event.resourcesVerified === true))));
+}

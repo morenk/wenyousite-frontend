@@ -96,7 +96,7 @@ function EditorCore({
     onSyncErrorChange,
   });
 
-  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; font: boolean; allowed: boolean } | null>(null);
+  const writeAssessmentRef = useRef<{ content: string; version: number; color: boolean; font: boolean | 2; allowed: boolean } | null>(null);
   const flushForWrite = useCallback(() => {
     if (isComposing()) { toast.error(EDITOR_COMPOSITION_MESSAGE); return null; }
     if (hostRef.current?.hasPendingUpload?.()) { toast.error("请先完成或移除音频上传"); return null; }
@@ -167,8 +167,8 @@ function EditorCore({
           mediaDisplays={restoredMediaDisplays ?? mediaDisplays}
           mediaAudios={restoredMediaAudios ?? mediaAudios}
           markdownContractVersion={markdownContractVersion}
-          textFontVersion={textFontSupported ? 1 : undefined}
-          textFontRenderingEnabled={allowTextFont && textFontSupported}
+          textFontVersion={textFontSupported === 2 ? 2 : textFontSupported ? 1 : undefined}
+          textFontRenderingEnabled={allowTextFont && Boolean(textFontSupported)}
           textFontWriteEnabled={allowTextFont && textFontWriteEnabled}
           textColorVersion={textColorSupported ? 1 : undefined}
           textColorWriteEnabled={allowTextColor && textColorWriteEnabled}

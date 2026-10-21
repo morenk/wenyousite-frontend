@@ -1,6 +1,8 @@
+import { sharedFontResidency, onFontCapacityAvailable } from "./thread-font-shared-residency";
+import { installThreadFontFace } from "./thread-font-binary";
 import { threadFontNetwork } from "./thread-font-network";
 import { ThreadFontSession, type FontSessionPolicy, type FontSessionResult } from "./thread-font-session";
-import { IndexedDbThreadFontCache, type ThreadFontAssetCache } from "./thread-font-cache";
+import { IndexedDbThreadFontCache, sharedThreadFontCache, type ThreadFontAssetCache } from "./thread-font-cache";
 import { normalizeTextFont } from "./markdown-text-font";
 import { asset, originalAsset, threadFontManifestSchema, type FontLoadResult, type ThreadFontManifest, type ThreadFontCatalog, type ThreadFontShard, type Asset, ceilings, originalBytes, systemFamily, requiredFontShards, validatedFontBase, verifyFontBytes } from "./thread-font-protocol";
 export * from "./thread-font-protocol";
@@ -19,7 +21,7 @@ export class ThreadFontRuntime {
         for (const request of this.legacyRequests) request.abort();
         for (const dispose of this.legacyHandles) dispose();
         this.legacyHandles.clear(); this.requests.clear(); this.manifests.clear(); this.faces.clear(); this.installed.clear(); this.notices.clear(); this.protectedHashes.clear();
-        this.session = new ThreadFontSession(this.transport, this.cache, this.install, { scheduler: threadFontNetwork() });
+        this.session = new ThreadFontSession(this.transport, this.cache, this.install, { scheduler: threadFontNetwork(), ...(this.options.shared ? {residency:sharedFontResidency()} : {}) });
       }
       return this.session.watch(catalog, policy, fontId, text, emit);
     }
@@ -29,6 +31,7 @@ export class ThreadFontRuntime {
     return () => { alive = false; };
   }
   invalidate() { this.session?.invalidate(); }
+  wake() { this.session?.wake(); }
 
   private requests = new Map<string, Promise<ArrayBuffer>>();
   private manifests = new Map<string, Promise<ThreadFontManifest>>();
@@ -42,10 +45,7 @@ export class ThreadFontRuntime {
   private downloadReserved = 0;
   private registeredBytes = 0;
   readonly stats = { requests: 0, downloadBytes: 0, cacheHits: 0, families: 0, faces: 0, peakConcurrent: 0, fallback: 0, originalReservedBytes: 0 };
-  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args), private readonly cache: ThreadFontAssetCache = new IndexedDbThreadFontCache(), private readonly install: (part: ThreadFontShard, bytes: ArrayBuffer) => Promise<void | (() => void)> = async (part, bytes) => {
-    const face = new FontFace(part.family, bytes, { unicodeRange: part.unicodeRanges.join(","), weight: "400", style: "normal", display: "swap" });
-    await face.load(); document.fonts.add(face); return () => { document.fonts.delete(face); };
-  }) {}
+  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args), private readonly cache: ThreadFontAssetCache = new IndexedDbThreadFontCache(), private readonly install: (part: ThreadFontShard, bytes: ArrayBuffer) => Promise<void | (() => void)> = installThreadFontFace, private readonly options: {shared?: boolean} = {}) {}
   private async slot<T>(run: () => Promise<T>): Promise<T> {
     if (this.active >= this.limits.maxConcurrentDownloads) await new Promise<void>((resolve) => this.queue.push(resolve));
     else this.active++;
@@ -175,4 +175,4 @@ export class ThreadFontRuntime {
   }
 }
 let runtime: ThreadFontRuntime | undefined;
-export function threadFontRuntime() { return runtime ??= new ThreadFontRuntime(); }
+export function threadFontRuntime() { if(!runtime){runtime=new ThreadFontRuntime(undefined,sharedThreadFontCache(),undefined,{shared:true});onFontCapacityAvailable(()=>runtime?.wake());}return runtime; }

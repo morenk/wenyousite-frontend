@@ -60,3 +60,20 @@ test.each([403,503])("HTTP %s在响应头立即分类并取消未结束错误流
  const cancel=vi.fn(),transport=vi.fn<typeof fetch>(async()=>new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array(FONT_METADATA_BYTES+1))},cancel}),{status}));
  await expect(fetchTextFontMetadata(new Request("https://wenyou.site/api/v1/meta/text-fonts"),transport)).rejects.toMatchObject({retryable:status===503});expect(cancel).toHaveBeenCalledTimes(1);
 });
+test.each(["catalog","descriptor","policy"])("动态%s真实apiClient先走共享窗口与64KiB流式限制",async kind=>{
+ const {fetchDynamicFontPage,fetchDynamicFontDescriptor,fetchDynamicFontPolicy}=await import("@/api/text-font-dynamic-transport");
+ const cancel=vi.fn(),transport=vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array(FONT_METADATA_BYTES+1));},cancel}),{headers:{"content-type":"application/json"}}));
+ const before=threadFontNetwork().stats.started,signal=new AbortController().signal;
+ const request=kind==="catalog"?fetchDynamicFontPage(undefined,undefined,signal):kind==="policy"?fetchDynamicFontPolicy(signal):fetchDynamicFontDescriptor("tfv_"+"a".repeat(32),undefined,signal);
+ await expect(request).rejects.toMatchObject({retryable:false});expect(threadFontNetwork().stats.started-before).toBe(1);expect(cancel).toHaveBeenCalledTimes(1);const sent=transport.mock.calls[0]![0] as Request;expect(sent.credentials).toBe("omit");expect(sent.headers.has("Authorization")).toBe(false);
+});
+test("公开动态资产不携带会话；401不触发refresh或正文JSON解码",async()=>{
+ const {dynamicFontAssetTransport}=await import("@/api/text-font-dynamic-transport");
+ const transport=vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response('{"code":40101}',{status:401,headers:{"content-type":"application/json"}}));
+ const response=await dynamicFontAssetTransport(new URL("/api/v1/meta/text-fonts/v2/versions/tfv_"+"a".repeat(32)+"/assets/"+"b".repeat(64)+".woff2",location.origin));
+ expect(response.status).toBe(401);expect(transport).toHaveBeenCalledTimes(1);const sent=transport.mock.calls[0]![0] as Request;expect(sent.credentials).toBe("omit");expect(sent.headers.has("Authorization")).toBe(false);
+});
+test.each([404,410,503])("动态字库HTTP %s不先解析或无界消费错误正文",async status=>{
+ const {dynamicFontAssetTransport}=await import("@/api/text-font-dynamic-transport");const cancel=vi.fn();vi.spyOn(globalThis,"fetch").mockResolvedValue(new Response(new ReadableStream({start(controller){controller.enqueue(new Uint8Array(65537));},cancel}),{status,headers:{"content-type":"application/json","retry-after":"2"}}));
+ const response=await dynamicFontAssetTransport(new URL("/api/v1/meta/text-fonts/v2/versions/tfv_"+"a".repeat(32)+"/assets/"+"b".repeat(64)+".woff2",location.origin));expect(response.status).toBe(status);expect(response.body).toBeNull();expect(response.headers.get("retry-after")).toBe("2");expect(cancel).toHaveBeenCalledTimes(1);
+});

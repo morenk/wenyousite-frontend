@@ -3,7 +3,7 @@ import { Plugin, PluginKey } from "@milkdown/kit/prose/state";
 import { parseMentionTarget } from "@/lib/mention";
 import { parseInternalReference } from "@/lib/internal-reference";
 import { $prose, $markSchema } from "@milkdown/kit/utils";
-import { normalizeTextFont, textFontFamily, TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { normalizeTextFont, readTextFont, textFontAttribute, textFontFamily, TEXT_FONT_SELECTOR, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import type { Ctx } from "@milkdown/kit/ctx";
 
 export function configureEditorTextFontRendering(ctx: Ctx, enabled: boolean) {
@@ -19,16 +19,16 @@ export const editorTextFontSchema = $markSchema(TEXT_FONT_MARK, () => ({
   attrs: { fontId: { default: null } },
   inclusive: false,
   parseDOM: [{
-    tag: "span[" + TEXT_FONT_ATTRIBUTE + "]",
+    tag: TEXT_FONT_SELECTOR.split(", ").map(selector => "span" + selector).join(", "),
     consuming: false,
     getAttrs: (element: HTMLElement) => {
-      const fontId = normalizeTextFont((element as HTMLElement).getAttribute(TEXT_FONT_ATTRIBUTE));
+      const fontId = readTextFont(element);
       return fontId ? { fontId } : false;
     },
   }],
   toDOM: (mark) => {
     const fontId = normalizeTextFont(mark.attrs.fontId);
-    return ["span", fontId ? { [TEXT_FONT_ATTRIBUTE]: fontId, style: "font-family: " + textFontFamily(fontId) } : {}, 0];
+    return ["span", fontId ? { [textFontAttribute(fontId)]: fontId, style: "font-family: " + textFontFamily(fontId) } : {}, 0];
   },
   parseMarkdown: {
     match: (node) => node.type === TEXT_FONT_MARK,

@@ -3,7 +3,7 @@ import { FontDownloadScheduler } from "./thread-font-scheduler";
 let scheduler: FontDownloadScheduler | undefined;
 export function threadFontNetwork() {
   if (!scheduler) {
-    scheduler = new FontDownloadScheduler({ concurrency: 2, windowMs: 60000, requestsPerWindow: 64, bytesPerWindow: 16777216, originalBytesPerWindow: 0 });
+    scheduler = new FontDownloadScheduler({ concurrency: 2, windowMs: 60000, requestsPerWindow: 64, bytesPerWindow: 16777216, originalBytesPerWindow: 0 }, true);
     if (typeof window !== "undefined") {
       const update = () => scheduler!.setPaused(navigator.onLine === false || document.visibilityState === "hidden");
       window.addEventListener("online", update); window.addEventListener("offline", update);

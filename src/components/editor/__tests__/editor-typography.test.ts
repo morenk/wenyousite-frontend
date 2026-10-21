@@ -64,10 +64,10 @@ describe("编辑器正文字体", () => {
     expect(topBar).not.toMatch(/overflow-x:\s*(?:auto|scroll)/u);
   });
 
-  test("Crepe 顶栏保持 Foundation Lucide 的无填充描边", () => {
+  test("Crepe 顶栏及 T 入口保持 Foundation Lucide 的无填充描边", () => {
     const iconRule = getRule(
       editorCss,
-      ".milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron) svg.lucide",
+      ".milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron, .top-bar-heading-button) svg.lucide",
     );
 
     expect(iconRule).toContain("fill: none");

@@ -49,15 +49,17 @@ function maskNameHomonym(name, content) {
 /** 固定正文目录中的协议 ID 不是 UI 字体声明；仅识别完整、逐字段一致的 JSON。 */
 function maskContentFontCatalog(name, content) {
   if (!content.includes("wenkai")) return content;
-  const canonical = JSON.stringify(JSON.parse(readFileSync(resolve("contracts/thread-font-catalog-v1.json"), "utf8")));
-  const same = (value) => JSON.stringify(value) === canonical;
+  const catalogs = new Map(["thread-font-catalog-v1.json", "thread-font-v1-import-map.json"].map(file =>
+    [file, JSON.stringify(JSON.parse(readFileSync(resolve("contracts", file), "utf8")))]));
+  const same = (value) => [...catalogs.values()].includes(JSON.stringify(value));
   if (name.endsWith(".map")) {
     try {
       const map = JSON.parse(content);
       if (Array.isArray(map.sources) && Array.isArray(map.sourcesContent)) {
         map.sourcesContent = map.sourcesContent.map((source, index) => {
-          if (typeof source !== "string" || !/\/contracts\/thread-font-catalog-v1\.json(?:[.?]|$)/u.test(map.sources[index] ?? "")) return source;
-          try { return same(JSON.parse(source)) ? "[受控正文目录]" : source; } catch { return source; }
+          const file = /\/contracts\/(thread-font-catalog-v1\.json|thread-font-v1-import-map\.json)(?:[.?]|$)/u.exec(map.sources[index] ?? "")?.[1];
+          if (typeof source !== "string" || !file) return source;
+          try { return JSON.stringify(JSON.parse(source)) === catalogs.get(file) ? "[受控正文目录]" : source; } catch { return source; }
         });
         return JSON.stringify(map);
       }
@@ -71,6 +73,12 @@ function maskContentFontCatalog(name, content) {
   function literal(node) {
     if (ts.isStringLiteral(node)) return node.text;
     if (ts.isNumericLiteral(node)) return Number(node.text);
+    if (node.kind === ts.SyntaxKind.TrueKeyword) return true;
+    if (node.kind === ts.SyntaxKind.FalseKeyword) return false;
+    if (node.kind === ts.SyntaxKind.NullKeyword) return null;
+    // 压缩器把 JSON 布尔量写作 !0 / !1；仅这两个常量，不执行表达式。
+    if (ts.isPrefixUnaryExpression(node) && node.operator === ts.SyntaxKind.ExclamationToken &&
+      ts.isNumericLiteral(node.operand) && ["0", "1"].includes(node.operand.text)) return node.operand.text === "0";
     if (ts.isArrayLiteralExpression(node)) return node.elements.map(literal);
     if (ts.isObjectLiteralExpression(node)) return Object.fromEntries(node.properties.map((property) => {
       if (!ts.isPropertyAssignment(property) || !(ts.isIdentifier(property.name) || ts.isStringLiteral(property.name))) throw new Error("不是 JSON 属性");
@@ -101,7 +109,19 @@ export function fontViolations(name, content = "") {
   content = maskContentFontCatalog(name, maskNameHomonym(name, content));
   if (retiredFontPattern.test(name) || retiredFontPattern.test(content)) failures.push("旧字体名称或 fonts.css 入口");
   if (fontExtensionPattern.test(name) && !functionalFontPattern.test(basename(name))) failures.push("自有字体文件");
-  for (const match of content.matchAll(/(?:url\(\s*["']?|["'])([^\s"'()<>]+\.(?:woff2?|ttf|otf|eot)(?:[?#][^\s"'()<>]*)?)/gi)) {
+  // 上传控件的文件类型筛选不是下载地址；仅识别 accept 属性的精确扩展名列表。
+  const maskUploadAccept = value => value.replace(/\baccept\s*(?:=|:)\s*(["'])\.ttf,\.otf\1/gu, 'accept="[字体上传类型]"');
+  let requestContent = maskUploadAccept(content);
+  if (name.endsWith(".map")) {
+    try {
+      const map = JSON.parse(content);
+      if (Array.isArray(map.sourcesContent)) {
+        map.sourcesContent = map.sourcesContent.map(source => typeof source === "string" ? maskUploadAccept(source) : source);
+        requestContent = JSON.stringify(map);
+      }
+    } catch { /* 无法解析的 source map 不获得上传类型识别。 */ }
+  }
+  for (const match of requestContent.matchAll(/(?:url\(\s*["']?|["'])([^\s"'()<>]+\.(?:woff2?|ttf|otf|eot)(?:[?#][^\s"'()<>]*)?)/gi)) {
     if (!functionalFontPattern.test(basename(match[1].split(/[?#]/)[0]))) failures.push(`自有字体请求 ${match[1]}`);
   }
   for (const [rule] of content.matchAll(/@font-face\s*\{[^}]*\}/gi)) {

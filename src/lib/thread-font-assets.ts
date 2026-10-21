@@ -1,7 +1,7 @@
 import { FontTransferTimeout, type FontTransferTimeoutPolicy } from "./thread-font-transfer-timeout";
 import type { ThreadFontAssetCache } from "./thread-font-cache";
 import { FontDownloadScheduler } from "./thread-font-scheduler";
-export interface FontAssetDescriptor { path: string; sha256: string; bytes: number }
+export interface FontAssetDescriptor { path: string; sha256: string; bytes: number; contentType?: string; cacheable?: boolean }
 export class FontResourceError extends Error {
   constructor(message: string, readonly retryAt?: number) { super(message); }
 }
@@ -17,23 +17,25 @@ export class FontAssetLoader {
     base: string; transport: typeof fetch; cache: ThreadFontAssetCache; scheduler: FontDownloadScheduler;
     timeoutMs: number; transferTimeout?: FontTransferTimeoutPolicy; cacheBytes: number; retryBaseMs: number; retryMaxMs: number;
     verify: (bytes: ArrayBuffer, descriptor: FontAssetDescriptor) => Promise<boolean>;
-    protectedHashes: () => ReadonlySet<string>; random?: () => number;
+    protectedHashes: () => ReadonlySet<string>; resourceKey?: (descriptor: FontAssetDescriptor) => string; maxFailures?: number; random?: () => number;
   }) {}
+  async tightenCacheBytes(bytes:number) {this.options.cacheBytes=Math.min(this.options.cacheBytes,bytes);await this.options.cache.tightenLimit?.(this.options.cacheBytes);}
   get snapshot() { return { inFlight: this.pending.size, failures: this.failures.size, ...this.stats }; }
-  quarantine(hash: string, reason: string) { this.failures.set(hash, { attempts: 1, error: new FontResourceError(reason) }); }
+  quarantine(hash: string, reason: string) { this.failures.set(hash, { attempts: 1, error: new FontResourceError(reason) }); while(this.failures.size > (this.options.maxFailures ?? Infinity))this.failures.delete(this.failures.keys().next().value!); }
   dispose() { this.disposed = true; for (const task of this.pending.values()) task.abort.abort(); this.failures.clear(); }
   get(descriptor: FontAssetDescriptor, signal: AbortSignal, original = false): Promise<ArrayBuffer> {
     if (this.disposed || signal.aborted) return Promise.reject(new DOMException("Demand released", "AbortError"));
-    const failed = this.failures.get(descriptor.sha256);
+    const resourceKey = this.options.resourceKey?.(descriptor) ?? descriptor.sha256;
+    const failed = this.failures.get(resourceKey);
     if (failed && (failed.error.retryAt === undefined || failed.error.retryAt > performance.now())) return Promise.reject(failed.error);
-    let current = this.pending.get(descriptor.sha256);
+    let current = this.pending.get(resourceKey);
     if (current?.abort.signal.aborted) current = undefined;
     if (!current) {
       const abort = new AbortController();
       current = { abort, users: 0, promise: Promise.resolve(new ArrayBuffer(0)) };
       const entry = current;
       current.promise = this.read(descriptor, abort.signal, original).then(bytes => {
-        this.failures.delete(descriptor.sha256); return bytes;
+        this.failures.delete(resourceKey); return bytes;
       }).catch(error => {
         if (abort.signal.aborted || this.disposed) throw new DOMException("Demand released", "AbortError");
         const attempts = (failed?.attempts ?? 0) + 1;
@@ -41,9 +43,10 @@ export class FontAssetLoader {
         const retryAt = performance.now() + Math.floor((ceiling + 1) * Math.min(0.999999999, (this.options.random ?? Math.random)()));
         const failure = error instanceof FontResourceError && error.retryAt === undefined ? error
           : new FontResourceError("network", Math.max(retryAt, error instanceof FontResourceError ? error.retryAt ?? 0 : 0));
-        this.failures.set(descriptor.sha256, { attempts, error: failure }); throw failure;
-      }).finally(() => { if (this.pending.get(descriptor.sha256) === entry) this.pending.delete(descriptor.sha256); });
-      this.pending.set(descriptor.sha256, current);
+        this.failures.set(resourceKey, { attempts, error: failure });
+        while(this.failures.size > (this.options.maxFailures ?? Infinity)) this.failures.delete(this.failures.keys().next().value!); throw failure;
+      }).finally(() => { if (this.pending.get(resourceKey) === entry) this.pending.delete(resourceKey); });
+      this.pending.set(resourceKey, current);
     }
     const entry = current; entry.users++;
     return new Promise((resolve, reject) => {
@@ -61,7 +64,7 @@ export class FontAssetLoader {
   private async read(descriptor: FontAssetDescriptor, signal: AbortSignal, original: boolean) {
     const { cache, verify, scheduler } = this.options;
     const check = () => { if (signal.aborted) throw new DOMException("Demand released", "AbortError"); };
-    let cached = await cache.get(descriptor.sha256); check();
+    let cached = descriptor.cacheable === false ? null : await cache.get(descriptor.sha256); check();
     if (cached) {
       if (await verify(cached, descriptor)) { check(); this.stats.cacheHits++; return cached; }
       await cache.delete(descriptor.sha256); cached = null; check();
@@ -86,7 +89,7 @@ export class FontAssetLoader {
           }
           throw new FontResourceError("asset-http");
         }
-        const mime = original ? "font/ttf" : descriptor.path.endsWith(".woff2") ? "font/woff2" : descriptor.path.endsWith(".json") ? "application/json" : "text/plain";
+        const mime = descriptor.contentType ?? (original ? "font/ttf" : descriptor.path.endsWith(".woff2") ? "font/woff2" : descriptor.path.endsWith(".json") ? "application/json" : "text/plain");
         if (response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== mime) { await response.body.cancel(); throw new FontResourceError("asset-mime"); }
         const length = response.headers.get("content-length");
         if (length !== null && Number(length) !== descriptor.bytes) { await response.body.cancel(); throw new FontResourceError("asset-length"); }
@@ -112,7 +115,7 @@ export class FontAssetLoader {
         for (const chunk of chunks) { result.set(chunk, offset); offset += chunk.byteLength; }
         chunks.length = 0; hold(-size);
         if (!await verify(result.buffer, descriptor)) throw new FontResourceError("asset-integrity");
-        check(); await cache.put(descriptor.sha256, result.buffer, this.options.cacheBytes, this.options.protectedHashes()); check();
+        check(); if(descriptor.cacheable !== false)await cache.put(descriptor.sha256, result.buffer, this.options.cacheBytes, this.options.protectedHashes()); check();
         return result.buffer;
       } finally { hold(-buffered); timeout.complete(); }
     });

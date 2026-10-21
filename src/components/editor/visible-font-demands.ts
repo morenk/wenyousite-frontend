@@ -1,4 +1,4 @@
-import { normalizeTextFont, isSelectableTextFont, TEXT_FONT_ATTRIBUTE } from "@/lib/markdown-text-font";
+import { canObserveTextFont, readTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_V2_ATTRIBUTE, TEXT_FONT_SELECTOR } from "@/lib/markdown-text-font";
 import type { FontSessionResult } from "@/lib/thread-font-session";
 interface Entry { visible: boolean; key?: string; release?: () => void; timer?: ReturnType<typeof setTimeout>; generation: number }
 /** 可见性控制下载租约；短暂离屏不抖动，选区/光标所用分片保持引用。 */
@@ -23,9 +23,9 @@ export function observeFontDemands(root: HTMLElement, request: (fontId: string, 
       return;
     }
     clearTimeout(entry.timer);entry.timer=undefined;
-    const fontId=normalizeTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE)),text=element.textContent??"";
+    const fontId=readTextFont(element),text=element.textContent??"";
     if(!fontId||!text){release(entry);return;}
-    if(!isSelectableTextFont(fontId)){release(entry);apply(element,fontId,{family:"var(--wenyou-font-body-family, system-ui)",status:"fallback"});return;}
+    if(!canObserveTextFont(fontId)){release(entry);apply(element,fontId,{family:"var(--wenyou-font-body-family, system-ui)",status:"fallback"});return;}
     const key=fontId+":"+text;
     if(!force&&entry.release&&entry.key===key)return;
     release(entry);entry.key=key;const generation=entry.generation;
@@ -37,15 +37,15 @@ export function observeFontDemands(root: HTMLElement, request: (fontId: string, 
     for(const record of records){const entry=entries.get(record.target);if(entry){entry.visible=record.isIntersecting;update(record.target,entry)}}
   },{rootMargin:"0px"});
   const scan=()=>{
-    for(const element of root.querySelectorAll("["+TEXT_FONT_ATTRIBUTE+"]")){
+    for(const element of root.querySelectorAll(TEXT_FONT_SELECTOR)){
       let entry=entries.get(element);
       if(!entry){entry={visible:!observer,generation:0};entries.set(element,entry);observer?.observe(element)}
       update(element,entry);
     }
-    for(const[element,entry]of entries)if(!root.contains(element)||!element.hasAttribute(TEXT_FONT_ATTRIBUTE)){release(entry);observer?.unobserve(element);entries.delete(element)}
+    for(const[element,entry]of entries)if(!root.contains(element)||!element.matches(TEXT_FONT_SELECTOR)){release(entry);observer?.unobserve(element);entries.delete(element)}
   };
   const selectionChanged=()=>{for(const[element,entry]of entries)update(element,entry)};
-  const mutations=new MutationObserver(scan);mutations.observe(root,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:[TEXT_FONT_ATTRIBUTE]});
+  const mutations=new MutationObserver(scan);mutations.observe(root,{childList:true,characterData:true,subtree:true,attributes:true,attributeFilter:[TEXT_FONT_ATTRIBUTE,TEXT_FONT_V2_ATTRIBUTE]});
   document.addEventListener("selectionchange",selectionChanged);document.addEventListener("visibilitychange",selectionChanged);scan();
   return {
     refresh:()=>{for(const[element,entry]of entries)update(element,entry,true)},

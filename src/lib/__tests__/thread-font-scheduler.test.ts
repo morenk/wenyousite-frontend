@@ -52,3 +52,9 @@ test("墙钟前后跳变不刷新滑动窗口额度",async()=>{
  await vi.advanceTimersByTimeAsync(999);expect(task).not.toHaveBeenCalled();vi.setSystemTime(Date.now()-172800000);
  await vi.advanceTimersByTimeAsync(1);await next;expect(task).toHaveBeenCalledTimes(1);
 });
+test("文档共享模式只收紧：v1旧策略不能放宽v2限额或重置账本",async()=>{
+ vi.useFakeTimers();const scheduler=new FontDownloadScheduler(policy,true),signal=new AbortController().signal;
+ await scheduler.run(10,false,signal,async()=>{});scheduler.updatePolicy({...policy,requestsPerWindow:1,bytesPerWindow:100});scheduler.updatePolicy(policy);
+ const run=vi.fn(async()=>{}),next=scheduler.run(10,false,signal,run);await vi.advanceTimersByTimeAsync(999);expect(run).not.toHaveBeenCalled();expect(scheduler.snapshot.windowRequests).toBe(1);await vi.advanceTimersByTimeAsync(1);await next;expect(run).toHaveBeenCalledTimes(1);
+ await expect(scheduler.run(101,false,signal,run)).rejects.toThrow("asset-window-size");
+});

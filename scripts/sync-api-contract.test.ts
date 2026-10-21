@@ -17,6 +17,7 @@ function workspace() {
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
     ...Object.fromEntries(["thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
+    ...Object.fromEntries(["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
     "markdown-text-font-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
     "markdown-text-font-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "thread-font-catalog-v1.json": { schemaVersion: 1, fontVersion: 1, fonts: [] },

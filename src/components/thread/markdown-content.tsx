@@ -2,7 +2,7 @@
 
 "use client";
 
-import { normalizeTextFont, textFontFamily, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { isDynamicTextFont, normalizeTextFontV1, textFontFamily, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import { useVisibleTextFonts } from "@/components/editor/use-visible-text-fonts";
 
 import { normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
@@ -78,6 +78,7 @@ type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type SpanProps = ComponentProps<"span"> & ExtraProps & {
   "data-wenyou-color-v1"?: string;
   "data-wenyou-font-v1"?: string;
+  "data-wenyou-font-v2"?: string;
   "data-dice-node-id"?: string;
   "data-dice-notation"?: string;
 };
@@ -119,8 +120,9 @@ function MarkdownSpan({ node: _node, ...props }: SpanProps) {
   const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
   if (roll) return <DiceInlineResult roll={roll} />;
   const color = normalizeTextColor(props["data-wenyou-color-v1"]);
-  const fontId = allowTextFont ? normalizeTextFont(props["data-wenyou-font-v1"]) : null;
-  return <span {...props} data-wenyou-font-v1={fontId ?? undefined} style={{ ...(color ? { color } : {}), ...(fontId ? { fontFamily: textFontFamily(fontId) } : {}) }} />;
+  const dynamicId = props["data-wenyou-font-v2"];
+  const fontId = allowTextFont && !(dynamicId && props["data-wenyou-font-v1"]) ? (isDynamicTextFont(dynamicId) ? dynamicId : normalizeTextFontV1(props["data-wenyou-font-v1"])) : null;
+  return <span {...props} data-wenyou-font-v1={fontId && !isDynamicTextFont(fontId) ? fontId : undefined} data-wenyou-font-v2={isDynamicTextFont(fontId) ? fontId : undefined} style={{ ...(color ? { color } : {}), ...(fontId ? { fontFamily: textFontFamily(fontId) } : {}) }} />;
 }
 
 function getNodeText(node: ReactNode): string {

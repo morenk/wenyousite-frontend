@@ -32,7 +32,7 @@ test.each([null,"http://wenyou.site/","https://evil.test/","https://wenyou.site.
 test("固定Unicode范围按实际码点选片，包含扩展平面",()=>{
  expect(validatedFontBase("https://cdn.wenyou.site/assets/")).toBe("https://cdn.wenyou.site/assets/");
  expect(rangesContain(["U+20000-20010"],0x20000)).toBe(true);expect(rangesContain(["U+0041"],66)).toBe(false);
- expect(requiredFontShards([{unicodeRanges:["U+0041"]},{unicodeRanges:["U+20000"]}] as never,"A𠀀A")).toHaveLength(2);
+ expect(requiredFontShards([{unicodeRanges:["U+0041"]},{unicodeRanges:["U+20000"]}],"A𠀀A")).toHaveLength(2);
 });
 test.each(["shinsyoku-mincho", "bouken-gothic", "hakkou-mincho", "kaitou-yokoku-gothic"])("正式目录 %s 的日文样文按假名选择补充分片，不能只加载core", (id) => {
  const manifest = threadFontManifestSchema.parse(JSON.parse(readFileSync("contracts/thread-font-manifest-v1.json", "utf8")));

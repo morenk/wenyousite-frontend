@@ -3,8 +3,10 @@ export interface ThreadFontAssetCache {
   get(hash: string): Promise<ArrayBuffer | null>;
   put(hash: string, bytes: ArrayBuffer, limit: number, protectedHashes: ReadonlySet<string>): Promise<void>;
   delete(hash: string): Promise<void>;
+  tightenLimit?(limit:number):Promise<void>;
 }
 export class IndexedDbThreadFontCache implements ThreadFontAssetCache {
+  private limit=67108864;
   private database?: Promise<IDBDatabase | null>;
   private open() {
     return this.database ??= new Promise<IDBDatabase | null>((resolve) => {
@@ -48,7 +50,17 @@ export class IndexedDbThreadFontCache implements ThreadFontAssetCache {
       } catch { resolve(); }
     });
   }
+  async tightenLimit(limit:number){
+    if(limit>=this.limit)return;this.limit=limit;
+    const db=await this.open();if(!db)return;
+    await new Promise<void>(resolve=>{try{
+      const tx=db.transaction("assets","readwrite"),store=tx.objectStore("assets"),request=store.index("touched").getAll();
+      request.onsuccess=()=>{const entries=request.result as {hash:string;size:number}[];let total=entries.reduce((sum,item)=>sum+item.size,0);for(const item of entries){if(total<=this.limit)break;store.delete(item.hash);total-=item.size;}};
+      tx.oncomplete=tx.onerror=tx.onabort=()=>resolve();
+    }catch{resolve();}});
+  }
   async put(hash: string, bytes: ArrayBuffer, limit: number, protectedHashes: ReadonlySet<string>) {
+    await this.tightenLimit(limit);limit=this.limit;
     const db = await this.open(); if (!db || bytes.byteLength > limit) return;
     await new Promise<void>((resolve) => {
       try {
@@ -74,3 +86,6 @@ export class IndexedDbThreadFontCache implements ThreadFontAssetCache {
     });
   }
 }
+
+let shared:IndexedDbThreadFontCache|undefined;
+export function sharedThreadFontCache(){return shared??=new IndexedDbThreadFontCache();}

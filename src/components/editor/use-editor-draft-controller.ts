@@ -43,7 +43,7 @@ export function useEditorDraftController({
   const advertisedVersion = apiMeta?.markdownContractVersion ?? 0;
   // v6是独立能力，不以全局版本号推断角色协议支持。
   const markdownContractVersion = apiMeta?.capabilities?.roleMentionsV6Supported ? 6 : advertisedVersion === 6 ? 0 : advertisedVersion;
-  const textFontSupported = apiMeta?.capabilities?.textFontV1Supported === true;
+  const textFontSupported = apiMeta?.capabilities?.textFontV2Supported ? 2 as const : apiMeta?.capabilities?.textFontV1Supported === true;
   const textColorSupported = apiMeta?.capabilities?.textColorV1Supported === true;
   const capabilityKey = String(markdownContractVersion) + ":" + String(textColorSupported) + ":" + String(textFontSupported);
   const queryClient = useQueryClient();
@@ -54,7 +54,7 @@ export function useEditorDraftController({
   const [restoredValue, setRestoredValue] = useState(initialValue);
   const [version, setVersion] = useState(0);
   const [currentContent, setCurrentContent] = useState(initialValue);
-  const [activeTextFontSupported, setActiveTextFontSupported] = useState(false);
+  const [activeTextFontSupported, setActiveTextFontSupported] = useState<boolean | 2>(false);
   const [activeTextColorSupported, setActiveTextColorSupported] = useState(false);
   const [activeMarkdownContractVersion, setActiveMarkdownContractVersion] = useState(0);
   const [contractVersionReady, setContractVersionReady] = useState(false);
@@ -286,7 +286,7 @@ export function useEditorDraftController({
     markdownContractVersion: activeMarkdownContractVersion,
     advertisedMarkdownContractVersion: markdownContractVersion,
     textFontSupported: activeTextFontSupported,
-    textFontWriteEnabled: textFontSupported && apiMeta?.capabilities?.textFontV1WriteEnabled === true,
+    textFontWriteEnabled: Boolean(textFontSupported && (textFontSupported === 2 ? apiMeta?.capabilities?.textFontV2WriteEnabled : apiMeta?.capabilities?.textFontV1WriteEnabled) === true),
     advertisedTextFontSupported: textFontSupported,
     textColorSupported: activeTextColorSupported,
     textColorWriteEnabled: textColorSupported && apiMeta?.capabilities?.textColorV1WriteEnabled === true,

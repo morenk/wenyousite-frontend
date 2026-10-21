@@ -1,4 +1,4 @@
-import { normalizeTextFont, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { isDynamicTextFont, normalizeTextFont, textFontAttribute, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import type { Unsafe } from "mdast-util-to-markdown";
 import { hoistTextColors, normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
@@ -92,7 +92,7 @@ export interface EditorMarkdownBridgeOptions {
   onReady?: (flush: (() => string | null) | null) => void;
   markdownContractVersion?: number;
   textColorVersion?: 1;
-  textFontVersion?: 1;
+  textFontVersion?: 1 | 2;
 }
 
 export class EditorMarkdownCodecError extends Error {
@@ -421,7 +421,7 @@ export function configureEditorMarkdownSerializer(ctx: Ctx) {
         const fontId = normalizeTextFont(node.fontId);
         if (!fontId) throw new EditorMarkdownCodecError("字体无效，正文已保留");
         const color = normalizeTextColor(node.color);
-        const prefix = '<span data-wenyou-font-v1="' + fontId + '"' + (color ? ' data-wenyou-color-v1="' + color + '"' : '') + '>';
+        const prefix = '<span ' + textFontAttribute(fontId) + '="' + fontId + '"' + (color ? ' data-wenyou-color-v1="' + color + '"' : '') + '>';
         const state = stateValue as SerializerState;
         const exit = state.enter("phrasing"), exitFont = state.enter("wenyouTextFont");
         const value = state.containerPhrasing(node, { ...infoValue as SerializerInfo, before: ">", after: "<" });
@@ -555,7 +555,7 @@ export function serializeEditorMarkdown(
   }
   const fonts = coloredTextSignature(doc, TEXT_FONT_MARK);
   if (fonts.length > 0) {
-    if (options.textFontVersion !== 1) throw new EditorMarkdownCodecError("当前服务尚不支持字体，正文已保留");
+    if (!options.textFontVersion || (options.textFontVersion !== 2 && fonts.some(item => item.marks.some(mark => isDynamicTextFont(JSON.parse(mark).attrs?.fontId))))) throw new EditorMarkdownCodecError("当前服务尚不支持字体，正文已保留");
     const reopened = ctx.get(parserCtx)(prepareEditorMarkdown(markdown, options));
     if (!reopened || JSON.stringify(coloredTextSignature(reopened, TEXT_FONT_MARK)) !== JSON.stringify(fonts)) {
       throw new EditorMarkdownCodecError("字体保存校验失败，正文已保留");

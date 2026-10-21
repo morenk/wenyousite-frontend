@@ -1,4 +1,4 @@
-import { normalizeTextFont, TEXT_FONT_ATTRIBUTE } from "@/lib/markdown-text-font";
+import { readTextFont, textFontAttribute } from "@/lib/markdown-text-font";
 import { parseInternalReference } from "@/lib/internal-reference";
 import { normalizeTextColor, TEXT_COLOR_ATTRIBUTE } from "@/lib/markdown-text-color";
 import { parseMentionTarget, MENTION_SOURCE_HREF_ATTRIBUTE, MENTION_SOURCE_LABEL_ATTRIBUTE } from "@/lib/mention";
@@ -164,7 +164,7 @@ function canPreserveClipboardColor(element: Element): boolean {
     } else if (node.nodeType === Node.ELEMENT_NODE) {
       const child = node as Element;
       if (!["B", "STRONG", "I", "EM", "S", "DEL", "STRIKE", "A", "CODE", "SPAN"].includes(child.tagName)) return false;
-      if (child.tagName === "SPAN" && !normalizeTextFont(child.getAttribute(TEXT_FONT_ATTRIBUTE)) && !normalizeTextColor(child.getAttribute(TEXT_COLOR_ATTRIBUTE))) return false;
+      if (child.tagName === "SPAN" && !readTextFont(child) && !normalizeTextColor(child.getAttribute(TEXT_COLOR_ATTRIBUTE))) return false;
       if (child.tagName === "A" && (parseMentionTarget(child.getAttribute("href"), child.textContent)
         || parseInternalReference(child.getAttribute("href") ?? "") || child.hasAttribute(MENTION_SOURCE_HREF_ATTRIBUTE))) return false;
       // 行内代码的字面协议串不是原子节点。
@@ -255,10 +255,10 @@ function appendNormalizedNode(
   }
 
   const color = tagName === "SPAN" ? normalizeTextColor(element.getAttribute(TEXT_COLOR_ATTRIBUTE)) : null;
-  const fontId = tagName === "SPAN" ? normalizeTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE)) : null;
+  const fontId = tagName === "SPAN" ? readTextFont(element) : null;
   if ((color || fontId) && preserveAlignment && canPreserveClipboardColor(element)) {
     const span = document.createElement("span");
-    if (fontId) span.setAttribute(TEXT_FONT_ATTRIBUTE, fontId);
+    if (fontId) span.setAttribute(textFontAttribute(fontId), fontId);
     if (color) span.setAttribute(TEXT_COLOR_ATTRIBUTE, color);
     appendChildren(element, span, clipboardSource, preserveAlignment);
     target.appendChild(span);
@@ -480,7 +480,7 @@ function restoreSharedSelectionAncestors(
     const alignment = ancestor.getAttribute(WENYOU_ALIGNMENT_ATTRIBUTE);
     const alignedBlock = (tagName === "P" || tagName === "H2" || tagName === "H3")
       && isStoredWenyouTextAlignment(alignment);
-    const coloredInline = tagName === "SPAN" && (normalizeTextColor(ancestor.getAttribute(TEXT_COLOR_ATTRIBUTE)) || normalizeTextFont(ancestor.getAttribute(TEXT_FONT_ATTRIBUTE)));
+    const coloredInline = tagName === "SPAN" && (normalizeTextColor(ancestor.getAttribute(TEXT_COLOR_ATTRIBUTE)) || readTextFont(ancestor));
     if (INLINE_SELECTION_WRAPPER_TAGS.has(tagName) || alignedBlock || coloredInline) {
       const wrapper = ancestor.cloneNode(false) as Element;
       wrapper.appendChild(wrapped);

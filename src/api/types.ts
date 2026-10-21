@@ -1964,6 +1964,166 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/text-fonts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsList"];
+        put?: never;
+        post: operations["adminTextFontsCreate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/jobs/{jobId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsGetJob"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/jobs/{jobId}/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsProcess"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/versions/{versionId}/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsPreview"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/versions/{versionId}/assets/{asset}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsAsset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/versions/{versionId}/withdraw": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsWithdraw"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/{familyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsDetail"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminTextFontsUpdate"];
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/{familyId}/sources": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsUpload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/{familyId}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsPublish"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/{familyId}/enabled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["adminTextFontsEnabled"];
+        trace?: never;
+    };
     "/api/v1/admin/auth/challenge": {
         parameters: {
             query?: never;
@@ -2816,6 +2976,70 @@ export interface paths {
         head?: never;
         /** 编辑、排序或停用平台标签 */
         patch: operations["adminTaxonomyUpdateTag"];
+        trace?: never;
+    };
+    "/api/v1/meta/text-fonts/v2/runtime-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsV2GetRuntimePolicy"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meta/text-fonts/v2": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsV2GetCatalog"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meta/text-fonts/v2/versions/{versionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsV2GetVersion"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/meta/text-fonts/v2/versions/{versionId}/assets/{asset}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["textFontsV2GetAsset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/api/v1/search/moments": {
@@ -4415,10 +4639,10 @@ export interface components {
         };
         CreateThreadDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -4689,10 +4913,10 @@ export interface components {
         };
         SaveThreadAggregateDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5358,10 +5582,10 @@ export interface components {
         };
         CreateSubthreadDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5609,10 +5833,10 @@ export interface components {
         };
         UpsertBodyDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5692,10 +5916,10 @@ export interface components {
         };
         CreatePostDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5801,10 +6025,10 @@ export interface components {
         };
         UpdatePostDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5860,10 +6084,10 @@ export interface components {
         };
         CreateDraftDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -5897,10 +6121,10 @@ export interface components {
         };
         UpdateDraftDto: {
             /**
-             * @description 支持字体 v1 无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；新写受 textFontV1WriteEnabled 控制。颜色组合还须 textColorVersion:1。
+             * @description 1 支持字体 v1；2 支持 v1/v2 混合正文无损读写；新端始终发送，包括删除全部字体。新/原正文含字体未声明返回 409/40019；v1 新写受 textFontV1WriteEnabled 控制；v2 新写受 textFontV2WriteEnabled 与版本 pasteAllowed 控制。颜色组合还须 textColorVersion:1。
              * @enum {integer}
              */
-            textFontVersion?: 1;
+            textFontVersion?: 1 | 2;
             /**
              * @description 支持文本颜色 v1 无损读写；新端始终发送，包括删除全部颜色。新/原正文含颜色未声明返回 409/40016；新写受 textColorV1WriteEnabled 控制。
              * @enum {integer}
@@ -6046,6 +6270,145 @@ export interface components {
              * @description SUSPEND_USER 时必填
              */
             suspendUntil?: string;
+        };
+        FontRightsDto: {
+            redistribution: boolean;
+            conversion: boolean;
+            subsetting: boolean;
+        };
+        FontFamilyDto: {
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            author: string;
+            /** @description 出处链接，仅作授权凭据记录；后端从不抓取。 */
+            sourceUrl: string;
+            licenseName: string;
+            /** @description 完整授权材料；缺失或三项权利未全部确认时，只能保存草稿和上传源，不能启动处理或发布。 */
+            licenseText: string;
+            /** @description 展示于 PNG 的样张文字；不允许换行或控制字符。 */
+            specimenText: string;
+            rights: components["schemas"]["FontRightsDto"];
+            familyId: string;
+            revision: number;
+            enabled: boolean;
+            currentVersionId: string | null;
+            catalogRevision: number;
+        };
+        FontAdminPageDto: {
+            items: components["schemas"]["FontFamilyDto"][];
+            nextAfter: string | null;
+        };
+        FontConfigurationDto: {
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            author: string;
+            /** @description 出处链接，仅作授权凭据记录；后端从不抓取。 */
+            sourceUrl: string;
+            licenseName: string;
+            /** @description 完整授权材料；缺失或三项权利未全部确认时，只能保存草稿和上传源，不能启动处理或发布。 */
+            licenseText: string;
+            /** @description 展示于 PNG 的样张文字；不允许换行或控制字符。 */
+            specimenText: string;
+            rights: components["schemas"]["FontRightsDto"];
+        };
+        FontJobDto: {
+            jobId: string;
+            familyId: string;
+            /** @enum {string} */
+            status: "draft" | "queued" | "processing" | "ready" | "failed";
+            sourceSha256: string;
+            sourceBytes: number;
+            versionId: string | null;
+            /** @enum {string|null} */
+            failureCode: "invalid-font" | "unsupported-font" | "rights-required" | "resource-limit" | "sandbox-unavailable" | "processing-failed" | null;
+        };
+        FontAssetDto: {
+            sha256: string;
+            bytes: number;
+            /** @enum {string} */
+            format: "woff2" | "ttf" | "otf" | "json" | "png";
+        };
+        FontVersionDescriptorDto: {
+            /** @enum {number} */
+            fontVersion: 2;
+            versionId: string;
+            familyId: string;
+            versionNumber: number;
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            /** @description 最新全局状态修订；比旧缓存优先。显式 withdrawn 为不可逆墓碑。 */
+            revision: number;
+            /** @enum {string} */
+            status: "published" | "disabled" | "withdrawn" | "preview";
+            /** @description 只有当前启用家族的当前发布版本可从选择器新选。 */
+            selectable: boolean;
+            /** @description 启用家族的未撤回历史已发布版本可粘贴/扩写；停用、撤回及仅预览版本不可。 */
+            pasteAllowed: boolean;
+            /** @description 停用及历史版本可呈现；撤回禁止呈现与下载，保留正文源。preview 仅管理员可呈现。 */
+            renderAllowed: boolean;
+            /** @description 撤回为 null；其他状态指向本站受状态校验的下载网关。 */
+            assetBasePath: string | null;
+            /** @description 按需获取的单版本分片清单；撤回为 null。 */
+            manifest: components["schemas"]["FontAssetDto"] | null;
+            specimen: components["schemas"]["FontAssetDto"] | null;
+        };
+        FontWithdrawDto: {
+            expectedCatalogRevision: number;
+            reason: string;
+        };
+        FontAdminFamilyDetailDto: {
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            author: string;
+            /** @description 出处链接，仅作授权凭据记录；后端从不抓取。 */
+            sourceUrl: string;
+            licenseName: string;
+            /** @description 完整授权材料；缺失或三项权利未全部确认时，只能保存草稿和上传源，不能启动处理或发布。 */
+            licenseText: string;
+            /** @description 展示于 PNG 的样张文字；不允许换行或控制字符。 */
+            specimenText: string;
+            rights: components["schemas"]["FontRightsDto"];
+            familyId: string;
+            revision: number;
+            enabled: boolean;
+            currentVersionId: string | null;
+            catalogRevision: number;
+            jobs: components["schemas"]["FontJobDto"][];
+            /** @description 含未发布和已撤回版本；通过管理预览描述符逐个读取。 */
+            versionIds: string[];
+        };
+        UpdateFontConfigurationDto: {
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            author: string;
+            /** @description 出处链接，仅作授权凭据记录；后端从不抓取。 */
+            sourceUrl: string;
+            licenseName: string;
+            /** @description 完整授权材料；缺失或三项权利未全部确认时，只能保存草稿和上传源，不能启动处理或发布。 */
+            licenseText: string;
+            /** @description 展示于 PNG 的样张文字；不允许换行或控制字符。 */
+            specimenText: string;
+            rights: components["schemas"]["FontRightsDto"];
+            expectedFamilyRevision: number;
+        };
+        FontPublishDto: {
+            versionId: string;
+            expectedFamilyRevision: number;
+            expectedCatalogRevision: number;
+        };
+        FontEnabledDto: {
+            enabled: boolean;
+            expectedFamilyRevision: number;
+            expectedCatalogRevision: number;
         };
         AdminLoginChallengeDto: {
             /**
@@ -6403,9 +6766,9 @@ export interface components {
         AdminAuditLogResponseDto: {
             id: string;
             /** @enum {string} */
-            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
+            action: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED" | "TEXT_FONT_DRAFT_UPDATED" | "TEXT_FONT_SOURCE_UPLOADED" | "TEXT_FONT_PROCESS_REQUESTED" | "TEXT_FONT_VERSION_READY" | "TEXT_FONT_PUBLISHED" | "TEXT_FONT_ENABLED_UPDATED" | "TEXT_FONT_WITHDRAWN" | "TEXT_FONT_IMPORTED";
             /** @enum {string} */
-            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
+            targetType: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE" | "TEXT_FONT";
             targetId: string | null;
             reportId: string | null;
             reason: string | null;
@@ -6713,6 +7076,122 @@ export interface components {
             sortOrder?: number;
             isActive?: boolean;
             reason?: string;
+        };
+        DynamicFontNetworkDto: {
+            /** @enum {number} */
+            windowMs: 60000;
+            maxRequests: number;
+            maxBytes: number;
+            maxConcurrent: number;
+            /** @enum {string} */
+            timeoutMode: "idle-with-total-cap";
+            /** @enum {number} */
+            timeoutMs: 15000;
+            /** @enum {number} */
+            maxTransferMs: 600000;
+        };
+        DynamicFontWebResidencyDto: {
+            /** @enum {string} */
+            mode: "lease-lru";
+            /** @enum {string} */
+            scope: "document";
+            maxFaces: number;
+            maxSfntBytes: number;
+        };
+        DynamicFontWebRuntimeDto: {
+            network: components["schemas"]["DynamicFontNetworkDto"];
+            /** @description 没有固定家族数量限制；未释放的 face 继续计费。 */
+            residency: components["schemas"]["DynamicFontWebResidencyDto"];
+        };
+        DynamicFontRegistrationDto: {
+            /** @enum {string} */
+            mode: "append-only";
+            /** @enum {string} */
+            scope: "engine";
+            /** @enum {string} */
+            key: "asset-sha256-and-family";
+            /** @enum {number} */
+            maxAttemptsPerKey: 1;
+            /** @enum {string} */
+            failedAttempt: "quarantine-and-retain-charge";
+            maxKeys: number;
+            /** @description 含失败尝试的累计输入 SFNT 字节；不是 RSS。客户端只接受收紧，不能扩大或随目录更新清账。 */
+            maxInputBytes: number;
+        };
+        DynamicFontMobileRuntimeDto: {
+            network: components["schemas"]["DynamicFontNetworkDto"];
+            registration: components["schemas"]["DynamicFontRegistrationDto"];
+        };
+        FontRetryPolicyDto: {
+            /** @description 第 n 次连续暂时失败的抖动上限；末项持续复用，成功后清零 */
+            delayCeilingsMs: number[];
+            /**
+             * @description floor(U×(ceiling+1))，U∈[0,1)；Retry-After 与窗口等待取更晚时间
+             * @enum {string}
+             */
+            jitter: "full";
+            /** @description 仅 408、429、500、502、503、504 视为暂时 HTTP 错误 */
+            retryableHttpStatuses: number[];
+            /** @enum {boolean} */
+            retryNetworkErrors: true;
+            /** @enum {boolean} */
+            retryTimeouts: true;
+            /** @enum {boolean} */
+            respectRetryAfter: true;
+        };
+        FontMetadataPolicyDto: {
+            /** @enum {number} */
+            revalidateAfterMs: 300000;
+            /** @enum {number} */
+            negativeCacheMs: 30000;
+            /** @enum {number} */
+            reservationBytes: 65536;
+            /** @enum {boolean} */
+            revalidateOnForeground: true;
+            /** @enum {boolean} */
+            revalidateOnPickerOpen: true;
+            /** @enum {boolean} */
+            coalesceUnknownVersions: true;
+        };
+        DynamicFontRuntimePolicyDto: {
+            /**
+             * @description 动态策略独立于旧固定 manifest 策略 v2。拒绝未知/缺字段策略，保留最后可信策略且不得放大本地硬上限。
+             * @enum {number}
+             */
+            policyVersion: 3;
+            /** @enum {number} */
+            fontVersion: 2;
+            web: components["schemas"]["DynamicFontWebRuntimeDto"];
+            mobile: components["schemas"]["DynamicFontMobileRuntimeDto"];
+            retry: components["schemas"]["FontRetryPolicyDto"];
+            metadata: components["schemas"]["FontMetadataPolicyDto"];
+            diskCacheBytes: number;
+        };
+        FontCatalogEntryDto: {
+            familyId: string;
+            versionId: string;
+            name: string;
+            /** @enum {string} */
+            designLanguage: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            /** @enum {boolean} */
+            selectable: true;
+            /** @enum {boolean} */
+            pasteAllowed: true;
+            /** @enum {boolean} */
+            renderAllowed: true;
+            /** @description 本站 API 相对路径；资源为 assetBasePath + sha256 + 点 + format。禁止任意外部 URL。 */
+            assetBasePath: string;
+            /** @description PNG 样张；选择器不为预览下载字体分片。 */
+            specimen: components["schemas"]["FontAssetDto"];
+        };
+        FontCatalogPageDto: {
+            /** @enum {number} */
+            fontVersion: 2;
+            releaseId: string;
+            revision: number;
+            items: components["schemas"]["FontCatalogEntryDto"][];
+            nextCursor: string | null;
         };
         MomentSearchResponseDto: {
             id: string;
@@ -7084,6 +7563,10 @@ export interface components {
             outputContentType: "audio/mpeg";
         };
         ApiCapabilitiesResponseDto: {
+            /** @description 私有网关及固定映射28款导入发布就绪后支持动态字体；未就绪/缺失为 false。保源协议仍有效。 */
+            textFontV2Supported?: boolean;
+            /** @description 仅 v2Supported 且新写开关开启时为 true；仍须版本 pasteAllowed。缺失按 false。 */
+            textFontV2WriteEnabled?: boolean;
             /** @description 支持字体 v1 保源和旧端降级；缺失按 false */
             textFontV1Supported?: boolean;
             /** @description 允许新增/修改字体；关闭仍可保留或移除已有字体，缺失按 false */
@@ -7228,23 +7711,6 @@ export interface components {
         FontMobileRuntimeDto: {
             network: components["schemas"]["FontNetworkWindowDto"];
             registration: components["schemas"]["FontMobileRegistrationDto"];
-        };
-        FontRetryPolicyDto: {
-            /** @description 第 n 次连续暂时失败的抖动上限；末项持续复用，成功后清零 */
-            delayCeilingsMs: number[];
-            /**
-             * @description floor(U×(ceiling+1))，U∈[0,1)；Retry-After 与窗口等待取更晚时间
-             * @enum {string}
-             */
-            jitter: "full";
-            /** @description 仅 408、429、500、502、503、504 视为暂时 HTTP 错误 */
-            retryableHttpStatuses: number[];
-            /** @enum {boolean} */
-            retryNetworkErrors: true;
-            /** @enum {boolean} */
-            retryTimeouts: true;
-            /** @enum {boolean} */
-            respectRetryAfter: true;
         };
         TextFontRuntimePolicyDto: {
             /**
@@ -7975,6 +8441,39 @@ export interface components {
         AdminReportsResolve200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminReportResponseDto"];
         };
+        AdminTextFontsList200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontAdminPageDto"];
+        };
+        AdminTextFontsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontFamilyDto"];
+        };
+        AdminTextFontsGetJob200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontJobDto"];
+        };
+        AdminTextFontsProcess201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontJobDto"];
+        };
+        AdminTextFontsPreview200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontVersionDescriptorDto"];
+        };
+        AdminTextFontsWithdraw201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontVersionDescriptorDto"];
+        };
+        AdminTextFontsDetail200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontAdminFamilyDetailDto"];
+        };
+        AdminTextFontsUpdate200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontFamilyDto"];
+        };
+        AdminTextFontsUpload201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontJobDto"];
+        };
+        AdminTextFontsPublish201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontFamilyDto"];
+        };
+        AdminTextFontsEnabled200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontFamilyDto"];
+        };
         AdminAuthChallenge200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["AdminChallengeResponseDto"];
         };
@@ -8134,6 +8633,15 @@ export interface components {
         AdminTaxonomyUpdateTag200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["TagResponseDto"];
         };
+        TextFontsV2GetRuntimePolicy200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["DynamicFontRuntimePolicyDto"];
+        };
+        TextFontsV2GetCatalog200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontCatalogPageDto"];
+        };
+        TextFontsV2GetVersion200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontVersionDescriptorDto"];
+        };
         SearchSearchMoments200Response: components["schemas"]["ApiPaginatedSuccessEnvelope"] & {
             data: components["schemas"]["MomentSearchResponseDto"][];
         };
@@ -8252,7 +8760,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40019 | 40020 | 40021 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 42900 | 42901 | 42902 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40019 | 40020 | 40021 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 40927 | 40928 | 40929 | 41001 | 50301 | 42900 | 42901 | 42902 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -8283,8 +8791,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -8363,8 +8871,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 buildNumber: number;
@@ -8522,8 +9030,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 buildNumber: number;
@@ -8677,8 +9185,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -8738,8 +9246,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -8802,8 +9310,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -8878,8 +9386,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -8939,8 +9447,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9000,8 +9508,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9061,8 +9569,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9109,8 +9617,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9170,8 +9678,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9244,8 +9752,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9318,8 +9826,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9366,8 +9874,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9424,8 +9932,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -9500,8 +10008,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9564,8 +10072,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9621,8 +10129,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9678,8 +10186,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9735,8 +10243,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9814,8 +10322,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9871,8 +10379,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -9928,8 +10436,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -10002,8 +10510,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -10059,8 +10567,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -10138,8 +10646,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10202,8 +10710,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10268,8 +10776,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10332,8 +10840,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10391,8 +10899,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10450,8 +10958,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10509,8 +11017,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10568,8 +11076,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10640,8 +11148,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10686,8 +11194,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10758,8 +11266,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -10802,8 +11310,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -10846,8 +11354,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10892,8 +11400,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10938,8 +11446,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -10984,8 +11492,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11030,8 +11538,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11079,8 +11587,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11136,8 +11644,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11193,8 +11701,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11252,8 +11760,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11315,8 +11823,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11372,8 +11880,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11419,8 +11927,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11469,8 +11977,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11526,8 +12034,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11613,8 +12121,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11656,8 +12164,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -11703,8 +12211,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11800,8 +12308,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11914,8 +12422,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -11986,8 +12494,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12048,8 +12556,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -12122,8 +12630,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -12166,8 +12674,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -12227,8 +12735,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12286,8 +12794,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12371,8 +12879,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12473,8 +12981,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12602,8 +13110,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12704,8 +13212,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12763,8 +13271,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12822,8 +13330,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12907,8 +13415,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -12979,8 +13487,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 token: string;
@@ -13051,8 +13559,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 token: string;
@@ -13123,8 +13631,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13168,8 +13676,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13213,8 +13721,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13267,8 +13775,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13313,8 +13821,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13358,8 +13866,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13407,8 +13915,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13454,8 +13962,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13499,8 +14007,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13548,8 +14056,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13593,8 +14101,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13639,8 +14147,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13688,8 +14196,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13733,8 +14241,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13782,8 +14290,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13828,8 +14336,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13878,8 +14386,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -13931,8 +14439,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -13975,8 +14483,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14049,8 +14557,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -14095,8 +14603,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14138,8 +14646,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14185,8 +14693,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14232,8 +14740,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14279,8 +14787,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14326,8 +14834,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14373,8 +14881,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -14418,8 +14926,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14465,8 +14973,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 favoriteId: string;
@@ -14510,8 +15018,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14559,8 +15067,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14603,8 +15111,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14683,8 +15191,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14727,8 +15235,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14770,8 +15278,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -14817,8 +15325,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -14914,8 +15422,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15028,8 +15536,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15086,8 +15594,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15131,8 +15639,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15193,8 +15701,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15238,8 +15746,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15283,8 +15791,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15332,8 +15840,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15377,8 +15885,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15448,8 +15956,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15494,8 +16002,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15543,8 +16051,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15588,8 +16096,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15656,8 +16164,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15703,8 +16211,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15767,8 +16275,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15813,8 +16321,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -15858,8 +16366,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -15907,8 +16415,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15952,8 +16460,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -15998,8 +16506,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16047,8 +16555,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -16096,8 +16604,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -16164,8 +16672,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 subthreadId: string;
@@ -16210,8 +16718,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 subthreadId: string;
@@ -16325,8 +16833,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 subthreadId: string;
@@ -16422,8 +16930,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16506,8 +17014,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 subthreadId: string;
@@ -16560,8 +17068,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16606,8 +17114,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16651,8 +17159,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 subthreadId: string;
@@ -16740,8 +17248,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16799,8 +17307,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16884,8 +17392,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -16973,8 +17481,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17071,8 +17579,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17169,8 +17677,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17226,8 +17734,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17300,8 +17808,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17357,8 +17865,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17414,8 +17922,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17489,8 +17997,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17561,8 +18069,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17650,8 +18158,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17707,8 +18215,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17768,8 +18276,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -17840,8 +18348,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17910,8 +18418,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -17956,8 +18464,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18003,8 +18511,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18057,6 +18565,605 @@ export interface operations {
             };
         };
     };
+    adminTextFontsList: {
+        parameters: {
+            query?: {
+                limit?: number;
+                after?: string;
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsList200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsCreate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FontConfigurationDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsCreate201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsGetJob: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsGetJob200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsProcess: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                jobId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 确认三项权利与完整授权后排队；同一 job 重放幂等，失败 job 可重试，使用上传时配置快照。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsProcess201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsPreview: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsPreview200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsAsset: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                versionId: string;
+                asset: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 管理员预览输出；撤回版本也禁止下载，源文件保留在私有暂存。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsWithdraw: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FontWithdrawDto"];
+            };
+        };
+        responses: {
+            /** @description 不可逆紧急撤回；新目录原子移除，后续下载拒绝，原正文与历史对象不删除。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsWithdraw201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsDetail: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                familyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsDetail200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsUpdate: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                familyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateFontConfigurationDto"];
+            };
+        };
+        responses: {
+            /** @description 修改下一次上传的配置，不改历史版本元数据；当前目录排序需重新 publish。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsUpdate200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsUpload: {
+        parameters: {
+            query: {
+                expectedFamilyRevision: number;
+                /** @description 只接受单个 TTF/OTF 文件；扩展名不替代 Worker 对实际容器的验证。 */
+                format: "ttf" | "otf";
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                familyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/octet-stream": string;
+            };
+        };
+        responses: {
+            /** @description 只暂存源，不解析。形成不可变配置快照的 draft job，需显式 process。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsUpload201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsPublish: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                familyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FontPublishDto"];
+            };
+        };
+        responses: {
+            /** @description 发布或回滚到已有成功版本；先核验资源可读，再原子切换未来选用与目录。旧帖版本不变。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsPublish201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsEnabled: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                familyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FontEnabledDto"];
+            };
+        };
+        responses: {
+            /** @description 停用禁止新选与粘贴，但仍可读取历史描述符/资产；重新启用不会恢复已撤回版本。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsEnabled200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     adminAuthChallenge: {
         parameters: {
             query?: never;
@@ -18065,8 +19172,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18112,8 +19219,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18161,8 +19268,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18206,8 +19313,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18251,8 +19358,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18296,8 +19403,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18345,8 +19452,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18390,8 +19497,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18439,8 +19546,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18490,8 +19597,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18541,8 +19648,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18588,8 +19695,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 token: string;
@@ -18643,8 +19750,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18689,8 +19796,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18736,8 +19843,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18795,8 +19902,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18841,8 +19948,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -18890,8 +19997,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18950,8 +20057,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -18993,8 +20100,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19042,8 +20149,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19087,8 +20194,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19146,8 +20253,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19192,8 +20299,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19241,8 +20348,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19290,8 +20397,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19337,8 +20444,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19382,8 +20489,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19431,8 +20538,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19483,8 +20590,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19531,8 +20638,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19590,8 +20697,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19636,8 +20743,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -19684,8 +20791,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19746,8 +20853,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -19792,8 +20899,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19839,8 +20946,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19890,8 +20997,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19941,8 +21048,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -19992,8 +21099,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -20050,8 +21157,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20096,8 +21203,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -20145,8 +21252,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED" | "TEXT_FONT_DRAFT_UPDATED" | "TEXT_FONT_SOURCE_UPLOADED" | "TEXT_FONT_PROCESS_REQUESTED" | "TEXT_FONT_VERSION_READY" | "TEXT_FONT_PUBLISHED" | "TEXT_FONT_ENABLED_UPDATED" | "TEXT_FONT_WITHDRAWN" | "TEXT_FONT_IMPORTED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE" | "TEXT_FONT";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
@@ -20159,8 +21266,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20202,8 +21309,8 @@ export interface operations {
                 cursor?: string;
                 /** @description 每页条数（默认 20，最大 50） */
                 limit?: number;
-                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED";
-                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE";
+                action?: "SUPER_ADMIN_BOOTSTRAPPED" | "ADMIN_ROLE_GRANTED" | "ADMIN_ROLE_REVOKED" | "USER_SUSPENDED" | "USER_BANNED" | "USER_SANCTION_REVOKED" | "CONTENT_HIDDEN" | "CONTENT_RESTORED" | "THREAD_TAXONOMY_UPDATED" | "REPORT_RESOLVED" | "REPORT_DISMISSED" | "SYSTEM_NOTIFICATION_SENT" | "THREAD_CATEGORY_CREATED" | "THREAD_CATEGORY_UPDATED" | "TAG_CREATED" | "TAG_UPDATED" | "ADMIN_INVITED" | "ADMIN_INVITE_ACCEPTED" | "ADMIN_INVITE_CANCELED" | "SUPER_ADMIN_TRANSFERRED" | "ADMIN_SESSION_REVOKED" | "CASE_RESOLVED" | "CASE_DISMISSED" | "APPEAL_SUBMITTED" | "APPEAL_UPHELD" | "APPEAL_OVERTURNED" | "USER_SESSIONS_REVOKED" | "PASSWORD_RESET_REQUESTED_BY_ADMIN" | "NOTIFICATION_CAMPAIGN_SCHEDULED" | "NOTIFICATION_CAMPAIGN_CANCELED" | "THREAD_CATEGORY_MERGED" | "TAG_MERGED" | "SITE_SETTINGS_UPDATED" | "MOBILE_RELEASE_UPDATED" | "TEXT_FONT_DRAFT_UPDATED" | "TEXT_FONT_SOURCE_UPLOADED" | "TEXT_FONT_PROCESS_REQUESTED" | "TEXT_FONT_VERSION_READY" | "TEXT_FONT_PUBLISHED" | "TEXT_FONT_ENABLED_UPDATED" | "TEXT_FONT_WITHDRAWN" | "TEXT_FONT_IMPORTED";
+                targetType?: "USER" | "THREAD" | "POST" | "MOMENT" | "MOMENT_COMMENT" | "REPORT" | "SYSTEM_NOTIFICATION" | "THREAD_CATEGORY" | "TAG" | "MODERATION_CASE" | "MODERATION_DECISION" | "MODERATION_APPEAL" | "ADMIN_INVITE" | "ADMIN_SESSION" | "NOTIFICATION_CAMPAIGN" | "SITE_SETTINGS" | "MOBILE_RELEASE" | "TEXT_FONT";
                 targetId?: string;
                 actorId?: string;
                 createdAfter?: string;
@@ -20216,8 +21323,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20260,8 +21367,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 type: "thread" | "post" | "moment" | "moment_comment";
@@ -20317,8 +21424,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20367,8 +21474,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20412,8 +21519,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20457,8 +21564,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20502,8 +21609,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20551,8 +21658,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -20602,8 +21709,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20647,8 +21754,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20696,8 +21803,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -20737,6 +21844,213 @@ export interface operations {
             };
         };
     };
+    textFontsV2GetRuntimePolicy: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextFontsV2GetRuntimePolicy200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    textFontsV2GetCatalog: {
+        parameters: {
+            query?: {
+                /** @description 最多项数；服务端按完整 UTF-8 JSON 信封 65536 字节上限提前截页，必须跟随 nextCursor。 */
+                limit?: number;
+                /** @description 服务端不透明游标，绑定 releaseId、revision、limit；目录变化返回 409/40927，清空游标重取。 */
+                cursor?: string;
+            };
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    ETag?: string;
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextFontsV2GetCatalog200Response"];
+                };
+            };
+            /** @description If-None-Match 命中当前页；无响应体。 */
+            304: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    textFontsV2GetVersion: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                versionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    ETag?: string;
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["TextFontsV2GetVersion200Response"];
+                };
+            };
+            /** @description 状态未变化；无响应体。 */
+            304: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    textFontsV2GetAsset: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                versionId: string;
+                asset: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description asset=sha256.format；只有该版本清单列出的对象可读。字节内容不可变，响应 no-cache，撤回返回 410/41001。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/octet-stream": string;
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     searchSearchMoments: {
         parameters: {
             query: {
@@ -20752,8 +22066,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20816,8 +22130,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20889,8 +22203,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -20942,8 +22256,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21015,8 +22329,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21081,8 +22395,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 threadId: string;
@@ -21166,8 +22480,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21254,8 +22568,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21355,8 +22669,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -21454,8 +22768,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -21531,8 +22845,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21575,8 +22889,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21648,8 +22962,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -21691,8 +23005,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 userId: string;
@@ -21749,8 +23063,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -21813,8 +23127,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -21872,8 +23186,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -21947,8 +23261,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22009,8 +23323,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22058,8 +23372,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22107,8 +23421,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22191,8 +23505,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22234,8 +23548,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22277,8 +23591,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22327,8 +23641,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22371,8 +23685,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 platform: "android";
@@ -22438,8 +23752,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22484,8 +23798,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22546,8 +23860,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22593,8 +23907,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22657,8 +23971,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22719,8 +24033,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22762,8 +24076,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22810,8 +24124,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;
@@ -22854,8 +24168,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -22955,8 +24269,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -23056,8 +24370,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path: {
                 id: string;
@@ -23167,8 +24481,8 @@ export interface operations {
                 "X-Markdown-Contract-Version"?: 6;
                 /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
                 "X-Text-Color-Version"?: 1;
-                /** @description 声明 1 读取字体原始源码；缺失只返回安全去字体副本，不能覆盖字体原文。颜色能力单独协商。 */
-                "X-Text-Font-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
             };
             path?: never;
             cookie?: never;

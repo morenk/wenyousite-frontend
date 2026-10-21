@@ -1,3 +1,5 @@
+import {rememberDynamicFont,rememberDynamicFontCatalog} from "@/lib/dynamic-text-font-state";
+import dynamicFixtures from "../../../../contracts/markdown-text-font-v2-fixtures.json";
 import { CrepeBuilder } from "@milkdown/crepe/builder";
 import { editorViewCtx, parserCtx } from "@milkdown/core";
 import { TextSelection } from "@milkdown/kit/prose/state";
@@ -220,5 +222,35 @@ for (const origin of ["reader", "aligned-reader", "editor"] as const) {
    expect(semantic(ctx.get(parserCtx)(prepareEditorMarkdown(saved))?.toJSON())).toEqual(semantic(expected.toJSON()));
    expect(undo(view.state, view.dispatch)).toBe(true); expect(view.state.doc.eq(before)).toBe(true);
   });
+ });
+}
+
+for (const item of dynamicFixtures.validCases) {
+ test(`动态v2 ${item.id}：未知新ID保源、保存重开、旧能力拒绝覆盖`, async () => withEditor(item.source, ctx => {
+  const doc = ctx.get(editorViewCtx).state.doc;
+  const dynamicCapability = { ...capability, textFontVersion: 2 as const };
+  expect(findUnsupportedMarkdownFormats(item.source)).toEqual([]);
+  const saved = serializeEditorMarkdown(ctx, doc, dynamicCapability);
+  expect(saved).toContain('data-wenyou-font-v2="tfv_');
+  expect(semantic(ctx.get(parserCtx)(prepareEditorMarkdown(saved))?.toJSON())).toEqual(semantic(doc.toJSON()));
+  expect(assessEditorInput(saved, 6, true, 2).edit).toBe(true);
+  expect(assessEditorInput(saved, 6, true, true).edit).toBe(false);
+  expect(() => serializeEditorMarkdown(ctx, doc, capability)).toThrow("正文已保留");
+ }));
+}
+test.each(dynamicFixtures.invalidSources)("动态v2非法标记拒绝：%s", source => {
+ expect(findUnsupportedMarkdownFormats(source).length).toBeGreaterThan(0);
+ expect(assessEditorInput(source, 6, true, 2).edit).toBe(false);
+});
+
+for(const [index,status]of ["historical","disabled","withdrawn","unknown"].entries()){
+ test(`动态v2阅读复制到编辑器：${status}仅按粘贴权限投影字体`,async()=>{
+  const versionId="tfv_"+(index+1).toString().repeat(32);
+  if(status!=="unknown")rememberDynamicFont({versionId,revision:100,status:status==="historical"?"published":status as "disabled"|"withdrawn",selectable:status==="historical",pasteAllowed:status==="historical",renderAllowed:status!=="withdrawn"});
+  if(status==="historical")rememberDynamicFontCatalog([{versionId:"tfv_"+"f".repeat(32)}],101);
+  const source=`<span data-wenyou-font-v2="${versionId}" data-wenyou-color-v1="#D14343">**Aa** *a* ~~A~~ [a](https://example.test) \`A\`</span>`;
+  const rendered=render(<MarkdownContent allowTextFont content={source}/>),payload=createReaderClipboardPayload(rendered.container);rendered.unmount();expect(payload.html).toContain(`data-wenyou-font-v2="${versionId}"`);
+  await withEditor(source,ctx=>{expect(serializeEditorMarkdown(ctx,ctx.get(editorViewCtx).state.doc,{...capability,textFontVersion:2})).toContain(`data-wenyou-font-v2="${versionId}"`);});
+  await withEditor("",ctx=>{const view=ctx.get(editorViewCtx),before=view.state.doc;paste(view,payload.html);const saved=serializeEditorMarkdown(ctx,view.state.doc,{...capability,textFontVersion:2});expect(saved.includes(`data-wenyou-font-v2="${versionId}"`)).toBe(status==="historical");const expected=ctx.get(parserCtx)(prepareEditorMarkdown(status==="historical"?source:source.replace(`data-wenyou-font-v2="${versionId}" `,"")))!;expect(semantic(view.state.doc.toJSON())).toEqual(semantic(expected.toJSON()));expect(undo(view.state,view.dispatch)).toBe(true);expect(view.state.doc.eq(before)).toBe(true);});
  });
 }

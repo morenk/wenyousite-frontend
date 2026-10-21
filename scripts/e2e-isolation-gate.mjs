@@ -101,7 +101,7 @@ export function processIdentity(pid) {
     const root = `/proc/${pid}`;
     const stat = readFileSync(`${root}/stat`, "utf8");
     const fields = stat.slice(stat.lastIndexOf(")") + 2).split(" ");
-    return { parent: Number(fields[1]), uid: lstatSync(root).uid, cwd: realpathSync(`${root}/cwd`), args: readFileSync(`${root}/cmdline`, "utf8").split("\0") };
+    return { start: fields[19], parent: Number(fields[1]), uid: lstatSync(root).uid, cwd: realpathSync(`${root}/cwd`), args: readFileSync(`${root}/cmdline`, "utf8").split("\0") };
   } catch { throw new Error("隔离进程已退出或身份不可核验"); }
 }
 
@@ -117,6 +117,26 @@ export function assertResourceProcesses(run, identity = processIdentity, current
   let pid = currentPid;
   for (let depth = 0; depth < 64 && pid !== pg.parent && pid > 1; depth++) pid = identity(pid).parent;
   ensure(pid === pg.parent, "Web 必须作为当前资源 runner 的后代运行，禁止复用其他轮次");
+}
+
+/** 动态字体增加本轮私有对象存储和 Worker；不读取任何后端密钥。 */
+export async function verifyFontResources(run, identity = processIdentity) {
+  const { fontObjectStore: store, textFonts: fonts } = run.manifest;
+  if (!store && !fonts) return;
+  ensure(store && fonts && fonts.storagePath === join(run.root, "fonts") && store.directory === join(run.root, "font-object-store") && store.runId === run.manifest.runId, "字体资源未绑定本轮目录");
+  const endpoint = isolatedOrigin(store.endpoint);
+  ensure(![run.manifest.backendURL, `http://127.0.0.1:${run.manifest.postgres.port}`, `http://127.0.0.1:${run.manifest.redis.port}`].includes(endpoint) && store.bucket === `fonts-${run.manifest.runId.replaceAll("_", "-")}`, "字体对象存储地址或 bucket 不匹配");
+  const registry = privateJSON(join(run.root, "processes.json"));
+  ensure(registry.runId === run.manifest.runId && registry.root === run.root && Array.isArray(registry.processes), "字体进程登记轮次不匹配");
+  const supervisor = identity(run.resources.postgresPid).parent;
+  ensure(Array.isArray(fonts.workers) && fonts.workers.length > 0, "缺少字体 Worker");
+  for (const row of [store, ...fonts.workers]) {
+    const actual = identity(row.pid);
+    ensure(typeof row.start === "string" && actual.start === row.start && actual.uid === process.getuid() && actual.parent === supervisor && actual.cwd === run.root && registry.processes.some(entry => entry.group === row.pid && entry.started === row.start), "字体进程身份或登记不匹配");
+  }
+  const response = await fetch(endpoint + "/__e2e_identity", { redirect: "error", signal: AbortSignal.timeout(3000) });
+  const actual = await response.json();
+  ensure(response.ok && actual.runId === store.runId && actual.identity === store.identity && actual.pid === store.pid && actual.start === store.start && actual.bucket === store.bucket, "字体对象存储实际响应身份不匹配");
 }
 
 /** 以本轮随机用户的匿名公开资料证明真实 API 数据来源；不通过登录来证明隔离。 */
@@ -164,6 +184,7 @@ export async function verifyRunProfile(run, origin, candidateId) {
 export async function requireIsolationRunner(env = process.env, candidate = true) {
   const run = readIsolation(env);
   assertResourceProcesses(run);
+  await verifyFontResources(run);
   await verifyRunProfile(run, run.manifest.backendURL);
   if (candidate) {
     ensure(env.WENYOU_E2E_CANDIDATE_ID && env.E2E_BUILD_DIR, "缺少本轮候选构建身份");

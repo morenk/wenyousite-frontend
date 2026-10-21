@@ -1,6 +1,6 @@
 import { z } from "zod";
 import type { components } from "@/api/types";
-import { normalizeTextFont } from "@/lib/markdown-text-font";
+import { normalizeTextFontV1 as normalizeTextFont } from "@/lib/markdown-text-font";
 
 export type ThreadFontCatalog = components["schemas"]["TextFontCatalogDto"];
 const hash = z.string().regex(/^[a-f0-9]{64}$/u);
@@ -31,13 +31,6 @@ export type ThreadFontManifest = z.infer<typeof threadFontManifestSchema>;
 export type ThreadFontShard = z.infer<typeof shard> | z.infer<typeof originalShard>;
 export type Asset = z.infer<typeof asset> | z.infer<typeof originalAsset>;
 export const ceilings = { maxConcurrentDownloads: 2, maxSessionFamilies: 8, maxSessionRequests: 64, maxWebSessionBytes: 16 * 1024 * 1024, maxPersistentCacheBytes: 64 * 1024 * 1024, downloadTimeoutMs: 15000, maxAssetBytes: 6 * 1024 * 1024 };
-export function rangesContain(ranges: readonly string[], codepoint: number): boolean {
-  return ranges.some((range) => { const [start, end = start] = range.slice(2).split("-").map((v) => parseInt(v, 16)); return codepoint >= start! && codepoint <= end!; });
-}
-export function requiredFontShards(shards: readonly ThreadFontShard[], text: string) {
-  const points = [...new Set(Array.from(text, (letter) => letter.codePointAt(0)!))];
-  return shards.filter((part) => points.some((point) => rangesContain(part.unicodeRanges, point)));
-}
 export function validatedFontBase(value: string | null): string | null {
   if (!value) return null;
   try {
@@ -48,10 +41,7 @@ export function validatedFontBase(value: string | null): string | null {
     return url.href;
   } catch { return null; }
 }
-export async function verifyFontBytes(bytes: ArrayBuffer, descriptor: Asset): Promise<boolean> {
-  if (bytes.byteLength !== descriptor.bytes) return false;
-  const actual = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", bytes)), (b) => b.toString(16).padStart(2, "0")).join("");
-  return actual === descriptor.sha256;
-}
 export type FontLoadResult = { family: string; status: "ready" | "fallback"; reason?: string };
 export const systemFamily = "var(--wenyou-font-body-family, system-ui)";
+
+export { rangesContain, requiredFontShards, verifyFontBytes } from "./thread-font-binary";

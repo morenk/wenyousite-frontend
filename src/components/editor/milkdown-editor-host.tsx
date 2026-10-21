@@ -1,7 +1,10 @@
 "use client";
+import { useDynamicTextFonts } from "@/api/hooks/use-dynamic-text-fonts";
+import { rememberDynamicFont } from "@/lib/dynamic-text-font-state";
+import { DynamicFontSpecimen } from "./dynamic-font-specimen";
 import { useVisibleTextFonts } from "./use-visible-text-fonts";
 import { useTextFontCatalog } from "@/api/hooks/use-text-font-catalog";
-import { textFontOptions } from "./editor-text-font-options";
+import { textFontOptions, textFontGroup } from "./editor-text-font-options";
 import { validatedFontBase } from "@/lib/thread-font-runtime";
 import { EditorFontPreview } from "./editor-font-preview";
 import { editorTextFontSchema, editorTextFontAtomicPolicy, configureEditorTextFontRendering } from "./editor-text-font";
@@ -257,7 +260,7 @@ export interface MilkdownEditorHostProps {
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mentionIdentities?: readonly MentionIdentity[];
   markdownContractVersion: number;
-  textFontVersion?: 1;
+  textFontVersion?: 1 | 2;
   textFontRenderingEnabled?: boolean;
   textFontWriteEnabled?: boolean;
   textColorVersion?: 1;
@@ -319,7 +322,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
   const colorSelectionRef = useRef<SelectionBookmark | null>(null);
   const [fontSelection, setFontSelection] = useState<{ enabled: boolean; fontId: string | null | undefined }>({ enabled: false, fontId: undefined });
-  const fontCatalog = useTextFontCatalog(textFontWriteEnabled);
+  const fontCatalog = useTextFontCatalog(textFontWriteEnabled && textFontVersion === 1);
+  const dynamicCatalog = useDynamicTextFonts(textFontWriteEnabled && textFontVersion === 2);
   const [colorSelection, setColorSelection] = useState<{ enabled: boolean; color: string | null | undefined }>({ enabled: false, color: undefined });
   const capabilityReady = true;
   const alignmentEnabled = markdownContractVersion >= 4;
@@ -1157,22 +1161,30 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       <EditorHeadingMenu
         key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled) + String(textFontWriteEnabled)}
         anchor={headingMenuAnchor}
-        fontControls={textFontRenderingEnabled && textFontVersion === 1 ? {
+        fontControls={textFontRenderingEnabled && (textFontVersion === 1 || textFontVersion === 2) ? {
           enabled: fontSelection.enabled && !disabled && !composingRef.current,
           value: fontSelection.fontId,
           accountId: textColorAccountId,
-          options: textFontWriteEnabled && fontCatalog.data?.manifest && validatedFontBase(fontCatalog.data.assetBaseUrl) ? textFontOptions(fontCatalog.data.fonts) : [],
-          loading: textFontWriteEnabled && fontCatalog.isLoading,
-          error: fontCatalog.isError ? "字体列表加载失败" : undefined,
-          onRetry: () => { void fontCatalog.refetch(); },
+          options: textFontVersion === 2 ? (textFontWriteEnabled ? dynamicCatalog.data?.items.map(item=>({value:item.versionId,label:item.name,group:textFontGroup(item.designLanguage)})) ?? [] : []) : textFontWriteEnabled && fontCatalog.data?.manifest && validatedFontBase(fontCatalog.data.assetBaseUrl) ? textFontOptions(fontCatalog.data.fonts) : [],
+          loading: textFontWriteEnabled && (textFontVersion === 2 ? dynamicCatalog.isLoading : fontCatalog.isLoading),
+          error: (textFontVersion === 2 ? dynamicCatalog.isError && !dynamicCatalog.data : fontCatalog.isError) ? "字体列表加载失败" : undefined,
+          onRetry: () => { void (textFontVersion === 2 ? dynamicCatalog.refetch() : fontCatalog.refetch()); },
+          onOpen: () => { if(textFontVersion === 2)void dynamicCatalog.refetch(); },
+          previewMode: textFontVersion === 2 ? "automatic" : "on-demand",
+          renderThumbnail: textFontVersion === 2 ? font=><DynamicFontSpecimen versionId={font.value} compact/> : undefined,
           onApply: (fontId) => {
-            if (disabled || composingRef.current || (fontId !== null && (!textFontWriteEnabled || !fontCatalog.data?.manifest || !validatedFontBase(fontCatalog.data.assetBaseUrl) || !fontCatalog.data.fonts.some((font) => font.id === fontId && font.availability === "ready")))) return false;
+            if (disabled || composingRef.current) return false;
+            if(fontId !== null) {
+              if(!textFontWriteEnabled)return false;
+              if(textFontVersion === 2){const item=dynamicCatalog.data?.items.find(item=>item.versionId===fontId);if(!item)return false;rememberDynamicFont({...item,revision:dynamicCatalog.data!.revision,status:"published"});}
+              else if(!fontCatalog.data?.manifest||!validatedFontBase(fontCatalog.data.assetBaseUrl)||!fontCatalog.data.fonts.some(font=>font.id===fontId&&font.availability==="ready"))return false;
+            }
             const applied = crepeRef.current?.editor.action((ctx) => applyEditorTextFont(ctx.get(editorViewCtx), fontId, colorSelectionRef.current ?? undefined)) ?? false;
             if (applied) setHeadingMenuAnchor(null);
             return applied;
           },
           onCancel: () => { restoreColorSelection(); setHeadingMenuAnchor(null); },
-          renderPreview: (font) => <EditorFontPreview fontId={font.value} designLanguage={fontCatalog.data?.fonts.find(entry => entry.id === font.value)?.designLanguage} />,
+          renderPreview: (font) => textFontVersion === 2 ? <DynamicFontSpecimen versionId={font.value}/> : <EditorFontPreview fontId={font.value} designLanguage={fontCatalog.data?.fonts.find(entry => entry.id === font.value)?.designLanguage} />,
         } : undefined}
         colorControls={textColorWriteEnabled && textColorVersion === 1 ? {
           ...colorSelection,

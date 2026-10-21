@@ -7,6 +7,7 @@ import { http, HttpResponse } from "msw";
 import { server } from "@/test/msw/server";
 import { useVisibleTextFonts } from "../use-visible-text-fonts";
 import * as runtimeModule from "@/lib/thread-font-runtime";
+import { queryKeys } from "@/api/query-keys";
 import { threadFontNetwork } from "@/lib/thread-font-network";
 import officialPolicy from "../../../../contracts/thread-font-runtime-policy-v2.json";
 function Content(){const root=useRef<HTMLDivElement>(null);useVisibleTextFonts(root);return <div ref={root}><span data-wenyou-font-v1="wenkai">ABC</span></div>}
@@ -23,7 +24,7 @@ async function fixture(){
  server.use(http.get("*/api/v1/meta/text-fonts",()=>{requests.push("catalog");return HttpResponse.json({code:0,data:catalog})}),http.get("*/api/v1/meta/text-fonts/runtime-policy",()=>{requests.push("policy");return HttpResponse.json({code:0,data:{...officialPolicy,manifestSha256:descriptor.sha256}})}),http.get("https://assets.wenyou.site/*",({request})=>{const asset=assets.get(new URL(request.url).pathname.slice(1))!;requests.push("asset");return new HttpResponse(asset.bytes,{headers:{"content-type":asset.mime}})}));
  const install=vi.fn(async()=>()=>{}),runtime=new runtimeModule.ThreadFontRuntime(undefined,{get:async()=>null,put:async()=>{},delete:async()=>{}},install);vi.spyOn(runtimeModule,"threadFontRuntime").mockReturnValue(runtime);
  let notify:IntersectionObserverCallback=()=>{};vi.stubGlobal("IntersectionObserver",class{constructor(callback:IntersectionObserverCallback){notify=callback}observe=vi.fn();unobserve=vi.fn();disconnect=vi.fn()});
- const client=new QueryClient(),view=render(<QueryClientProvider client={client}><Content/></QueryClientProvider>),span=view.container.querySelector("span")!;
+ const client=new QueryClient();client.setQueryData(queryKeys.meta,{capabilities:{textFontV2Supported:false}});const view=render(<QueryClientProvider client={client}><Content/></QueryClientProvider>),span=view.container.querySelector("span")!;
  const visible=async(value:boolean)=>act(async()=>notify([{target:span,isIntersecting:value,intersectionRatio:value?1:0,boundingClientRect:span.getBoundingClientRect(),intersectionRect:span.getBoundingClientRect(),rootBounds:null,time:0}],{} as IntersectionObserver));
  return{requests,install,client,view,span,visible,runtime};
 }

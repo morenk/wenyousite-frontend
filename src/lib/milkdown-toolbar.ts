@@ -1,3 +1,4 @@
+import { editorIconSvg } from "./editor-icons";
 import {
   EDITOR_DENSITY_ORDER,
   EDITOR_MORE_BY_DENSITY,
@@ -50,6 +51,15 @@ export function syncMilkdownToolbarItems(
       ".top-bar-heading-button",
     );
     if (heading) {
+      // 标题、文字颜色和字体共用 T 入口；保留上游标签节点供其更新当前标题状态。
+      if (!heading.querySelector(".top-bar-style-icon")) {
+        const icon = heading.ownerDocument.createElement("span");
+        icon.className = "top-bar-style-icon";
+        icon.setAttribute("aria-hidden", "true");
+        const svg = new DOMParser().parseFromString(editorIconSvg("heading"), "image/svg+xml").documentElement;
+        icon.appendChild(heading.ownerDocument.importNode(svg, true));
+        heading.prepend(icon);
+      }
       heading.title = "切换正文样式";
       heading.setAttribute("aria-label", "切换正文样式");
       heading.dataset.editorTool = "heading";

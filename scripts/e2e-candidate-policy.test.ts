@@ -63,3 +63,14 @@ describe("隔离候选构建身份", () => {
     expect(() => assertCandidateResponse(new Response("ok", { headers: { "x-wenyou-e2e-candidate": candidateId } }), candidateId)).not.toThrow();
   });
 });
+
+
+test("失败用例的同轮清理仍可独立确认，其他轮次或未清理不能冒充", async () => {
+ const { verifiedRunCleanup } = await import("./e2e-candidate-policy.mjs");
+ const event = { event: "resources-cleaned", runId: "current", resourcesCleaned: true, resourcesVerified: true };
+ expect(verifiedRunCleanup("current", true, [event])).toBe(true);
+ expect(verifiedRunCleanup("current", false, [event])).toBe(false);
+ expect(verifiedRunCleanup("other", true, [event])).toBe(false);
+ expect(verifiedRunCleanup("current", true, [{ ...event, resourcesVerified: false }])).toBe(false);
+ expect(verifiedRunCleanup("current", true, [])).toBe(false);
+});

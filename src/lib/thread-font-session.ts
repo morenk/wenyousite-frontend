@@ -1,3 +1,4 @@
+import { installThreadFontFace } from "./thread-font-binary";
 import type { FontTransferTimeoutPolicy } from "./thread-font-transfer-timeout";
 import { normalizeTextFont } from "./markdown-text-font";
 import { IndexedDbThreadFontCache, type ThreadFontAssetCache } from "./thread-font-cache";
@@ -21,10 +22,6 @@ interface Demand {
 }
 interface Source { key: string; catalog: ThreadFontCatalog; policy: FontSessionPolicy; loader: FontAssetLoader; manifest?: ThreadFontManifest }
 interface FaceTask { promise: Promise<void>; abort: AbortController; entry: ResidentFont }
-const installFont = async (part: ThreadFontShard, bytes: ArrayBuffer) => {
-  const face = new FontFace(part.family, bytes, { unicodeRange: part.unicodeRanges.join(","), weight: "400", style: "normal", display: "swap" });
-  await face.load(); document.fonts.add(face); return () => { document.fonts.delete(face); };
-};
 /** 可见需求持有分片引用；只保留一个目录代次、有限驻留集和进行中的二进制。 */
 export class ThreadFontSession {
   private source?: Source;
@@ -45,7 +42,7 @@ export class ThreadFontSession {
     this.scheduler?.setPaused(typeof navigator !== "undefined" && (navigator.onLine === false || document.visibilityState === "hidden"));
     this.wake();
   };
-  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args), private readonly cache: ThreadFontAssetCache = new IndexedDbThreadFontCache(), private readonly install: (part: ThreadFontShard, bytes: ArrayBuffer) => Promise<(() => void) | void> = installFont, private readonly options: {random?:()=>number; scheduler?: FontDownloadScheduler} = {}) { this.scheduler = options.scheduler; }
+  constructor(private readonly transport: typeof fetch = (...args) => fetch(...args), private readonly cache: ThreadFontAssetCache = new IndexedDbThreadFontCache(), private readonly install: (part: ThreadFontShard, bytes: ArrayBuffer) => Promise<(() => void) | void> = installThreadFontFace, private readonly options: {random?:()=>number; scheduler?: FontDownloadScheduler; residency?: FontResidency} = {}) { this.scheduler = options.scheduler; this.residency=options.residency; }
   get snapshot() {
     return { demands: this.demands.size, waitingForCapacity: [...this.demands.values()].filter(demand=>demand.capacityWaiting).length, faceTasks: this.faces.size, manifests: this.source?.manifest ? 1 : 0,
       registrationBytes: this.registrationBytes, peakRegistrationBytes: this.peakRegistrationBytes,
@@ -63,7 +60,8 @@ export class ThreadFontSession {
       this.invalidate();
       // 窗口账本跨目录代次保留；目录切换不刷新流量额度。
       if (this.scheduler) this.scheduler.updatePolicy(policy.download); else this.scheduler = new FontDownloadScheduler(policy.download);
-      this.residency = new FontResidency(policy.residency, this.capacityChanged);
+      this.residency = this.options.residency ?? new FontResidency(policy.residency, this.capacityChanged);
+      if(this.options.residency)this.residency.tightenPolicy({faces:policy.residency.faces,bytes:policy.residency.bytes});
       const loader = new FontAssetLoader({base,transport:this.transport,cache:this.cache,scheduler:this.scheduler,
         timeoutMs:policy.timeoutMs,transferTimeout:policy.transferTimeout,cacheBytes:policy.cacheBytes,retryBaseMs:policy.retryBaseMs,retryMaxMs:policy.retryMaxMs,
         verify:verifyFontBytes,protectedHashes:()=>this.protectedHashes(),random:this.options.random});
@@ -78,10 +76,10 @@ export class ThreadFontSession {
     emit({family:this.family(fontId),status:"loading"});void this.attempt(demand);
     return()=>this.release(demand);
   }
-  wake() { for (const demand of this.demands.values()) if(demand.retryNeeded) void this.attempt(demand); }
+  wake() { for (const demand of this.demands.values()) if(demand.retryNeeded||demand.capacityWaiting) void this.attempt(demand); }
   invalidate() {
     for (const demand of [...this.demands.values()]) { demand.emit({family:systemFamily,status:"fallback",reason:"source-unavailable"});this.release(demand); }
-    this.source?.loader.dispose(); this.source=undefined; this.sfntSizes.clear(); this.residency?.invalidate();
+    this.source?.loader.dispose(); this.source=undefined; this.sfntSizes.clear(); if(!this.options.residency)this.residency?.invalidate();
   }
   private listen() {
     if (this.listeners || typeof window==="undefined") return;
@@ -96,7 +94,7 @@ export class ThreadFontSession {
     if(!this.demands.size&&this.listeners){window.removeEventListener("focus",this.connectionChanged);window.removeEventListener("online",this.connectionChanged);window.removeEventListener("offline",this.connectionChanged);document.removeEventListener("visibilitychange",this.connectionChanged);this.listeners=false;}
   }
   private current(demand: Demand) { return this.demands.has(demand.id)&&this.source===demand.source&&!demand.abort.signal.aborted; }
-  private family(fontId: string) { return [...(this.residency?.values().filter(entry=>entry.fontId===fontId&&entry.dispose).map(entry=>'"'+entry.key.split(":").at(-1)+'"')??[]),systemFamily].join(", "); }
+  private family(fontId: string) { return [...([...(this.residency?.values().filter(entry=>entry.fontId===fontId)??[]), ...[...this.demands.values()].filter(d=>d.fontId===fontId).flatMap(d=>[...d.holds.values()].map(h=>h.entry))].filter(entry=>entry.dispose).map(entry=>'"'+entry.key.split(":").at(-1)+'"')??[]),systemFamily].join(", "); }
   private protectedHashes() {
     const hashes=new Set<string>();
     for(const demand of this.demands.values()) {

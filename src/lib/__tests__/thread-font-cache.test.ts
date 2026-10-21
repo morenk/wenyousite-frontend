@@ -27,3 +27,8 @@ test("连续轮换活动资源只保护当前集合，持久缓存大小和条�
  expect(entries.reduce((total,entry)=>total+entry.size,0)).toBeLessThanOrEqual(65536);expect(entries.length).toBeLessThanOrEqual(6);
  expect(await cache.get("0")).toBeNull();expect((await cache.get("99"))?.byteLength).toBe(10000);db.close();
 });
+test("收紧缓存立即回收旧条目，后续旧协议的较大限额不能放宽",async()=>{
+ const clock=vi.spyOn(Date,"now");let time=0;clock.mockImplementation(()=>++time);
+ const cache=new IndexedDbThreadFontCache();await cache.put("old",bytes(6),10,new Set());await cache.put("new",bytes(4),10,new Set());await cache.tightenLimit(4);expect(await cache.get("old")).toBeNull();expect((await cache.get("new"))?.byteLength).toBe(4);
+ await cache.put("oversize",bytes(5),10,new Set());expect(await cache.get("oversize")).toBeNull();clock.mockRestore();
+});

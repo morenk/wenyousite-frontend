@@ -1,4 +1,9 @@
 "use client";
+import { apiMetaQueryOptions } from "@/api/hooks/use-api-meta";
+import { importedTextFontVersion, legacyTextFontRouting } from "@/lib/legacy-text-font-routing";
+import { subscribeDynamicFonts } from "@/lib/dynamic-text-font-state";
+import { isDynamicTextFont } from "@/lib/markdown-text-font";
+import { dynamicTextFontRuntime } from "@/lib/dynamic-text-font-runtime";
 import { createContext, useContext, useEffect, type RefObject } from "react";
 import { QueryObserver, QueryClientContext } from "@tanstack/react-query";
 import { textFontPolicyQueryOptions } from "@/api/hooks/use-text-font-policy";
@@ -63,7 +68,29 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
       catalog = observer.getCurrentResult().data;
       policyValue = policyObserver.getCurrentResult().data;
     };
+    const metaObserver = !environment && client ? new QueryObserver(client, apiMetaQueryOptions()) : undefined;
+    let metaReady = !metaObserver || metaObserver.getCurrentResult().isFetched || Boolean(metaObserver.getCurrentResult().data);
+    legacyTextFontRouting.observeCapability(metaObserver?.getCurrentResult().data?.capabilities?.textFontV2Supported);
+    let routingSnapshot = legacyTextFontRouting.snapshot;
+    const routingChanged = () => {
+      const next = legacyTextFontRouting.snapshot;
+      if (next !== routingSnapshot) { routingSnapshot = next; refresh(); }
+    };
+    const releaseRouting = legacyTextFontRouting.subscribe(routingChanged);
+    const releasePermissions = subscribeDynamicFonts(routingChanged);
+    const releaseMeta = metaObserver?.subscribe(result => {
+      legacyTextFontRouting.observeCapability(result.data?.capabilities?.textFontV2Supported);
+      const ready = result.isFetched || Boolean(result.data);
+      if (ready !== metaReady) { metaReady = ready; refresh(); }
+    });
     const tracking = observeFontDemands(root, (fontId, text, emit) => {
+      if(isDynamicTextFont(fontId)){onStatus?.("loading");return dynamicTextFontRuntime().watch(fontId,text,emit);}
+      const route = legacyTextFontRouting.route(fontId);
+      if (route === "mapped-v2") { onStatus?.("loading"); return dynamicTextFontRuntime().watch(importedTextFontVersion(fontId)!, text, emit); }
+      if (route === "default-font" || !metaReady) {
+        emit({ family: "var(--wenyou-font-body-family, system-ui)", status: "fallback" });
+        return () => {};
+      }
       users++; metadata(); onStatus?.("loading");
       const policy = environment ? environment.policy ?? null : catalog && policyValue !== undefined ? fontSessionPolicy(policyValue, catalog) : undefined;
       const release = catalog && policy !== undefined ? runtime.watch(catalog, policy, fontId, text, emit) : (() => { emit({family:"var(--wenyou-font-body-family, system-ui)",status:"fallback"}); return () => {}; })();
@@ -75,7 +102,7 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
       applyFontWithoutScrollJump(root, () => root.style.setProperty("--wenyou-content-font-" + fontId, result.family));
       element.setAttribute("data-font-load", result.status); onStatus?.(result.status);
     });
-    return () => { alive = false; tracking.disconnect(); unsubscribe?.(); };
+    return () => { alive = false; tracking.disconnect(); unsubscribe?.(); releaseMeta?.(); releaseRouting(); releasePermissions(); };
 
   }, [client, environment, rootRef, contentVersion, onStatus, enabled]);
 }

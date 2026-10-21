@@ -15,6 +15,14 @@ export class FontResidency {
   private waiting: Waiting[] = [];
   private clock = 0;
   constructor(private readonly policy: FontResidencyPolicy, private readonly available: () => void = () => {}) {}
+  tightenPolicy(policy: Partial<FontResidencyPolicy>) {
+    let changed=false;
+    for(const key of Object.keys(policy) as (keyof FontResidencyPolicy)[]) {const next=Math.min(this.policy[key],policy[key]!);changed ||= next!==this.policy[key];this.policy[key]=next;}
+    if(!changed)return;
+    const ordered=[...this.entries.values()].sort((a,b)=>Number(!!a.references)-Number(!!b.references)||a.touched-b.touched);
+    while(ordered.length&&(this.entries.size>this.policy.faces||this.snapshot.bytes>this.policy.bytes||this.snapshot.originalBytes>this.policy.originalBytes))this.evict(ordered.shift()!);
+    this.pump();this.available();
+  }
   get snapshot() {
     const values = [...this.entries.values()];
     return { families: new Set(values.map(font => font.fontId)).size, faces: values.filter(font => !!font.dispose).length,
@@ -52,6 +60,7 @@ export class FontResidency {
   /** 异步解码完成时检查预留仍有效；已撤回的字形立即移除。 */
   installed(entry: ResidentFont, dispose: () => void): boolean {
     if (this.entries.get(entry.key) !== entry) { dispose(); return false; }
+    if(entry.dispose){dispose();return true;}
     entry.dispose = dispose; return true;
   }
   has(entry: ResidentFont) { return this.entries.get(entry.key) === entry; }

@@ -67,3 +67,33 @@ describe("系统字体回归门禁", () => {
     expect(fontViolations("chunk.css", 'font-family: ui-monospace, Consolas, monospace')).toEqual([]);
   });
 });
+
+test("字体上传accept不视为下载，邻近src和普通字符串仍检查",()=>{
+ expect(fontViolations("upload.tsx",'<input type="file" accept=".ttf,.otf" />')).toEqual([]);
+ expect(fontViolations("chunk.js",'jsx(Input,{accept:".ttf,.otf"})')).toEqual([]);
+ expect(fontViolations("upload.tsx",'<input accept=".ttf,.otf" src="bad.ttf" />')).not.toEqual([]);
+ expect(fontViolations("chunk.js",'fetch(".ttf,.otf")')).not.toEqual([]);
+});
+
+
+test("固定历史导入映射按完整契约识别，错映射和邻近UI字体仍拒绝", () => {
+ const mapping = JSON.parse(readFileSync("contracts/thread-font-v1-import-map.json", "utf8"));
+ const compiled = "module.exports=" + JSON.stringify(mapping).replace(/"([a-zA-Z]+)":/gu, "$1:");
+ expect(fontViolations("chunk.js", compiled)).toEqual([]);
+ expect(fontViolations("chunk.js", compiled.replace("preserveAssetFamily:true", "preserveAssetFamily:!0"))).toEqual([]);
+ expect(fontViolations("chunk.js", compiled + ';const style={fontFamily:"wenkai"}')).not.toEqual([]);
+ const changed = structuredClone(mapping); changed.fonts[0].versionId = "tfv_" + "0".repeat(32);
+ expect(fontViolations("chunk.js", "module.exports=" + JSON.stringify(changed))).not.toEqual([]);
+ expect(fontViolations("chunk.js", 'const id="wenkai"')).not.toEqual([]);
+ const map = { sources: ["../../contracts/thread-font-v1-import-map.json"], sourcesContent: [JSON.stringify(mapping)] };
+ expect(fontViolations("chunk.js.map", JSON.stringify(map))).toEqual([]);
+ expect(fontViolations("chunk.js.map", JSON.stringify({ ...map, sources: ["random.json"] }))).not.toEqual([]);
+ expect(fontViolations("chunk.js.map", JSON.stringify({ ...map, sourcesContent: [JSON.stringify(changed)] }))).not.toEqual([]);
+});
+
+test("source map 中上传accept精确识别，普通字符串和下载地址仍拒绝", () => {
+ const map = (source: string) => JSON.stringify({ sources: ["upload.tsx"], sourcesContent: [source] });
+ expect(fontViolations("chunk.js.map", map('<input accept=".ttf,.otf" />'))).toEqual([]);
+ expect(fontViolations("chunk.js.map", map('<input accept=".ttf,.otf" src="bad.ttf" />'))).not.toEqual([]);
+ expect(fontViolations("chunk.js.map", map('fetch(".ttf,.otf")'))).not.toEqual([]);
+});

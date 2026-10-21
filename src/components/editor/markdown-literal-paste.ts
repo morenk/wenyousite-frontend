@@ -21,7 +21,7 @@ import {
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
 import { withoutAutomaticTrailingContent } from "./editor-trailing-paragraph";
-import { isSelectableTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { isPasteAllowedTextFont, readTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_V2_ATTRIBUTE, TEXT_FONT_SELECTOR, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -156,9 +156,9 @@ function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent, allowT
   // 粘贴会新建内容：退役字体只在原文载入／编辑时保源，不随复制新增。
   const template = document.createElement("template");
   template.innerHTML = payload.html;
-  template.content.querySelectorAll(`[${TEXT_FONT_ATTRIBUTE}]`).forEach(element => {
-    if (!allowTextFont || !isSelectableTextFont(element.getAttribute(TEXT_FONT_ATTRIBUTE))) {
-      element.removeAttribute(TEXT_FONT_ATTRIBUTE);
+  template.content.querySelectorAll(TEXT_FONT_SELECTOR).forEach(element => {
+    if (!allowTextFont || !isPasteAllowedTextFont(readTextFont(element) ?? "")) {
+      element.removeAttribute(TEXT_FONT_ATTRIBUTE); element.removeAttribute(TEXT_FONT_V2_ATTRIBUTE);
     }
   });
   const pastedHtml = template.innerHTML;

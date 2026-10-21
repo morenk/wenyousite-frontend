@@ -93,7 +93,7 @@ test("按适配层分组展示29项，最近项不重复；跨组选择仍对应
 test("加载、错误和禁用保留取消出口；目录重试不调用正文命令", () => {
   const { controls, rerender } = setup({ loading: true, onRetry: vi.fn() });
   expect(screen.getByRole("status")).toHaveTextContent("正在加载字体列表");
-  expect(screen.getByRole("combobox", { name: "字体" })).toBeDisabled();
+  expect(screen.getByRole("combobox", { name: "字体" })).toBeEnabled();
   expect(screen.getByRole("button", { name: "应用" })).toBeDisabled();
   expect(screen.getByRole("button", { name: "取消" })).toBeEnabled();
   rerender(<EditorTextFontPicker controls={{ ...controls, loading: false, error: "字体列表加载失败" }} />);
@@ -141,4 +141,55 @@ test("目录撤下候选后不从最近记录恢复；原选项不能继续应�
   expect(screen.getByRole("button", { name: "预览" })).toBeDisabled();
   expect(screen.queryByLabelText("字体预览")).not.toBeInTheDocument();
   expect(controls.onApply).not.toHaveBeenCalled();
+});
+
+
+test("缩略样张加载文字不影响按字体名称键盘定位", async () => {
+  const user = userEvent.setup();
+  const { controls } = setup({
+    options: [{ value: "a", label: "Alpha" }, { value: "b", label: "Beta" }],
+    renderThumbnail: () => <span aria-hidden="true">样张</span>,
+  });
+  await user.click(screen.getByRole("combobox", { name: "字体" }));
+  await user.keyboard("b{Enter}");
+  expect(screen.getByRole("combobox", { name: "字体" })).toHaveTextContent("Beta");
+  await user.click(screen.getByRole("button", { name: "应用" }));
+  expect(controls.onApply).toHaveBeenCalledWith("b");
+});
+
+
+test("动态样张选择后直接显示，保留分类、当前勾选和默认项；应用前不改正文", async () => {
+  const { controls } = setup({
+    value: "a", previewMode: "automatic",
+    options: [{ value: "a", label: "甲字体", group: "中文" }, { value: "b", label: "Beta", group: "英文" }],
+    renderThumbnail: () => <span aria-hidden="true">样张</span>,
+  });
+  expect(screen.queryByRole("button", { name: "预览" })).not.toBeInTheDocument();
+  expect(screen.getByLabelText("字体预览")).toHaveTextContent("甲字体");
+  const user = userEvent.setup();
+  await user.click(screen.getByRole("combobox", { name: "字体" }));
+  expect(screen.getByRole("option", { name: "甲字体" })).toHaveAttribute("aria-selected", "true");
+  expect(screen.getByRole("group", { name: "英文" })).toBeInTheDocument();
+  await user.click(screen.getByRole("option", { name: "Beta" }));
+  expect(screen.getByLabelText("字体预览")).toHaveTextContent("Beta");
+  expect(controls.onApply).not.toHaveBeenCalled();
+  await choose("系统默认");
+  expect(screen.queryByLabelText("字体预览")).not.toBeInTheDocument();
+  await user.click(screen.getByRole("button", { name: "应用" }));
+  expect(controls.onApply).toHaveBeenCalledExactlyOnceWith(null);
+});
+
+
+test("目录首次离线时仍能将现有字体恢复默认，未核验的新字体不可选或应用", async () => {
+  const { controls } = setup({ value: options[0]!.value, error: "字体列表加载失败" });
+  const user = userEvent.setup();
+  expect(screen.getByRole("button", { name: "应用" })).toBeDisabled();
+  await user.click(screen.getByRole("combobox", { name: "字体" }));
+  expect(screen.getByRole("option", { name: "测试字体 2" })).toHaveAttribute("aria-disabled", "true");
+  await user.click(screen.getByRole("option", { name: "测试字体 2" }));
+  expect(controls.onApply).not.toHaveBeenCalled();
+  await user.click(screen.getByRole("option", { name: "系统默认" }));
+  expect(screen.getByRole("button", { name: "应用" })).toBeEnabled();
+  await user.click(screen.getByRole("button", { name: "应用" }));
+  expect(controls.onApply).toHaveBeenCalledExactlyOnceWith(null);
 });

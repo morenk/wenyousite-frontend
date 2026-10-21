@@ -71,3 +71,8 @@ test("停流15秒取消reader并保留完整窗口预留，重试仍等窗口",a
  await vi.advanceTimersByTimeAsync(1000);const demand=new AbortController();const retry=f.loader.get(descriptor,demand.signal);const cancelled=expect(retry).rejects.toMatchObject({name:"AbortError"});await vi.advanceTimersByTimeAsync(0);
  expect(f.scheduler.snapshot.queued).toBe(1);expect(f.transport).toHaveBeenCalledTimes(1);demand.abort();await cancelled;
 });
+test("管理预览不读取或写入公共持久缓存，每次经授权网关",async()=>{
+ const cache={get:vi.fn(async()=>new ArrayBuffer(4)),put:vi.fn(),delete:vi.fn()},transport=vi.fn<typeof fetch>(async()=>response()),scheduler=new FontDownloadScheduler({concurrency:2,windowMs:1000,requestsPerWindow:64,bytesPerWindow:1000,originalBytesPerWindow:0});
+ const loader=new FontAssetLoader({base:"https://wenyou.site/",transport,scheduler,cache,timeoutMs:1000,cacheBytes:1000,retryBaseMs:1000,retryMaxMs:60000,verify:async()=>true,protectedHashes:()=>new Set()});
+ for(let n=0;n<2;n++)await loader.get({...descriptor,cacheable:false},new AbortController().signal);expect(transport).toHaveBeenCalledTimes(2);expect(cache.get).not.toHaveBeenCalled();expect(cache.put).not.toHaveBeenCalled();expect(loader.snapshot.cacheHits).toBe(0);
+});

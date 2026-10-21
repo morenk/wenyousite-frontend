@@ -22,7 +22,7 @@ test.each(["both","catalog","policy"])("冷启动 %s 元数据不可达，保持
  });
  const runtime=new runtimeModule.ThreadFontRuntime(),watch=vi.spyOn(runtime,"watch").mockImplementation((_catalog,config,_id,_text,emit)=>{expect(config).not.toBeNull();emit({family:"custom",status:"ready"});return()=>{}});
  vi.spyOn(runtimeModule,"threadFontRuntime").mockReturnValue(runtime);
- const client=new QueryClient(),view=render(<QueryClientProvider client={client}><Content/></QueryClientProvider>);
+ const client=new QueryClient();client.setQueryData(queryKeys.meta,{capabilities:{textFontV2Supported:false}});const view=render(<QueryClientProvider client={client}><Content/></QueryClientProvider>);
  await waitFor(()=>expect(get).toHaveBeenCalledTimes(2));expect(watch).not.toHaveBeenCalled();online=true;
  await waitFor(()=>expect(view.container.querySelector("span")).toHaveAttribute("data-font-load","ready"));expect(watch).toHaveBeenCalledTimes(1);
  const node=view.container.querySelector("span");expect(node).toHaveTextContent("正文");view.unmount();client.clear();
@@ -31,7 +31,7 @@ test("缓存目录/策略可离线继续使用，权威空来源刷新禁用已�
  vi.stubGlobal("IntersectionObserver",undefined);
  const runtime=new runtimeModule.ThreadFontRuntime(),watch=vi.spyOn(runtime,"watch").mockImplementation((_catalog,config,_id,_text,emit)=>{emit({family:config?"custom":"system-ui",status:config?"ready":"fallback"});return()=>{}});
  vi.spyOn(runtimeModule,"threadFontRuntime").mockReturnValue(runtime);
- const client=new QueryClient();client.setQueryData(queryKeys.textFonts,catalog);client.setQueryData(queryKeys.textFontPolicy,policy);
+ const client=new QueryClient();client.setQueryData(queryKeys.meta,{capabilities:{textFontV2Supported:false}});client.setQueryData(queryKeys.textFonts,catalog);client.setQueryData(queryKeys.textFontPolicy,policy);
  const view=render(<QueryClientProvider client={client}><Content/></QueryClientProvider>);
  await waitFor(()=>expect(watch).toHaveBeenCalledTimes(1));expect(get).not.toHaveBeenCalled();
  client.setQueryData(queryKeys.textFonts,{...catalog,assetBaseUrl:null});

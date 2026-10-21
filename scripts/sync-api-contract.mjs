@@ -82,7 +82,7 @@ const audio = JSON.parse(source.read(audioFiles[0]));
 if (audio.version !== 1 || audio.markdownContractVersion !== 5 || !Array.isArray(audio.cases)
   || !Array.isArray(audio.invalidProjectionCases)) throw new Error("后端音频契约不是 audio v1");
 if (JSON.parse(source.read(audioFiles[1])).$schema !== "https://json-schema.org/draft/2020-12/schema") throw new Error("后端音频 schema 无效");
-const fontFiles = ["markdown-text-font-v1-fixtures.json", "markdown-text-font-v1.schema.json", "thread-font-catalog-v1.json", "thread-font-manifest-v1.json", "thread-font-manifest-v1.schema.json", "thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"];
+const fontFiles = ["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json", "markdown-text-font-v1-fixtures.json", "markdown-text-font-v1.schema.json", "thread-font-catalog-v1.json", "thread-font-manifest-v1.json", "thread-font-manifest-v1.schema.json", "thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"];
 const fontCatalog = JSON.parse(source.read("thread-font-catalog-v1.json"));
 if (fontCatalog.fontVersion !== 1 || fontCatalog.schemaVersion !== 1 || !Array.isArray(fontCatalog.fonts)) throw new Error("后端字体目录不是 v1");
 const names = [...fontFiles, profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
