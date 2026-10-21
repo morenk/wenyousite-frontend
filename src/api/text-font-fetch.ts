@@ -11,7 +11,10 @@ export function fetchTextFontMetadata(request: Request, transport: typeof fetch 
     try {
       const headers = new Headers(request.headers); headers.delete("Authorization");
       const response = await transport(new Request(request, { headers, signal: controller.signal, credentials: "omit", redirect: "error" }));
-      if (!response.body) return response;
+      if (!response.body) {
+        if (!response.ok) { const error = fontMetadataHttpError(response); if (error.retryable) throw error; }
+        return response;
+      }
       const length = response.headers.get("content-length");
       if (length !== null && Number(length) > FONT_METADATA_BYTES) { await response.body.cancel(); throw new FontMetadataError(false); }
       const reader = response.body.getReader(); const chunks: Uint8Array[] = []; let size = 0;
