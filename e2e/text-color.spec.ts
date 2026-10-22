@@ -224,8 +224,12 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(editorColors).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
   for (const dark of [false, true]) {
     await page.getByRole("button", { name: /^外观：/ }).click();
+    await expect(editor).toHaveCount(0);
     await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "亮色", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+    await floor.getByRole("button", { name: "更多楼层操作", exact: true }).click();
+    await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
+    await expect(editorColors).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
     // ProseMirror 按组合 mark 拆分 DOM；逐段核验实际着色文字，而不要求 reader 的单一 span 结构。
     for (const segment of await editorColors.all()) await expect(segment).toHaveCSS("color", "rgb(209, 67, 67)");
     await expect(editor.locator("strong")).toHaveText("中文😀");
@@ -256,7 +260,8 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(editor.locator("del")).toHaveText("删除");
   await expect(editor.locator("a")).toHaveAttribute("href", "https://example.com");
   await expect(editor.locator("code")).toHaveText("字面");
-  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
+  await expect(editor).toHaveCount(0);
 
   // 全套用例共享本轮隔离账号；自动草稿可能已占槽位，按实际版本覆盖该测试账号自己的草稿。
   const state: components["schemas"]["DraftStateResponseDto"] = (await request("GET", "/api/v1/drafts/state")).body.data;
