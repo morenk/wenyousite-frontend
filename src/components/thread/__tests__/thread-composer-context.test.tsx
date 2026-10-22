@@ -305,3 +305,16 @@ test("新媒体快照随回复目标切换保存，旧目标的媒体回调不�
   act(() => { result.current.setSessionMediaDisplays(createFloorSession.key, []); });
   expect(result.current.session?.mediaDisplays).toEqual(media);
 });
+
+
+test("迟到的外部关闭只能处理原会话，不能关闭新回复目标", async () => {
+  const { result } = renderHook(useThreadComposer, { wrapper: ThreadComposerProvider });
+  await act(async () => { await result.current.open(createFloorSession); });
+  act(() => { result.current.setContent("保留正文"); });
+  await act(async () => { await result.current.open(replySession); });
+  await act(async () => { expect(await result.current.close({ sessionKey: createFloorSession.key })).toBe(false); });
+  expect(result.current.session?.key).toBe(replySession.key);
+  expect(result.current.content).toBe("保留正文");
+  await act(async () => { expect(await result.current.close({ sessionKey: replySession.key })).toBe(true); });
+  expect(result.current.session).toBeNull();
+});

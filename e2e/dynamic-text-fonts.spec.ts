@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { DynamicFontCheckpoints } from "./fixtures/dynamic-font-checkpoints";
 import legacyImports from "../contracts/thread-font-v1-import-map.json";
 import type { components } from "../src/api/types";
@@ -992,4 +992,76 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
       { mode: 0o600 },
     );
   }
+});
+
+
+test("管理员浏览器经 Next 完整上传 64 MiB，超限预检及处理失败可恢复", async ({ page }, testInfo) => {
+  test.setTimeout(240000);
+  const run = await requireIsolationRunner();
+  const output = join(process.cwd(), ".e2e-results", `admin-font-upload-${run.manifest.runId}`);
+  mkdirSync(output, { recursive: true, mode: 0o700 });
+  await loginIsolatedAdmin(page, "/station/text-fonts/new");
+  await page.getByLabel("字体名称").fill("上传边界 " + run.manifest.runId.slice(-8));
+  await page.getByLabel("作者", { exact: true }).fill("温油站测试");
+  await page.getByLabel("来源链接").fill("https://example.invalid/synthetic");
+  await page.getByLabel("授权名称").fill("CC0-1.0");
+  await page.getByLabel("完整授权材料").fill("原创合成测试字形，允许分发、转换、分片。");
+  for (const label of ["允许分发", "允许转码", "允许分片"]) await page.getByLabel(label, { exact: true }).check();
+  await page.getByRole("button", { name: "保存配置", exact: true }).click();
+  await page.waitForURL(/\/station\/text-fonts\/tff_[a-f0-9]{32}$/);
+  const familyId = new URL(page.url()).pathname.split("/").at(-1)!;
+  const source = Buffer.alloc(64 * 1024 * 1024 + 1);
+  readFileSync("e2e/fixtures/dynamic-fonts/synthetic-1.ttf").copy(source);
+  let uploads = 0;
+  page.on("request", request => {
+    if (request.method() === "POST" && new URL(request.url()).pathname.endsWith("/sources")) uploads++;
+  });
+  const oversizedPath = join(run.root, "web-font-upload-too-large.ttf");
+  writeFileSync(oversizedPath, source, { mode: 0o600 });
+  await page.getByLabel("TTF / OTF 文件").setInputFiles(oversizedPath);
+  await page.getByRole("button", { name: "上传", exact: true }).click();
+  await expect(page.getByText("字体文件不能超过 64 MiB", { exact: true })).toBeVisible();
+  expect(uploads).toBe(0);
+  const exact = source.subarray(0, 64 * 1024 * 1024);
+  const sha256 = createHash("sha256").update(exact).digest("hex");
+  const uploaded = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/sources"), { timeout: 120000 });
+  const boundaryPath = join(run.root, "web-font-upload-boundary.ttf");
+  writeFileSync(boundaryPath, exact, { mode: 0o600 });
+  await page.getByLabel("TTF / OTF 文件").setInputFiles(boundaryPath);
+  await page.getByRole("button", { name: "上传", exact: true }).click();
+  expect((await uploaded).status()).toBe(201);
+  const readDetail = () => page.evaluate(async (id) => {
+    const response = await fetch(`/api/v1/admin/text-fonts/${id}`);
+    if (!response.ok) throw new Error("隔离字体详情读取失败");
+    return (await response.json()).data as components["schemas"]["FontAdminFamilyDetailDto"];
+  }, familyId);
+  await expect.poll(async () => (await readDetail()).jobs.some(job => job.sourceBytes === exact.length && job.sourceSha256 === sha256)).toBe(true);
+  expect(uploads).toBe(1);
+  await expect(page.getByLabel("TTF / OTF 文件")).toHaveValue("");
+  // 小型无效字体检验真实 Worker 失败/重试；不处理边界文件，避免无关大字体转换开销。
+  const invalidUploaded = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/sources"));
+  await page.getByLabel("TTF / OTF 文件").setInputFiles({ name: "invalid.ttf", mimeType: "application/octet-stream", buffer: Buffer.from("invalid-font") });
+  await page.getByRole("button", { name: "上传", exact: true }).click();
+  expect((await invalidUploaded).status()).toBe(201);
+  const invalid = (await readDetail()).jobs.find(job => job.sourceBytes === 12)!;
+  expect(invalid).toBeDefined();
+  const row = page.getByRole("row").filter({ has: page.getByRole("cell", { name: invalid.jobId.slice(-8), exact: true }) });
+  await row.getByRole("button", { name: "开始处理", exact: true }).click();
+  await expect(row.getByRole("button", { name: "重试处理", exact: true })).toBeVisible({ timeout: 60000 });
+  const firstFailure = (await readDetail()).jobs.find(job => job.jobId === invalid.jobId)!;
+  expect(firstFailure.status).toBe("failed");
+  const retryResponse = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith(`/jobs/${invalid.jobId}/process`));
+  await row.getByRole("button", { name: "重试处理", exact: true }).click();
+  const retryAccepted = await retryResponse;
+  expect(retryAccepted.ok()).toBe(true);
+  expect((await retryAccepted.json()).data.status).toBe("queued");
+  await expect.poll(async () => {
+    const job = (await readDetail()).jobs.find(job => job.jobId === invalid.jobId)!;
+    return job.status === "failed";
+  }, { timeout: 60000 }).toBe(true);
+  await expect(row.getByRole("button", { name: "重试处理", exact: true })).toBeVisible();
+  await screenshotModes(page, output, "admin-upload-failure-retry");
+  const evidence = { ...evidenceSource(), runId: run.manifest.runId, backendURL: run.manifest.backendURL, candidateBuildId: readFileSync(join(process.env.E2E_BUILD_DIR!, "BUILD_ID"), "utf8").trim(), browserOrigin: new URL(page.url()).origin, bytes: exact.length, sha256, uploads, oversizedBlockedBeforeRequest: true, failedJob: (await readDetail()).jobs.find(job => job.jobId === invalid.jobId) };
+  writeFileSync(join(output, "evidence.json"), JSON.stringify(evidence, null, 2));
+  await testInfo.attach("admin-font-upload-evidence", { body: JSON.stringify(evidence), contentType: "application/json" });
 });

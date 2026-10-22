@@ -124,15 +124,22 @@ export function TextFontFields({
           ["conversion", "允许转码"],
           ["subsetting", "允许分片"],
         ].map(([key, label]) => (
-          <label key={key} className="flex items-center gap-2 text-sm">
+          <div key={key} className="space-y-1">
+          <label className="flex items-center gap-2 text-sm">
             <input
               type="checkbox"
+              aria-invalid={Boolean(form.formState.errors.rights?.[key as "redistribution" | "conversion" | "subsetting"])}
+              aria-describedby={form.formState.errors.rights?.[key as "redistribution" | "conversion" | "subsetting"] ? `font-right-${key}-error` : undefined}
               {...form.register(
                 `rights.${key as "redistribution" | "conversion" | "subsetting"}`,
               )}
             />
             {label}
           </label>
+          {form.formState.errors.rights?.[key as "redistribution" | "conversion" | "subsetting"] && (
+            <p id={`font-right-${key}-error`} role="alert" className="text-sm text-destructive">{form.formState.errors.rights[key as "redistribution" | "conversion" | "subsetting"]?.message}</p>
+          )}
+          </div>
         ))}
       </div>
     </fieldset>

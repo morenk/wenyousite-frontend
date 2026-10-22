@@ -102,7 +102,7 @@ function TextFontEditor({
     session = useAdminSession(),
     actions = useAdminTextFontActions();
   const [base, setBase] = useState(record),
-    [busy, setBusy] = useState(false),
+    [pending, setPending] = useState<string>(),
     [conflict, setConflict] = useState(false),
     [comparison, setComparison] = useState<AdminFontFamily>(),
     [file, setFile] = useState<File>(),
@@ -111,7 +111,7 @@ function TextFontEditor({
       record?.currentVersionId ?? record?.versionIds.at(-1),
     ),
     [withdraw, setWithdraw] = useState(false),
-    [previewReady, setPreviewReady] = useState(false),
+    [readyVersion, setReadyVersion] = useState<string>(),
     [fileKey, setFileKey] = useState(0);
   const lock = useRef(false);
   const preview = useAdminTextFontPreview(selected);
@@ -122,14 +122,24 @@ function TextFontEditor({
   const authenticated = session.sessionStatus === "authenticated";
   const stale =
     conflict || Boolean(base && record && base.revision !== record.revision);
-  const disabled = busy || !authenticated;
-  function error(error: unknown) {
+  const disabled = Boolean(pending) || !authenticated;
+  function error(error: unknown, operation: string) {
     const info = getApiError(error);
     if (info.code === 40928 || (info.status === 409 && info.code !== 40929)) {
       setConflict(true);
       form.setError("root", {
         message: "状态或修订已变化，输入已保留。请读取最新状态后核对。",
       });
+      return;
+    }
+    if (info.code === 40929) {
+      for (const field of ["author", "sourceUrl", "licenseName", "licenseText"] as const) {
+        if (!form.getValues(field).trim()) form.setError(field, { message: "处理字体前请补齐此项授权材料" });
+      }
+      for (const field of ["redistribution", "conversion", "subsetting"] as const) {
+        if (!form.getValues(`rights.${field}`)) form.setError(`rights.${field}`, { message: "处理字体前请确认此项权利" });
+      }
+      form.setError("root", { message: "请补齐授权材料并保存，然后重新上传源文件再处理。" });
       return;
     }
     const message = getApiErrorMessage(error, "操作失败，请重试");
@@ -139,24 +149,40 @@ function TextFontEditor({
             /^(name|designLanguage|sortOrder|author|sourceUrl|licenseName|licenseText|specimenText)(?:\b|\.)/,
           )?.[1]
         : undefined;
+    if (!info.code && (info.status === undefined || [408, 500, 502, 503, 504].includes(info.status))) {
+      setConflict(true);
+      if (!base) {
+        form.setError("root", { message: "操作结果尚未确认，请返回字体列表核对后再试。" });
+        return;
+      }
+    }
+    if (operation === "upload" && !field) {
+      setFileError(message);
+      return;
+    }
     form.setError(
       (field as keyof TextFontConfigurationValues | undefined) ?? "root",
       { message },
     );
   }
-  async function run(action: () => Promise<void>) {
+  async function run(action: () => Promise<void>, operation: string) {
     if (lock.current || !authenticated) return;
     lock.current = true;
-    setBusy(true);
+    setPending(operation);
     form.clearErrors("root");
     try {
       await action();
     } catch (reason) {
-      error(reason);
+      error(reason, operation);
     } finally {
       lock.current = false;
-      setBusy(false);
+      setPending(undefined);
     }
+  }
+  function selectVersion(versionId: string) {
+    if (versionId === selected) return;
+    setReadyVersion(undefined);
+    setSelected(versionId);
   }
   const refresh = async () => {
     const value = await reload();
@@ -193,12 +219,12 @@ function TextFontEditor({
               const saved = await actions.create.mutateAsync(values);
               router.replace(`/station/text-fonts/${saved.familyId}`);
             }
-          }),
+          }, "save"),
         )}
       >
         <TextFontFields form={form} disabled={disabled} />
         <Button type="submit" disabled={disabled || stale || readFailed}>
-          {busy ? "正在保存…" : "保存配置"}
+          {pending === "save" ? "正在保存…" : "保存配置"}
         </Button>
       </form>
       {form.formState.errors.root && (
@@ -206,7 +232,7 @@ function TextFontEditor({
           {form.formState.errors.root.message}
         </p>
       )}
-      {(stale || readFailed) && (
+      {(stale || readFailed) && base && (
         <div className="space-y-2 text-sm">
           <p role="alert">最新状态需要核对，当前输入已保留。</p>
           <Button
@@ -216,10 +242,10 @@ function TextFontEditor({
               void run(async () => {
                 const fresh = await refresh();
                 setComparison(fresh);
-              })
+              }, "reload")
             }
           >
-            读取最新状态
+            {pending === "reload" ? "正在读取…" : "读取最新状态"}
           </Button>
         </div>
       )}
@@ -288,15 +314,15 @@ function TextFontEditor({
                   await refresh();
                   setFile(undefined);
                   setFileKey((key) => key + 1);
-                });
+                }, "upload");
               }}
             >
-              上传
+              {pending === "upload" ? "正在上传…" : "上传"}
             </Button>
           </section>
           <section className="space-y-3">
             <h2 className="text-base font-semibold">处理任务</h2>
-            <AdminTable>
+            <AdminTable className="whitespace-nowrap">
               <AdminTableHead>
                 <AdminTableRow>
                   {["任务", "大小", "状态", "结果"].map((label) => (
@@ -328,17 +354,17 @@ function TextFontEditor({
                             void run(async () => {
                               await actions.process.mutateAsync(job.jobId);
                               await refresh();
-                            })
+                            }, `process:${job.jobId}`)
                           }
                         >
-                          {job.status === "failed" ? "重试处理" : "开始处理"}
+                          {pending === `process:${job.jobId}` ? "提交处理中…" : job.status === "failed" ? "重试处理" : "开始处理"}
                         </Button>
                       ) : job.versionId ? (
                         <Button
                           size="compact"
                           variant="ghost"
                           disabled={disabled}
-                          onClick={() => setSelected(job.versionId!)}
+                          onClick={() => selectVersion(job.versionId!)}
                         >
                           预览
                         </Button>
@@ -359,12 +385,14 @@ function TextFontEditor({
             <Select
               value={selected ?? null}
               onValueChange={(value) => {
-                if (typeof value === "string") setSelected(value);
+                if (typeof value === "string") selectVersion(value);
               }}
               disabled={disabled}
             >
               <SelectTrigger aria-label="字体版本" className="w-full">
-                <SelectValue placeholder="选择处理完成的版本" />
+                <SelectValue placeholder="选择处理完成的版本">
+                  {selected ? `${preview.data?.versionId === selected ? `版本 ${preview.data.versionNumber} · ` : ""}${selected.slice(-8)}${selected === record?.currentVersionId ? " · 当前版本" : ""}` : undefined}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {record?.versionIds.map((id) => (
@@ -403,16 +431,19 @@ function TextFontEditor({
                         : "已发布"}
                 </p>
                 <DynamicFontSpecimen
+                  key={preview.data.versionId}
                   versionId={preview.data.versionId}
                   descriptor={preview.data}
-                  onReady={setPreviewReady}
+                  onReady={(ready) => setReadyVersion(ready ? preview.data?.versionId : undefined)}
                 />
                 <div className="flex flex-wrap gap-2">
                   <Button
                     disabled={
                       disabled ||
                       !ready ||
-                      !previewReady ||
+                      preview.isError ||
+                      readyVersion !== selected ||
+                      preview.data.versionId !== selected ||
                       preview.data.status === "withdrawn" ||
                       selected === record?.currentVersionId
                     }
@@ -426,10 +457,10 @@ function TextFontEditor({
                         });
                         await refresh();
                         await preview.refetch();
-                      })
+                      }, "publish")
                     }
                   >
-                    {preview.data.status === "preview"
+                    {pending === "publish" ? "正在发布…" : preview.data.status === "preview"
                       ? "发布此版本"
                       : "回滚为当前版本"}
                   </Button>
@@ -446,10 +477,10 @@ function TextFontEditor({
                         });
                         await refresh();
                         await preview.refetch();
-                      })
+                      }, "enabled")
                     }
                   >
-                    {base.enabled ? "停用家族" : "启用家族"}
+                    {pending === "enabled" ? "正在更新…" : base.enabled ? "停用家族" : "启用家族"}
                   </Button>
                   <Button
                     variant="destructive"
@@ -480,7 +511,7 @@ function TextFontEditor({
             void run(async () => {
               await refresh();
               await preview.refetch();
-            });
+            }, "reload");
           }}
         />
       )}

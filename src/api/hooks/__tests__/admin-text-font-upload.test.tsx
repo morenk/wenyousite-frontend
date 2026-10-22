@@ -74,3 +74,34 @@ test("真实apiClient上传原始二进制，携带后台CSRF且不携带社区B
   );
   expect(new URL(sent!.url).searchParams.get("format")).toBe("otf");
 });
+
+test.each([
+  [413, "<html><body>Request Entity Too Large</body></html>", "上传被大小限制拒绝"],
+  [504, "", "请求超时"],
+  [408, "", "请求超时"],
+  [500, "", "字体请求失败"],
+  [502, "<html>Bad Gateway</html>", "字体服务暂不可用"],
+  [503, "Service Unavailable", "字体服务暂不可用"],
+] as const)("真实上传 %s 网关响应得到恢复提示，不暴露原文且不自动重复写入", async (status, body, message) => {
+  const generation = beginAdminSessionChange();
+  acceptAdminSession({ csrfToken: "test-csrf", user: { id: "test-admin", role: "ADMIN" }, session: { id: "test-session", createdAt: "", lastActiveAt: "", expiresAt: "2099-01-01T00:00:00Z", elevatedUntil: null } }, generation);
+  const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(body, { status, headers: { "Content-Type": "text/html" } }));
+  const client = new QueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const { result } = renderHook(() => useAdminTextFontActions(), { wrapper });
+  await expect(result.current.upload.mutateAsync({ familyId: "tff_" + "a".repeat(32), file: new File(["font"], "font.ttf"), format: "ttf", expectedFamilyRevision: 7 })).rejects.toMatchObject({ status, message: expect.stringContaining(message) });
+  expect(fetch).toHaveBeenCalledTimes(1);
+  client.clear();
+});
+
+test("真实上传连接中断时提示先核对结果，不自动重发", async () => {
+  const generation = beginAdminSessionChange();
+  acceptAdminSession({ csrfToken: "test-csrf", user: { id: "test-admin", role: "ADMIN" }, session: { id: "test-session", createdAt: "", lastActiveAt: "", expiresAt: "2099-01-01T00:00:00Z", elevatedUntil: null } }, generation);
+  const fetch = vi.spyOn(globalThis, "fetch").mockRejectedValue(new TypeError("Failed to fetch"));
+  const client = new QueryClient();
+  const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const { result } = renderHook(() => useAdminTextFontActions(), { wrapper });
+  await expect(result.current.upload.mutateAsync({ familyId: "tff_" + "a".repeat(32), file: new File(["font"], "font.ttf"), format: "ttf", expectedFamilyRevision: 7 })).rejects.toThrow("连接中断，操作结果尚未确认");
+  expect(fetch).toHaveBeenCalledTimes(1);
+  client.clear();
+});

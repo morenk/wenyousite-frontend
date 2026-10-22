@@ -4,15 +4,15 @@ const text = (max: number) =>
     .string()
     .refine((value) => Array.from(value).length <= max, `最多 ${max} 个字符`);
 export const textFontConfigurationSchema = z.object({
-  name: text(80),
+  name: text(80).refine((value) => value.trim().length > 0, "请填写字体名称"),
   designLanguage: z.enum(["zh", "ja", "en", "other"]),
   sortOrder: z.number().int().min(-1000000).max(1000000),
   author: text(200),
-  sourceUrl: text(2048),
+  sourceUrl: text(2048).refine((value) => value === "" || z.url({ protocol: /^https?$/ }).safeParse(value).success, "请输入完整的 HTTP 或 HTTPS 来源链接"),
   licenseName: text(200),
   licenseText: text(65536),
-  specimenText: text(200).refine(
-    (value) => !/[\r\n\u0000-\u001f\u007f]/u.test(value),
+  specimenText: text(200).refine((value) => value.trim().length > 0, "请填写样张文字").refine(
+    (value) => !/[\p{Cc}\p{Cf}]/u.test(value),
     "样张文字不能包含换行或控制字符",
   ),
   rights: z.object({

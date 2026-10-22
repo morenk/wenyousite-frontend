@@ -243,7 +243,7 @@ test("临时回复新上传GIF切换目标和收起重开仍保留display", asyn
   await page.locator("#post-display-post-2").getByRole("button", { name: "回复", exact: true }).first().click();
   await expect(page.getByRole("textbox", { name: "回复正文", exact: true })).toBeVisible();
   await expect(displayed).toBeVisible();
-  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
   await page.locator("#post-display-post-1").getByRole("button", { name: "回复", exact: true }).first().click();
   await expect(displayed).toBeVisible();
   expect(fixture.requests).not.toContain(media.url);

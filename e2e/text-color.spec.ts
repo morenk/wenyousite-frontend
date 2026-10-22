@@ -3,6 +3,94 @@ import { expect } from "@playwright/test";
 import { test } from "./fixtures/isolation";
 import { loginAsE2eUser, openFreshThreadDraft } from "./fixtures/auth";
 import { requireIsolationRunner } from "../scripts/e2e-isolation-gate.mjs";
+import { EDITOR_COMPOSITION_MESSAGE } from "../src/components/editor/use-editor-submission";
+
+test("先选颜色后输入可发布，已着色选区可再次改色", async ({ page, browserName }) => {
+  test.setTimeout(180000);
+  await loginAsE2eUser(page);
+  // CDP 经过 Chromium 的原生组合输入管线，不等同于人工操作系统输入法验收。
+  const cdp = browserName === "chromium" ? await page.context().newCDPSession(page) : null;
+  try {
+    for (const mode of ["普通输入", ...(cdp ? ["组合输入"] : [])]) {
+      await openFreshThreadDraft(page);
+      await page.getByLabel("主题帖标题").fill("颜色输入回归 " + mode + Date.now());
+      const editor = page.locator(".ProseMirror");
+      const menu = page.getByRole("button", { name: "切换正文样式", exact: true });
+      await editor.click();
+      await editor.press("Control+b");
+      await menu.click();
+      await page.getByRole("button", { name: "红色", exact: true }).click();
+      let text = "color";
+      if (mode === "组合输入" && cdp) {
+        const writes: string[] = [];
+        const onRequest = (request: import("@playwright/test").Request) => {
+          if (request.method() === "PATCH" && /^\/api\/v1\/threads\/[^/]+\/aggregate$/.test(new URL(request.url()).pathname)) writes.push(request.url());
+        };
+        page.on("request", onRequest);
+        try {
+          await cdp.send("Input.imeSetComposition", { text: "ni", selectionStart: 2, selectionEnd: 2 });
+          await expect(editor).toHaveText("ni");
+          // 保持焦点和未完成组合，验证提交保护；真实点击失焦可能先确认候选。
+          await page.getByRole("button", { name: "发布", exact: true }).evaluate((button: HTMLButtonElement) => button.click());
+          await expect(page.getByText(EDITOR_COMPOSITION_MESSAGE, { exact: true })).toBeVisible();
+          expect(writes).toEqual([]);
+          await cdp.send("Input.imeSetComposition", { text: "你", selectionStart: 1, selectionEnd: 1 });
+          await expect(editor).toHaveText("你");
+          await cdp.send("Input.insertText", { text: "你" });
+          await editor.pressSequentially("A");
+          // 连续第二轮组词及取消候选不能留下锁定或多余文字。
+          await cdp.send("Input.imeSetComposition", { text: "hao", selectionStart: 3, selectionEnd: 3 });
+          await cdp.send("Input.insertText", { text: "好" });
+          await cdp.send("Input.imeSetComposition", { text: "quxiao", selectionStart: 6, selectionEnd: 6 });
+          await cdp.send("Input.imeSetComposition", { text: "", selectionStart: 0, selectionEnd: 0 });
+          text = "你A好";
+        } finally { page.off("request", onRequest); }
+      } else {
+        await editor.pressSequentially(text);
+      }
+      await expect(editor).toHaveText(text);
+      await expect(editor.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(text);
+      await expect(editor.locator("strong")).toHaveText(text);
+
+      await editor.press("Control+a");
+      await menu.click();
+      await expect(page.getByRole("button", { name: "红色", exact: true })).toHaveAttribute("aria-pressed", "true");
+      await page.getByRole("button", { name: "蓝色", exact: true }).click();
+      await expect(editor.locator('[data-wenyou-color-v1="#2563EB"]')).toHaveText(text);
+      await editor.press("Control+z");
+      await expect(editor.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(text);
+      await editor.press("Control+Shift+z");
+      await expect(editor.locator('[data-wenyou-color-v1="#2563EB"]')).toHaveText(text);
+      await menu.click();
+      await page.getByRole("button", { name: "自定义", exact: true }).click();
+      await page.getByRole("textbox", { name: "R", exact: true }).fill("200");
+      await page.getByRole("button", { name: "取消", exact: true }).click();
+      await expect(editor).toBeFocused();
+      expect(await page.evaluate(() => window.getSelection()?.toString())).toBe(text);
+      await expect(editor.locator('[data-wenyou-color-v1="#2563EB"]')).toHaveText(text);
+      await menu.click();
+      await page.getByRole("button", { name: "默认文字颜色", exact: true }).click();
+      await expect(editor.locator("[data-wenyou-color-v1]")).toHaveCount(0);
+      await expect(editor.locator("strong")).toHaveText(text);
+      await editor.press("Control+z");
+      await expect(editor.locator('[data-wenyou-color-v1="#2563EB"]')).toHaveText(text);
+
+      const publishing = page.waitForResponse((response) => response.request().method() === "PATCH" && /^\/api\/v1\/threads\/[^/]+\/aggregate$/.test(new URL(response.url()).pathname));
+      await page.getByRole("button", { name: "发布", exact: true }).click();
+      const published = await publishing;
+      expect(published.status()).toBe(200);
+      const saved: components["schemas"]["ThreadDetailResponseDto"] = (await published.json()).data;
+      const content = saved.subthreads.find((subthread) => subthread.id === saved.defaultSubthreadId)!.bodyPost!.content;
+      expect(content).toBe('<span data-wenyou-color-v1="#2563EB">**' + text + '**</span>');
+      await page.waitForURL((url) => /^\/threads\/[^/]+$/.test(url.pathname) && url.pathname !== "/threads/create");
+      await page.reload();
+      await expect(page.locator('[data-slot="markdown-content"] [data-wenyou-color-v1="#2563EB"]').first()).toHaveText(text);
+    }
+  } finally {
+    // 超时后 Playwright 可能已关闭页面，清理错误不能覆盖原始断言。
+    await cdp?.detach().catch(() => {});
+  }
+});
 
 test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端拒绝覆盖", async ({ page }) => {
   test.setTimeout(180000);
@@ -136,8 +224,12 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(editorColors).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
   for (const dark of [false, true]) {
     await page.getByRole("button", { name: /^外观：/ }).click();
+    await expect(editor).toHaveCount(0);
     await page.locator('[data-slot="theme-menu-popup"]').getByText(dark ? "黑夜" : "亮色", { exact: true }).click();
     await expect(page.locator("html")).toHaveAttribute("data-theme", dark ? "dark" : "light");
+    await floor.getByRole("button", { name: "更多楼层操作", exact: true }).click();
+    await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
+    await expect(editorColors).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
     // ProseMirror 按组合 mark 拆分 DOM；逐段核验实际着色文字，而不要求 reader 的单一 span 结构。
     for (const segment of await editorColors.all()) await expect(segment).toHaveCSS("color", "rgb(209, 67, 67)");
     await expect(editor.locator("strong")).toHaveText("中文😀");
@@ -168,7 +260,8 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(editor.locator("del")).toHaveText("删除");
   await expect(editor.locator("a")).toHaveAttribute("href", "https://example.com");
   await expect(editor.locator("code")).toHaveText("字面");
-  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
+  await expect(editor).toHaveCount(0);
 
   // 全套用例共享本轮隔离账号；自动草稿可能已占槽位，按实际版本覆盖该测试账号自己的草稿。
   const state: components["schemas"]["DraftStateResponseDto"] = (await request("GET", "/api/v1/drafts/state")).body.data;
@@ -193,7 +286,7 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(composing.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
   await expect(composing).toContainText("普通文字");
   await expect(composing).not.toContainText("临时修改");
-  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
   const storedDraft = await request("GET", "/api/v1/drafts/" + draft.body.data.id);
   expect(storedDraft.body.data.content).toBe(source);
 });

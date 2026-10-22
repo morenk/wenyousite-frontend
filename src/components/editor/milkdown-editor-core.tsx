@@ -11,6 +11,7 @@ import { EDITOR_COMPOSITION_MESSAGE, EDITOR_SYNC_ERROR, type EditorSubmissionHan
 import { assessEditorInput } from "@/lib/editor-content-compatibility";
 import { MilkdownProvider } from "@milkdown/react";
 import { ContentDraftsPanel } from "@/components/editor/content-drafts-panel";
+import { EditorResizeHandle } from "@/components/editor/editor-resize-handle";
 import { MilkdownEditorHost } from "@/components/editor/milkdown-editor-host";
 import { useEditorDraftController } from "@/components/editor/use-editor-draft-controller";
 import type { InlineDiceRoll } from "@/lib/dice-inline";
@@ -40,6 +41,8 @@ function EditorCore({
   onUploadImage,
   placeholder,
   disabled,
+  footerActions,
+  resizable = true,
   maxHeight = 400,
   minHeight = 280,
   threadId,
@@ -122,7 +125,7 @@ function EditorCore({
   }, [invalid]);
 
   const protectedContent = useMemo(() => contractVersionReady && !assessEditorInput(restoredValue, markdownContractVersion, textColorSupported, textFontSupported).edit, [contractVersionReady, restoredValue, markdownContractVersion, textColorSupported, textFontSupported]);
-  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flush() !== null) }), [flush, flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
+  useImperativeHandle(editorRef, () => ({ flush: flushForWrite, isComposing, getMediaAudios: () => hostRef.current?.getMediaAudios?.() ?? restoredMediaAudios ?? mediaAudios ?? [], getMediaDisplays: () => hostRef.current?.getMediaDisplays?.() ?? restoredMediaDisplays ?? mediaDisplays ?? [], canClose: () => !isComposing() && (protectedContent || flushForWrite() !== null) }), [flushForWrite, protectedContent, isComposing, restoredMediaDisplays, mediaDisplays, restoredMediaAudios, mediaAudios]);
   useEffect(() => {
     if (protectedContent) {
       handleValidityChange(false);
@@ -205,6 +208,8 @@ function EditorCore({
             <span className={cn("text-xs tabular-nums", charWarning)}>
               {charCount}/{MAX_CHARS}
             </span>
+            {footerActions}
+            {resizable && !protectedContent && <EditorResizeHandle containerRef={wrapperRef} minHeight={minHeight} maxHeight={maxHeight} disabled={disabled} />}
           </div>, footerTarget)}
       {protectedContent && (
         <div className="space-y-2 p-3">

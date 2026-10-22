@@ -5,6 +5,7 @@ import {
   useQuery,
   useQueryClient,
 } from "@tanstack/react-query";
+import { adminTextFontData } from "./admin-text-font-response";
 import { apiClient } from "@/api/client";
 import { queryKeys } from "@/api/query-keys";
 import type { components } from "@/api/types";
@@ -14,12 +15,10 @@ export function useAdminTextFonts(after?: string) {
   return useQuery({
     queryKey: queryKeys.admin.textFonts(after),
     queryFn: async ({ signal }) => {
-      const { data, error } = await apiClient.GET("/api/v1/admin/text-fonts", {
+      return adminTextFontData(apiClient.GET("/api/v1/admin/text-fonts", {
         params: { query: { limit: 20, ...(after ? { after } : {}) } },
         signal,
-      });
-      if (error) throw error;
-      return data.data;
+      }));
     },
     placeholderData: keepPreviousData,
     retry: false,
@@ -30,12 +29,10 @@ export function useAdminTextFont(id?: string) {
     queryKey: queryKeys.admin.textFont(id),
     enabled: Boolean(id),
     queryFn: async ({ signal }) => {
-      const { data, error } = await apiClient.GET(
+      return adminTextFontData(apiClient.GET(
         "/api/v1/admin/text-fonts/{familyId}",
         { params: { path: { familyId: id! } }, signal },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     retry: false,
     refetchInterval: (query) =>
@@ -51,12 +48,10 @@ export function useAdminTextFontPreview(id?: string) {
     queryKey: queryKeys.admin.textFontPreview(id),
     enabled: Boolean(id),
     queryFn: async ({ signal }) => {
-      const { data, error } = await apiClient.GET(
+      return adminTextFontData(apiClient.GET(
         "/api/v1/admin/text-fonts/versions/{versionId}/preview",
         { params: { path: { versionId: id! } }, signal },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     retry: false,
     gcTime: 60000,
@@ -73,11 +68,9 @@ export function useAdminTextFontActions() {
   };
   const create = useMutation({
     mutationFn: async (body: FontConfiguration) => {
-      const { data, error } = await apiClient.POST("/api/v1/admin/text-fonts", {
+      return adminTextFontData(apiClient.POST("/api/v1/admin/text-fonts", {
         body,
-      });
-      if (error) throw error;
-      return data.data;
+      }));
     },
     onSuccess: refresh,
   });
@@ -88,12 +81,10 @@ export function useAdminTextFontActions() {
     }: components["schemas"]["UpdateFontConfigurationDto"] & {
       familyId: string;
     }) => {
-      const { data, error } = await apiClient.PATCH(
+      return adminTextFontData(apiClient.PATCH(
         "/api/v1/admin/text-fonts/{familyId}",
         { params: { path: { familyId } }, body },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });
@@ -109,7 +100,7 @@ export function useAdminTextFontActions() {
       format: "ttf" | "otf";
       expectedFamilyRevision: number;
     }) => {
-      const { data, error } = await apiClient.POST(
+      return adminTextFontData(apiClient.POST(
         "/api/v1/admin/text-fonts/{familyId}/sources",
         {
           params: {
@@ -120,20 +111,16 @@ export function useAdminTextFontActions() {
           body: "",
           bodySerializer: () => file,
         },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });
   const process = useMutation({
     mutationFn: async (jobId: string) => {
-      const { data, error } = await apiClient.POST(
+      return adminTextFontData(apiClient.POST(
         "/api/v1/admin/text-fonts/jobs/{jobId}/process",
         { params: { path: { jobId } } },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });
@@ -142,12 +129,10 @@ export function useAdminTextFontActions() {
       familyId,
       ...body
     }: components["schemas"]["FontPublishDto"] & { familyId: string }) => {
-      const { data, error } = await apiClient.POST(
+      return adminTextFontData(apiClient.POST(
         "/api/v1/admin/text-fonts/{familyId}/publish",
         { params: { path: { familyId } }, body },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });
@@ -156,12 +141,10 @@ export function useAdminTextFontActions() {
       familyId,
       ...body
     }: components["schemas"]["FontEnabledDto"] & { familyId: string }) => {
-      const { data, error } = await apiClient.PATCH(
+      return adminTextFontData(apiClient.PATCH(
         "/api/v1/admin/text-fonts/{familyId}/enabled",
         { params: { path: { familyId } }, body },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });
@@ -170,12 +153,10 @@ export function useAdminTextFontActions() {
       versionId,
       ...body
     }: components["schemas"]["FontWithdrawDto"] & { versionId: string }) => {
-      const { data, error } = await apiClient.POST(
+      return adminTextFontData(apiClient.POST(
         "/api/v1/admin/text-fonts/versions/{versionId}/withdraw",
         { params: { path: { versionId } }, body },
-      );
-      if (error) throw error;
-      return data.data;
+      ));
     },
     onSuccess: refresh,
   });

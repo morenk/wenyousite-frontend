@@ -4,8 +4,8 @@
 
 import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import type { MentionIdentity } from "@/lib/thread-identity";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { Check, Loader2, Send, X } from "lucide-react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { Check, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useCreatePost, type CreatePostArgs } from "@/api/hooks/use-create-post";
 import { useUpdatePost } from "@/api/hooks/use-update-post";
@@ -17,6 +17,7 @@ import {
 } from "@/api/errors";
 import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { useEditorSubmission } from "@/components/editor/use-editor-submission";
+import { useEditorOutsideDismiss } from "@/components/editor/use-editor-outside-dismiss";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer, useThreadComposerSession } from "@/components/thread/thread-composer-context";
@@ -100,6 +101,9 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, setSessionMediaAudios, uploadImage.isPending]);
   useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
 
+  const dismiss = useCallback(() => close({ sessionKey }), [close, sessionKey]);
+  const outsideDismiss = useEditorOutsideDismiss(dismiss, pending || uploadImage.isPending || uncertain);
+
   if (!session) return null;
 
   const isEdit = session.type === "edit";
@@ -181,24 +185,9 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   );
 
   return (
-    <div ref={containerRef} className="space-y-3 rounded-[var(--radius-control)] border border-brand-strong/40 bg-background p-3">
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1 space-y-2">
-          {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
-          {!showIdentity || session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-7 px-2"
-          onClick={() => { if (editor.canClose()) void close(); }}
-          disabled={busy || uncertain}
-        >
-          <X className="mr-1 h-3.5 w-3.5" />
-          {isEdit ? "取消" : "收起"}
-        </Button>
-      </div>
+    <div ref={containerRef} {...outsideDismiss} className="space-y-2">
+      {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
+      {session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
       <MilkdownEditor allowTextFont allowTextColor audioDraftKey={session.key} mentionIdentities={mentionIdentities}
         onSyncErrorChange={setSyncError}
@@ -217,9 +206,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
         minHeight={isReply ? 120 : 180}
         threadId={threadId}
         diceRolls={session.diceRolls}
-        ariaLabel={isReply ? "回复正文" : isEdit ? "编辑正文" : "楼层正文"}
-      />
-      <div className="flex justify-end">
+        footerActions={
         <Button
           type="button"
           size="sm"
@@ -235,7 +222,9 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
           )}
           {submitLabel}
         </Button>
-      </div>
+        }
+        ariaLabel={isReply ? "回复正文" : isEdit ? "编辑正文" : "楼层正文"}
+      />
     </div>
   );
 }

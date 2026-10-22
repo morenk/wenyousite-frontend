@@ -73,7 +73,7 @@ test("真实 API 编辑后只展示编辑时间，原位刷新、无改动与跨
   expect(unchanged.editedAt).toBe(second.editedAt);
   await expectEditedTime(floorTime, second.editedAt!);
 
-  // 取消不会触发保存或改写显示时间。
+  // 点击编辑器外部收起，不触发保存或改写显示时间。
   const writes: string[] = [];
   const record = (request: import("@playwright/test").Request) => {
     if (request.method() === "PATCH") writes.push(request.url());
@@ -81,7 +81,7 @@ test("真实 API 编辑后只展示编辑时间，原位刷新、无改动与跨
   page.on("request", record);
   await floor.getByRole("button", { name: "更多楼层操作" }).click();
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
-  await page.getByRole("button", { name: "取消", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
   await expect(page.locator(".milkdown-editor .ProseMirror")).toHaveCount(0);
   expect(writes).toEqual([]);
   page.off("request", record);

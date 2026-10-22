@@ -7,10 +7,12 @@ import { expect, test } from "vitest";
 const projectRequire = createRequire(resolve("package.json"));
 const nextRequire = createRequire(projectRequire.resolve("next/package.json"));
 const sharp = nextRequire("sharp");
+const milkdownRequire = createRequire(projectRequire.resolve("@milkdown/crepe"));
 
 test("框架与实际原生图片库使用已修复的精确版本", () => {
-  expect(projectRequire("next/package.json").version).toBe("16.3.8");
-  expect(JSON.parse(readFileSync("node_modules/eslint-config-next/package.json", "utf8")).version).toBe("16.3.8");
+  expect(projectRequire("next/package.json").version).toBe("16.4.1");
+  expect(JSON.parse(readFileSync("node_modules/eslint-config-next/package.json", "utf8")).version).toBe("16.4.1");
+  expect(milkdownRequire("dompurify").version).toBe("3.4.17");
   expect(sharp.versions.sharp).toBe("0.35.5");
   // 校验实际加载的预编译库，避免只更新 npm 元数据却仍使用旧 librsvg。
   expect(sharp.versions.rsvg).toBe("2.63.2");
