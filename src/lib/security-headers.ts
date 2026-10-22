@@ -13,7 +13,7 @@ export function createContentSecurityPolicy({
     "style-src 'self' 'unsafe-inline'",
     `img-src 'self' data: blob: ${MEDIA_ORIGIN}`,
     "font-src 'self' data:",
-    `connect-src 'self' ${MEDIA_ORIGIN}${isDevelopment ? " ws: wss:" : ""}`,
+    `connect-src 'self' ${MEDIA_ORIGIN} https://wenyou.site https://*.wenyou.site${isDevelopment ? " ws: wss:" : ""}`,
     `media-src 'self' blob: ${MEDIA_ORIGIN}`,
     "object-src 'none'",
     "base-uri 'self'",

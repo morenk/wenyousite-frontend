@@ -23,7 +23,7 @@ test("普通开发只代理显式后端，保留媒体策略和 Fast Refresh 连
     { source: "/api/v1/:path*", destination: "http://127.0.0.1:34123/api/v1/:path*" },
   ]);
   const csp = createContentSecurityPolicy({ nonce: "development-test", isDevelopment: true });
-  expect(csp).toContain("connect-src 'self' https://cn-nb1.rains3.com ws: wss:");
+  expect(csp).toContain("connect-src 'self' https://cn-nb1.rains3.com https://wenyou.site https://*.wenyou.site ws: wss:");
   expect(csp).toContain("script-src 'self' 'nonce-development-test' 'unsafe-eval'");
 });
 

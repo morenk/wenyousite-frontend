@@ -40,3 +40,5 @@ Next.js 与 eslint-config-next 固定为 16.4.1，对应[官方安全修复版�
 Next 的字体度量补丁仅删除 212 个已禁用家族，其余 1541 个条目与上游一致；16.4.1 仍需此补丁。依赖升级须验证补丁应用和实际原生库版本，并运行 SVG 解码、常见图片格式转换、产物字体检查及隔离页面回归。重资源的覆盖率、构建与隔离 E2E 串行执行，避免共享 VPS 上的资源争用。
 
 `markdown-it` 固定为 14.3.3，修复 `GHSA-r7fv-28h4-cvq7`、`GHSA-gfr2-rv44-r23c` 与 `GHSA-vfgh-jcmw-g37q`；正文解析与规范化仍由既有协议与回归测试约束，不调整协议或内容白名单。
+
+Milkdown 的 DOMPurify 传递依赖通过既有精确覆盖固定为 3.4.17，包含 [官方模板、IN_PLACE 与 XHTML 清洗修复](https://github.com/cure53/DOMPurify/releases/tag/3.4.17)。生产依赖审计与实际加载版本检查继续作为交付门禁，不扩大富文本清洗白名单。

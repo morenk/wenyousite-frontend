@@ -174,6 +174,20 @@ describe("SearchResults", () => {
 
   afterEach(() => cleanup());
 
+  test("主题与楼层搜索摘要移除字体标记且不改变来源", () => {
+    const source = '<span data-wenyou-font-v1="great-vibes">**ABC 搜索**</span>';
+    const query = (data: unknown) => ({ ...idleQuery, data: { pages: [{ data: [data], meta: { cursor: null, hasMore: false } }] }, hasNextPage: false, isFetchingNextPage: false, fetchNextPage: mockFetchNextPage });
+    mockUseSearchThreads.mockReturnValue(query({ ...thread, preview: source }));
+    mockUseSearchPosts.mockReturnValue(query({ ...post, content: source }));
+    const { container } = render(<SearchResults keyword="搜索" />);
+    for (const name of ["主题帖", "楼层内容"]) {
+      fireEvent.click(screen.getByRole("tab", { name }));
+      expect(screen.getByText("ABC 搜索")).toBeInTheDocument();
+      expect(container.querySelector("[data-wenyou-font-v1], [style*='font-family']")).toBeNull();
+    }
+    expect(source).toContain('data-wenyou-font-v1="great-vibes"');
+  });
+
   test("默认只启用动态，切换 Tab 后按需启用对应搜索", () => {
     render(<SearchResults keyword="测试" />);
 

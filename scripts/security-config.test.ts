@@ -48,3 +48,9 @@ describe("音频 CSP", () => {
     expect(response.headers.get("x-middleware-request-content-security-policy")).toBe(csp);
   });
 });
+
+test("字体资源仅放行自有 HTTPS 连接，直接 URL 字体仍受原 font-src 约束", () => {
+  const csp = createContentSecurityPolicy({ nonce: "font-test", isDevelopment: false });
+  expect(csp.split("; ").find(value => value.startsWith("connect-src "))).toBe("connect-src 'self' https://cn-nb1.rains3.com https://wenyou.site https://*.wenyou.site");
+  expect(csp.split("; ").find(value => value.startsWith("font-src "))).toBe("font-src 'self' data:");
+});

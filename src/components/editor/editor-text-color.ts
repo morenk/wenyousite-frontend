@@ -10,6 +10,7 @@ export const editorTextColorSchema = $markSchema(TEXT_COLOR_MARK, () => ({
   inclusive: false,
   parseDOM: [{
     tag: "span[" + TEXT_COLOR_ATTRIBUTE + "]",
+    consuming: false,
     getAttrs: (element: HTMLElement) => {
       const color = normalizeTextColor((element as HTMLElement).getAttribute(TEXT_COLOR_ATTRIBUTE));
       return color ? { color } : false;

@@ -72,6 +72,15 @@ describe("NotificationItem", () => {
 
   afterEach(() => cleanup());
 
+  test("字体正文通知摘要使用默认字体并保留源载体", () => {
+    const content = '<span data-wenyou-font-v1="great-vibes">**ABC 通知**</span>';
+    const notification = baseNotification({ content });
+    const { container } = renderWithQC(<NotificationItem notification={notification} />);
+    expect(screen.getByText("ABC 通知")).toBeInTheDocument();
+    expect(container.querySelector("[data-wenyou-font-v1], [style*='font-family']")).toBeNull();
+    expect(notification.content).toBe(content);
+  });
+
   test("渲染文案与时间，未读时有跳转链接", () => {
     renderWithQC(<NotificationItem notification={baseNotification()} />);
     expect(screen.getByText("morenk 回复了：内容")).toBeInTheDocument();

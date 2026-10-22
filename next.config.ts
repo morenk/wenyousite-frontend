@@ -29,6 +29,12 @@ const nextConfig: NextConfig = {
   output: "standalone",
   devIndicators: process.env.DISABLE_NEXT_DEV_INDICATORS === "true" ? false : undefined,
   allowedDevOrigins: ["wenyou.site", "127.0.0.1", "localhost"],
+  experimental: {
+    // 重写代理必须完整转发后台允许的 64 MiB 字体原件。
+    proxyClientMaxBodySize: 64 * 1024 * 1024,
+    // 上游套接字空闲超时；为上传后的私有存储落盘留出余量。
+    proxyTimeout: 120_000,
+  },
   images: {
     unoptimized: true,
   },

@@ -11,7 +11,18 @@ class AdminResponse extends Response {
     private readonly current: () => void,
     private readonly release: () => void,
   ) {
-    super(response.body, {
+    const reader=response.body?.getReader();
+    let ended=false;
+    const body=reader?new ReadableStream<Uint8Array>({
+      async pull(controller){
+        try{
+          current();const next=await reader.read();if(ended)return;current();
+          if(next.done){ended=true;release();controller.close();reader.releaseLock();}else controller.enqueue(next.value);
+        }catch(error){if(ended)return;ended=true;release();await reader.cancel(error).catch(()=>{});reader.releaseLock();controller.error(error);}
+      },
+      async cancel(reason){ended=true;try{await reader.cancel(reason);}finally{release();reader.releaseLock();}},
+    }):null;
+    super(body, {
       status: response.status,
       statusText: response.statusText,
       headers: response.headers,
@@ -79,7 +90,7 @@ export async function fetchAdminRequest(
         return response;
       }
     }
-    if (response.status === 204 || request.method === "HEAD") {
+    if (!response.body || response.status === 204 || request.method === "HEAD") {
       release();
       return response;
     }

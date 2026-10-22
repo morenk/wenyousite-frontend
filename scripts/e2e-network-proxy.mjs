@@ -17,6 +17,7 @@ export async function isolationProxy(candidate, verifyWrite) {
   const target = isolatedOrigin(candidate);
   const violations = [];
   let closing = false;
+  let interruptedFont;
   const server = createServer(async (req, res) => {
     let url;
     try { url = new URL(req.url); } catch { res.writeHead(400); res.end(); return; }
@@ -35,6 +36,12 @@ export async function isolationProxy(candidate, verifyWrite) {
       res.writeHead(403); res.end(); return;
     }
     if (closing || req.aborted || res.destroyed) { res.end(); return; }
+    // 仅模拟当前候选某个新字体的字库连接中断；不修改响应内容、缓存或写入门禁。
+    const font = /^\/api\/v1\/meta\/text-fonts\/v2\/versions\/(tfv_[a-f0-9]{32})\/assets\/[a-f0-9]{64}\.(?:woff2|ttf|otf)$/u.exec(url.pathname);
+    if (req.method === "GET" && url.origin === target && interruptedFont && font?.[1] === interruptedFont.versionId) {
+      if (interruptedFont.requests.length < 64) interruptedFont.requests.push({ path: url.pathname, at: Date.now() });
+      res.destroy(); return;
+    }
     const headers = { ...req.headers, host: url.host };
     delete headers["proxy-authorization"]; delete headers["proxy-connection"];
     const upstream = request(url, { method: req.method, headers }, (incoming) => {
@@ -48,6 +55,12 @@ export async function isolationProxy(candidate, verifyWrite) {
   server.on("upgrade", (_req, socket) => socket.destroy());
   await new Promise((ok, fail) => { server.once("error", fail); server.listen(0, "127.0.0.1", ok); });
   return { origin: `http://127.0.0.1:${server.address().port}`, violations,
+    interruptFontDownloads: (versionId) => {
+      if (closing || interruptedFont || !/^tfv_[a-f0-9]{32}$/u.test(versionId)) throw new Error("字体断连夹具仅接受单个版本 ID");
+      const fault = { versionId, requests: [] };
+      interruptedFont = fault;
+      return { requests: fault.requests, restore: () => { if (interruptedFont === fault) interruptedFont = undefined; } };
+    },
     close: () => new Promise((ok, fail) => { closing = true; server.close((error) => error ? fail(error) : ok()); server.closeAllConnections(); }),
   };
 }

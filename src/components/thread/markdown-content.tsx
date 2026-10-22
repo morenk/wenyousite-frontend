@@ -2,12 +2,16 @@
 
 "use client";
 
+import { isDynamicTextFont, normalizeTextFontV1, textFontFamily, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
+import { useVisibleTextFonts } from "@/components/editor/use-visible-text-fonts";
+
 import { normalizeTextColor, remarkTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import {
   createContext,
   useContext,
   isValidElement,
   useState,
+  useRef,
   type ComponentProps,
   type ClipboardEvent as ReactClipboardEvent,
   type ReactNode,
@@ -73,12 +77,15 @@ type ImageProps = ComponentProps<"img"> & ExtraProps;
 type AnchorProps = ComponentProps<"a"> & ExtraProps;
 type SpanProps = ComponentProps<"span"> & ExtraProps & {
   "data-wenyou-color-v1"?: string;
+  "data-wenyou-font-v1"?: string;
+  "data-wenyou-font-v2"?: string;
   "data-dice-node-id"?: string;
   "data-dice-notation"?: string;
 };
 
 // 渲染器类型跨父级测量更新保持稳定；展示数据通过 context 更新，不重挂载图片。
 const MarkdownRenderContext = createContext<{
+  allowTextFont?: boolean;
   sourcePostId?: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
   mediaAudios?: readonly MarkdownMediaAudio[];
@@ -108,12 +115,14 @@ function MarkdownImageRenderer(props: ImageProps) {
 
 function MarkdownSpan({ node: _node, ...props }: SpanProps) {
   void _node;
-  const { diceRollsByNodeId } = useContext(MarkdownRenderContext);
+  const { diceRollsByNodeId, allowTextFont } = useContext(MarkdownRenderContext);
   const nodeId = props["data-dice-node-id"];
   const roll = nodeId ? diceRollsByNodeId.get(nodeId) : undefined;
   if (roll) return <DiceInlineResult roll={roll} />;
   const color = normalizeTextColor(props["data-wenyou-color-v1"]);
-  return <span {...props} style={color ? { color } : undefined} />;
+  const dynamicId = props["data-wenyou-font-v2"];
+  const fontId = allowTextFont && !(dynamicId && props["data-wenyou-font-v1"]) ? (isDynamicTextFont(dynamicId) ? dynamicId : normalizeTextFontV1(props["data-wenyou-font-v1"])) : null;
+  return <span {...props} data-wenyou-font-v1={fontId && !isDynamicTextFont(fontId) ? fontId : undefined} data-wenyou-font-v2={isDynamicTextFont(fontId) ? fontId : undefined} style={{ ...(color ? { color } : {}), ...(fontId ? { fontFamily: textFontFamily(fontId) } : {}) }} />;
 }
 
 function getNodeText(node: ReactNode): string {
@@ -295,7 +304,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
   const byNodeId = new Map(rolls.map((roll) => [roll.nodeId, roll]));
   return () => (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -347,7 +356,7 @@ function remarkInlineDice(rolls: InlineDiceRoll[]) {
 function remarkBareInternalReferences() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode" || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || node.type === "link" || node.type === "code" || node.type === "inlineCode" || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (const child of node.children) {
         if (child.type !== "text" || !child.value) {
@@ -392,7 +401,7 @@ function readerLineBreak(node?: MarkdownNode): MarkdownNode {
 function remarkPreserveSoftLineBreaks() {
   return (tree: MarkdownNode) => {
     const transform = (node: MarkdownNode) => {
-      if (!node.children || node.type === TEXT_COLOR_MARK) return;
+      if (!node.children || [TEXT_COLOR_MARK, TEXT_FONT_MARK].includes(node.type ?? "")) return;
       const children: MarkdownNode[] = [];
       for (let index = 0; index < node.children.length; index++) {
         const child = node.children[index]!;
@@ -456,6 +465,8 @@ function rehypeRemoveFormattingLineBreaks() {
 }
 
 interface MarkdownContentProps {
+  /** 仅主题、子帖、楼层及回复的完整正文显式开启；其他入口默认不激活或下载字库。 */
+  allowTextFont?: boolean;
   mentionIdentities?: readonly MentionIdentity[];
   content: string;
   mediaDisplays?: readonly MarkdownMediaDisplay[];
@@ -467,6 +478,7 @@ interface MarkdownContentProps {
 }
 
 export function MarkdownContent({
+  allowTextFont = false,
   mentionIdentities,
   content,
   mediaDisplays,
@@ -476,6 +488,8 @@ export function MarkdownContent({
   size = "reading",
   markdownContractVersion = ACTIVE_MARKDOWN_CONTRACT_VERSION,
 }: MarkdownContentProps) {
+  const fontRoot = useRef<HTMLDivElement>(null);
+  useVisibleTextFonts(fontRoot, content, undefined, allowTextFont);
   const markdownOptions = { markdownContractVersion };
   const normalizedContent = prepareMarkdownForReader(content, markdownOptions);
   const diceRollsByNodeId = new Map(diceRolls.map((roll) => [roll.nodeId, roll]));
@@ -503,6 +517,7 @@ export function MarkdownContent({
 
   return (
     <div
+      ref={fontRoot}
       data-slot="markdown-content"
       data-size={size}
       onCopy={handleCopy}
@@ -511,7 +526,7 @@ export function MarkdownContent({
         size === "compact" && "wenyou-prose-compact",
       )}
     >
-      <MarkdownRenderContext.Provider value={{ sourcePostId, mediaDisplays, mediaAudios, mentionIdentities, diceRollsByNodeId }}>
+      <MarkdownRenderContext.Provider value={{ allowTextFont, sourcePostId, mediaDisplays, mediaAudios, mentionIdentities, diceRollsByNodeId }}>
         <ReactMarkdown
           rehypePlugins={[rehypeRemoveFormattingLineBreaks]}
           remarkPlugins={[

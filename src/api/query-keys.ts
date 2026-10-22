@@ -2,6 +2,9 @@
 
 export const queryKeys = {
   meta: ["api-meta"] as const,
+  textFontPolicy: ["text-font-runtime-policy"] as const,
+  textFonts: ["text-font-catalog"] as const,
+  dynamicFonts: { catalog: ["dynamic-font-catalog"] as const, policy: ["dynamic-font-policy"] as const, version: (id: string) => ["dynamic-font-version", id] as const },
   appDownloads: { android: ["app-downloads", "android"] as const },
   threadIdentities: {
     all: ["thread-identities"] as const,
@@ -204,6 +207,10 @@ export const queryKeys = {
       ["search", "moments", keyword, viewerScope] as const,
   },
   admin: {
+    textFontsRoot: ["admin", "text-fonts"] as const,
+    textFonts: (after?: string) => ["admin", "text-fonts", "list", after] as const,
+    textFont: (id?: string) => ["admin", "text-fonts", "family", id] as const,
+    textFontPreview: (id?: string) => ["admin", "text-fonts", "preview", id] as const,
     root: ["admin"] as const,
     session: ["admin", "session"] as const,
     casesRoot: ["admin", "cases"] as const,

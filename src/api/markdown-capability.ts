@@ -8,6 +8,7 @@ export function markdownWriteCapability(client: QueryClient) {
   // undefined 也保留为自有字段，冻结请求可覆盖重试时新加载的能力；JSON 仍省略它。
   return {
     markdownContractVersion: meta?.capabilities?.roleMentionsV6Supported ? 6 as const : undefined,
+    textFontVersion: meta?.capabilities?.textFontV2Supported ? 2 as const : meta?.capabilities?.textFontV1Supported ? 1 as const : undefined,
     textColorVersion: meta?.capabilities?.textColorV1Supported ? 1 as const : undefined,
   };
 }

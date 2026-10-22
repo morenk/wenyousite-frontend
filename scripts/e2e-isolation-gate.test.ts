@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { createServer } from "node:http";
 import { http, passthrough } from "msw";
 import { server as mockServer } from "../src/test/msw/server";
-import { assertResourceProcesses, privateJSON, readDiscussionFixtures, readAdminFixtures, readMobileReleaseFixtures, readIsolation, requireIsolationRunner, verifyRunProfile } from "./e2e-isolation-gate.mjs";
+import { verifyFontResources, assertResourceProcesses, privateJSON, readDiscussionFixtures, readAdminFixtures, readMobileReleaseFixtures, readIsolation, requireIsolationRunner, verifyRunProfile } from "./e2e-isolation-gate.mjs";
 import { sanitize } from "./e2e-safe-reporter";
 
 const roots: string[] = [];
@@ -127,7 +127,7 @@ describe("隔离 manifest 与真实资源门禁", () => {
   });
   test("实际进程须匹配集群及目录，消费者须属于同一活跃 supervisor", () => {
     const { env, root } = fixture(); const run = readIsolation(env);
-    const identity = (pid: number) => ({ parent: pid === 200 ? 150 : 99, uid: process.getuid!(), cwd: pid === 100 ? join(root, "postgres") : root,
+    const identity = (pid: number) => ({ start: "123", parent: pid === 200 ? 150 : 99, uid: process.getuid!(), cwd: pid === 100 ? join(root, "postgres") : root,
       args: pid === 100 ? ["postgres", join(root, "postgres"), "cluster_name=" + runId, "39001"] : ["redis-server 127.0.0.1:39002"] });
     expect(() => assertResourceProcesses(run, identity, 200)).not.toThrow();
     expect(() => assertResourceProcesses(run, (pid: number) => ({ ...identity(pid), cwd: "/online" }), 200)).toThrow();
@@ -163,4 +163,22 @@ describe("隔离 manifest 与真实资源门禁", () => {
       expect(requests).toBe(8);
     } finally { await new Promise<void>((ok) => server.close(() => ok())); }
   });
+});
+
+
+test("动态字体逐次核验本轮私有对象存储及Worker，错进程和旧轮次拒绝", async () => {
+  const f = fixture(), run = readIsolation(f.env);
+  const store = { runId, identity: "random-identity", pid: 110, start: "222", endpoint: "http://127.0.0.1:39003", directory: join(f.root, "font-object-store"), bucket: `fonts-${runId.replaceAll("_", "-")}` };
+  run.manifest.fontObjectStore = store;
+  run.manifest.textFonts = { storagePath: join(f.root, "fonts"), workers: [{ pid: 111, start: "223" }] };
+  json(join(f.root, "processes.json"), { runId, root: f.root, processes: [{ group: 110, started: "222" }, { group: 111, started: "223" }] });
+  const identity = (pid: number) => ({ parent: 99, uid: process.getuid!(), cwd: f.root, args: [], start: pid === 110 ? "222" : "223" });
+  const fetch = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(store)));
+  await expect(verifyFontResources(run, identity)).resolves.toBeUndefined();
+  await expect(verifyFontResources(run, (pid: number) => ({ ...identity(pid), start: "old" }))).rejects.toThrow("身份或登记");
+  expect(fetch).toHaveBeenCalledTimes(1);
+  fetch.mockResolvedValue(new Response(JSON.stringify({ ...store, runId: "old-run" })));
+  await expect(verifyFontResources(run, identity)).rejects.toThrow("实际响应身份");
+  run.manifest.textFonts.storagePath = "/online/fonts";
+  await expect(verifyFontResources(run, identity)).rejects.toThrow("本轮目录");
 });

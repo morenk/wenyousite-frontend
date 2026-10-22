@@ -59,6 +59,14 @@ export const actionLabels = {
   TAG_MERGED: "合并平台标签",
   SITE_SETTINGS_UPDATED: "更新运行设置",
   MOBILE_RELEASE_UPDATED: "更新移动版本说明",
+  TEXT_FONT_DRAFT_UPDATED: "更新字体配置",
+  TEXT_FONT_SOURCE_UPLOADED: "上传字体源文件",
+  TEXT_FONT_PROCESS_REQUESTED: "处理字体",
+  TEXT_FONT_VERSION_READY: "字体处理完成",
+  TEXT_FONT_PUBLISHED: "发布字体版本",
+  TEXT_FONT_ENABLED_UPDATED: "启停字体",
+  TEXT_FONT_WITHDRAWN: "撤回字体版本",
+  TEXT_FONT_IMPORTED: "导入历史字体",
 } satisfies Record<NonNullable<AdminAuditFilters["action"]>, string>;
 
 const targetLabels = {
@@ -79,6 +87,7 @@ const targetLabels = {
   NOTIFICATION_CAMPAIGN: "通知计划",
   SITE_SETTINGS: "运行设置",
   MOBILE_RELEASE: "移动版本说明",
+  TEXT_FONT: "正文字体",
 } satisfies Record<NonNullable<AdminAuditFilters["targetType"]>, string>;
 
 function beijingDay(value: string, end = false) {

@@ -69,3 +69,33 @@ test("关闭代理后，尚在等待身份校验的请求不得补发写入", as
     assert.equal(writes, 0);
   } finally { release(); pending.destroy(); await candidate.close(); }
 });
+
+test("新字体断连仅限当前候选GET字库，恢复后真实响应保持一致且写入仍核验", async () => {
+  const id = "tfv_" + "a".repeat(32), other = "tfv_" + "b".repeat(32);
+  const path = version => `/api/v1/meta/text-fonts/v2/versions/${version}/assets/${"c".repeat(64)}.woff2`;
+  let upstreamReads = 0, checked = 0;
+  const candidate = await listen((_req, res) => { upstreamReads++; res.end("actual-candidate-bytes"); });
+  const gate = await isolationProxy(candidate.origin, async () => { checked++; });
+  const proxyURL = new URL(gate.origin);
+  const send = (pathname, method = "GET") => new Promise((resolve, reject) => {
+    const req = request({ hostname: proxyURL.hostname, port: proxyURL.port, path: candidate.origin + pathname, method }, res => {
+      let body = ""; res.on("data", part => { body += part; }); res.on("end", () => resolve(body));
+    });
+    req.on("error", reject); req.end();
+  });
+  try {
+    assert.throws(() => gate.interruptFontDownloads("https://example.invalid"));
+    const fault = gate.interruptFontDownloads(id);
+    assert.throws(() => gate.interruptFontDownloads(other));
+    await assert.rejects(send(path(id)));
+    assert.equal(upstreamReads, 0);
+    assert.equal(fault.requests.length, 1);
+    assert.equal(await send(path(other)), "actual-candidate-bytes");
+    assert.equal(await send(path(id).replace(".woff2", ".png")), "actual-candidate-bytes");
+    assert.equal(await send(path(id), "POST"), "actual-candidate-bytes");
+    assert.equal(checked, 1);
+    fault.restore();
+    assert.equal(await send(path(id)), "actual-candidate-bytes");
+    assert.deepEqual(gate.violations, []);
+  } finally { await gate.close(); await candidate.close(); }
+});

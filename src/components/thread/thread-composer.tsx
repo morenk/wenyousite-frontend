@@ -189,7 +189,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
       {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
       {session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
-      <MilkdownEditor allowTextColor audioDraftKey={session.key} mentionIdentities={mentionIdentities}
+      <MilkdownEditor allowTextFont allowTextColor audioDraftKey={session.key} mentionIdentities={mentionIdentities}
         onSyncErrorChange={setSyncError}
         editorRef={editor.editorRef}
         onValidityChange={editor.onValidityChange}

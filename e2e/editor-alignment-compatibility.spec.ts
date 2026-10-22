@@ -612,8 +612,21 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     expect(metrics.leftOverflow).toBeGreaterThanOrEqual(-1);
     expect(metrics.rightOverflow).toBeLessThanOrEqual(1);
 
+    // T 图标入口在 640px 可完整展开；仍需验证较窄容器的收纳与指针路径。
     await host.evaluate((element) => {
       element.style.width = "640px";
+    });
+    await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
+    await expect(toolbar.getByRole("button", { name: "更多" })).toHaveCount(0);
+    metrics = await visibleToolbarMetrics(toolbar);
+    expect(metrics.visibleCount).toBe(13);
+    expect(metrics.topSpread).toBeLessThanOrEqual(4);
+    expect(metrics.scrollWidth).toBeLessThanOrEqual(metrics.clientWidth + 1);
+    expect(metrics.leftOverflow).toBeGreaterThanOrEqual(-1);
+    expect(metrics.rightOverflow).toBeLessThanOrEqual(1);
+
+    await host.evaluate((element) => {
+      element.style.width = "580px";
     });
     await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
     await expect(toolbar.locator('[data-editor-tool="align-center"]')).not.toBeVisible();

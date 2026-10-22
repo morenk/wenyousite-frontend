@@ -1,4 +1,5 @@
 import createClient from "openapi-fetch";
+import { fetchTextFontMetadata } from "./text-font-fetch";
 import type { paths } from "./types";
 import {
   clearAuthSession,
@@ -285,13 +286,26 @@ const authenticatedFetch = createAuthenticatedFetch((input, init) =>
 
 export const apiClient = createClient<paths>({
   baseUrl: getBaseUrl(),
-  fetch: authenticatedFetch,
+  fetch: async (request) => {
+    const path=new URL(request.url).pathname;
+    if(/^\/api\/v1\/meta\/text-fonts(?:\/runtime-policy|\/v2(?:\/runtime-policy|\/versions\/tfv_[a-f0-9]{32})?)?$/u.test(path))return fetchTextFontMetadata(request);
+    if(/^\/api\/v1\/meta\/text-fonts\/v2\/versions\/tfv_[a-f0-9]{32}\/assets\//u.test(path)){
+      const headers=new Headers(request.headers);headers.delete("Authorization");
+      const response=await globalThis.fetch(new Request(request,{headers,credentials:"omit",redirect:"error",cache:"no-store"}));
+      if(!response.ok){await response.body?.cancel();return new Response(null,{status:response.status,statusText:response.statusText,headers:response.headers});}
+      return response;
+    }
+    const response=await authenticatedFetch(request);
+    if(/^\/api\/v1\/admin\/text-fonts\/versions\/tfv_[a-f0-9]{32}\/assets\//u.test(path)&&!response.ok){await response.body?.cancel();return new Response(null,{status:response.status,statusText:response.statusText,headers:response.headers});}
+    return response;
+  },
 });
 
 apiClient.use({
   onRequest({ request }) {
     request.headers.set("X-Markdown-Contract-Version", "6");
     request.headers.set("X-Text-Color-Version", "1");
+    request.headers.set("X-Text-Font-Version", "2");
     if (typeof window === "undefined") return;
 
     const url = new URL(request.url);

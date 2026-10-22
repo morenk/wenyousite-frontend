@@ -7,6 +7,7 @@ import {
   type ParseRule,
   Slice,
   type Schema,
+  type Mark,
 } from "@milkdown/kit/prose/model";
 import { Plugin, TextSelection } from "@milkdown/kit/prose/state";
 import type { EditorView } from "@milkdown/kit/prose/view";
@@ -20,6 +21,7 @@ import {
 import { STICKER_INLINE_NODE_NAME } from "@/lib/sticker-inline";
 import { WENYOU_ALIGNMENT_ATTRIBUTE } from "@/lib/markdown-alignment";
 import { withoutAutomaticTrailingContent } from "./editor-trailing-paragraph";
+import { isPasteAllowedTextFont, readTextFont, TEXT_FONT_ATTRIBUTE, TEXT_FONT_V2_ATTRIBUTE, TEXT_FONT_SELECTOR, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 
 const BLOCK_TAGS = new Set([
   "ADDRESS", "ARTICLE", "ASIDE", "BLOCKQUOTE", "DIV", "FIGCAPTION", "FIGURE",
@@ -65,11 +67,11 @@ export function extractClipboardHtmlText(html: string): string {
   return output.replace(/[\t ]+\n/gu, "\n").replace(/\n+$/u, "");
 }
 
-function createLiteralSlice(view: EditorView, text: string): Slice | null {
+function createLiteralSlice(view: EditorView, text: string, marks: readonly Mark[]): Slice | null {
   const paragraph = view.state.schema.nodes.paragraph;
   if (!paragraph || !text) return null;
   const nodes = text.replace(/\r\n?/g, "\n").split("\n").map((line) =>
-    paragraph.create(null, line ? view.state.schema.text(line) : undefined),
+    paragraph.create(null, line ? view.state.schema.text(line, paragraph.allowedMarks(marks)) : undefined),
   );
   return new Slice(Fragment.fromArray(nodes), 0, 0);
 }
@@ -86,11 +88,14 @@ export function insertLiteralClipboardText(
   position?: number,
 ): boolean {
   if (position !== undefined) setSelectionNear(view, position);
+  const { selection, storedMarks } = view.state;
+  const marks = (storedMarks ?? (selection.empty ? selection.$from.marks() : selection.$from.marksAcross(selection.$to)) ?? [])
+    .filter(mark => mark.type.name !== TEXT_FONT_MARK);
   if (text && !/[\r\n]/u.test(text)) {
-    view.dispatch(view.state.tr.replaceSelectionWith(view.state.schema.text(text), false).scrollIntoView());
+    view.dispatch(view.state.tr.replaceSelectionWith(view.state.schema.text(text, marks), false).scrollIntoView());
     return true;
   }
-  const slice = createLiteralSlice(view, text);
+  const slice = createLiteralSlice(view, text, marks);
   if (!slice) return false;
   view.dispatch(view.state.tr.replaceSelection(slice).scrollIntoView());
   return true;
@@ -144,14 +149,23 @@ function pasteStructuredSiteFragment(view: EditorView, html: string): boolean {
   return true;
 }
 
-function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent): boolean {
+function handleSiteFragmentPaste(view: EditorView, event: ClipboardEvent, allowTextFont: boolean): boolean {
   const html = event.clipboardData?.getData("text/html") ?? "";
   const payload = parseSiteClipboardHtml(html);
   if (!payload) return false;
-  const pasted = payload.source === "editor"
-    || payload.html.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
-    ? pasteStructuredSiteFragment(view, payload.html)
-    : view.pasteHTML(payload.html, event);
+  // 粘贴会新建内容：退役字体只在原文载入／编辑时保源，不随复制新增。
+  const template = document.createElement("template");
+  template.innerHTML = payload.html;
+  template.content.querySelectorAll(TEXT_FONT_SELECTOR).forEach(element => {
+    if (!allowTextFont || !isPasteAllowedTextFont(readTextFont(element) ?? "")) {
+      element.removeAttribute(TEXT_FONT_ATTRIBUTE); element.removeAttribute(TEXT_FONT_V2_ATTRIBUTE);
+    }
+  });
+  const pastedHtml = template.innerHTML;
+  const pasted = !allowTextFont || payload.source === "editor"
+    || pastedHtml.includes(WENYOU_ALIGNMENT_ATTRIBUTE)
+    ? pasteStructuredSiteFragment(view, pastedHtml)
+    : view.pasteHTML(pastedHtml, event);
   if (!pasted) return false;
   finishHandledClipboardEvent(event);
   view.focus();
@@ -299,7 +313,8 @@ function createEditorClipboardParser(schema: Schema): DOMParser {
 }
 
 /** 所有复制、粘贴与外部拖放事务统一从 ProseMirror 插件入口进入文档。 */
-export const editorMarkdownPastePlugin = $prose((ctx) => {
+export function createEditorMarkdownPastePlugin({ allowTextFont = true } = {}) {
+ return $prose((ctx) => {
   const schema = ctx.get(schemaCtx);
   const baseSerializer = DOMSerializer.fromSchema(schema);
   ctx.update(editorViewOptionsCtx, (options) => ({
@@ -335,7 +350,7 @@ export const editorMarkdownPastePlugin = $prose((ctx) => {
           if (event.clipboardData?.files?.length) {
             return handleLiteralClipboardPaste(view, event);
           }
-          if (handleSiteFragmentPaste(view, event)) return true;
+          if (handleSiteFragmentPaste(view, event, allowTextFont)) return true;
           if (handleInternalReferenceUrlPaste(view, event)) {
             view.focus();
             return true;
@@ -347,3 +362,5 @@ export const editorMarkdownPastePlugin = $prose((ctx) => {
     },
   });
 });
+}
+export const editorMarkdownPastePlugin = createEditorMarkdownPastePlugin();

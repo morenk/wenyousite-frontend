@@ -85,7 +85,7 @@ test("默认主栏正文样式使用锚点弹层，Escape 恢复触发焦点且�
   await userEvent.setup().click(trigger);
   const menu = await screen.findByRole("dialog", { name: "正文样式" });
   expect(trigger).toHaveAttribute("aria-expanded", "true");
-  expect(within(menu).getAllByRole("button").map((item) => item.textContent)).toEqual(["正文", "标题 2", "标题 3"]);
+  expect(within(menu).getAllByRole("button").map((item) => item.textContent)).toEqual(["正文", "H2", "H3"]);
   expect(container.contains(menu)).toBe(false);
   await userEvent.setup().keyboard("{Escape}");
   await waitFor(() => expect(screen.queryByRole("dialog", { name: "正文样式" })).toBeNull());
@@ -129,4 +129,38 @@ test("标题菜单只修改原选中段落，颜色、粗体和对齐可恢复�
   expect(editor.querySelectorAll("p")[1]).toHaveAttribute("data-wenyou-align", "center");
   expect(ref.current?.flush()).toContain('<span data-wenyou-color-v1="#3366FF">');
   expect(ref.current?.flush()).toContain("**彩色🙂中文**");
+});
+
+test("颜色和字体均从T菜单进入，字体直接打开分类样张面板且关闭回正文", async () => {
+  const { container } = render(<QueryClientProvider client={new QueryClient()}><MilkdownProvider><MilkdownEditorHost initialValue="甲乙" markdownContractVersion={7} textColorVersion={1} textColorWriteEnabled textFontVersion={2} textFontRenderingEnabled maxHeight={400} minHeight={280} ariaLabel="正文测试" /></MilkdownProvider></QueryClientProvider>);
+  const editor = await startAtMiddle(container);
+  const toolbar = await screen.findByRole("toolbar", { name: "正文格式工具栏" });
+  expect(within(toolbar).queryByRole("button", { name: "字体" })).toBeNull();
+  expect(toolbar.querySelector('[data-editor-tool="text-color"]')).toBeNull();
+  const user = userEvent.setup();
+  await user.click(within(toolbar).getByRole("button", { name: "切换正文样式" }));
+  const styles = await screen.findByRole("dialog", { name: "正文样式" });
+  expect(within(styles).getByRole("button", { name: "红色" })).toBeVisible();
+  await user.click(within(styles).getByRole("button", { name: "字体" }));
+  const fonts = await screen.findByRole("dialog", { name: "字体" });
+  expect(within(fonts).getAllByRole("tab").map(tab => tab.textContent)).toEqual(["中文", "日文", "英文"]);
+  expect(within(fonts).queryByRole("combobox")).toBeNull();
+  await user.click(within(fonts).getByRole("button", { name: "关闭字体面板" }));
+  expect(screen.queryByRole("dialog")).toBeNull();
+  expect(editor).toHaveFocus();
+  expect(editor).toHaveTextContent("甲乙");
+});
+
+test("原生组合输入尚未提交时T入口保留焦点，提交后可正常打开", async () => {
+  const { container } = render(<QueryClientProvider client={new QueryClient()}><MilkdownEditor defaultValue="甲乙" /></QueryClientProvider>);
+  const editor = await startAtMiddle(container);
+  const trigger = await screen.findByRole("button", { name: "切换正文样式" });
+  fireEvent.compositionStart(editor, { data: "候选" });
+  await userEvent.setup().click(trigger);
+  expect(screen.queryByRole("dialog", { name: "正文样式" })).toBeNull();
+  expect(editor).toHaveFocus();
+  expect(editor).toHaveTextContent("甲乙");
+  fireEvent.compositionEnd(editor, { data: "" });
+  await userEvent.setup().click(trigger);
+  expect(await screen.findByRole("dialog", { name: "正文样式" })).toBeVisible();
 });

@@ -42,7 +42,7 @@ export function SubthreadBody({
       </div> : null}
       {hasVisibleMarkdownContent(content) ? (
         <div className={hideRepeatedTitle ? undefined : "mt-5"}>
-          <MarkdownContent mentionIdentities={subthread.bodyPost?.mentionIdentities} mediaDisplays={subthread.bodyPost?.mediaDisplays} mediaAudios={subthread.bodyPost?.mediaAudios} content={content} diceRolls={subthread.bodyPost?.diceRolls} sourcePostId={subthread.bodyPost?.id} />
+          <MarkdownContent allowTextFont mentionIdentities={subthread.bodyPost?.mentionIdentities} mediaDisplays={subthread.bodyPost?.mediaDisplays} mediaAudios={subthread.bodyPost?.mediaAudios} content={content} diceRolls={subthread.bodyPost?.diceRolls} sourcePostId={subthread.bodyPost?.id} />
         </div>
       ) : (
         <p className="mt-4 text-sm text-muted-foreground">

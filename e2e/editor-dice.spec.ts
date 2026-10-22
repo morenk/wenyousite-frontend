@@ -290,7 +290,7 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
 
   const host = page.locator(".milkdown-editor").first();
   await host.evaluate((element) => {
-    element.style.width = "640px";
+    element.style.width = "580px";
   });
   await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
   for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {

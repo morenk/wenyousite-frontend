@@ -1,3 +1,4 @@
+import { fontCoordinationArguments, fontCandidateBuildSha256 } from "./e2e-font-coordination.mjs";
 import { spawn } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { cpSync, mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
@@ -52,7 +53,8 @@ async function freePort() {
 async function run() {
   const [evidencePath, ...args] = process.argv.slice(2);
   if (!evidencePath || !resolve(evidencePath).startsWith(join(frontend, ".e2e-results") + "/")) throw new Error("缺少私有测试报告位置");
-  assertBrowserArguments(args);
+  const coordination = fontCoordinationArguments(args);
+  assertBrowserArguments(coordination.browserArgs);
   resultPath = evidencePath;
   if ([".env", ".env.local", ".env.production", ".env.production.local"].some((name) => existsSync(join(frontend, name)))) {
     throw new Error("隔离候选必须使用不含私有 .env 文件的 Web checkout");
@@ -61,7 +63,7 @@ async function run() {
   const candidateId = randomUUID();
   const buildDir = join(frontend, ".next-e2e");
   // 构建和 Web 服务不获得登录账号、数据库连接串或后端密钥。
-  const env = { PATH: process.env.PATH, LANG: "C.UTF-8", TZ: "UTC", NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1",
+  const env = { PATH: process.env.PATH, LANG: "C.UTF-8", TZ: "UTC", NODE_OPTIONS: "--max-old-space-size=2304", NODE_ENV: "production", NEXT_TELEMETRY_DISABLED: "1",
     E2E_RUN_ID: run.manifest.runId, E2E_RESOURCE_ROOT: run.root,
     BACKEND_URL: run.manifest.backendURL, WENYOU_E2E_CANDIDATE_ID: candidateId };
   currentStage = "build";
@@ -80,7 +82,9 @@ async function run() {
   let serverLog = "";
   const captureServer = (data) => { serverLog = (serverLog + data.toString()).slice(-12000); };
   server.stdout.on("data", captureServer); server.stderr.on("data", captureServer);
-  const testEnv = { ...env, ...run.credentials, E2E_BASE_URL: origin, E2E_BUILD_DIR: join(preview, ".next-e2e"),
+  const testEnv = { ...env, ...run.credentials,
+    E2E_FONT_WEB_BUILD_SHA256: fontCandidateBuildSha256(join(preview, ".next-e2e")),
+    ...(coordination.mobileApkSha256 ? { E2E_FONT_MOBILE_APK_SHA256: coordination.mobileApkSha256 } : {}), E2E_BASE_URL: origin, E2E_BUILD_DIR: join(preview, ".next-e2e"),
     PLAYWRIGHT_NO_COPY_PROMPT: "1",
     E2E_SAFE_REPORT: join(run.root, "web-results.json"),
     RICH_TEXT_REAL_API: "true", RICH_TEXT_RUN_DIR: join(run.root, "rich-text") };
@@ -96,7 +100,7 @@ async function run() {
     throw new Error(`候选预检失败：${readinessError}`);
   }
   server.stdout.off("data", captureServer); server.stderr.off("data", captureServer);
-  const browserArgs = args.filter((arg) => arg !== "--matrix");
+  const browserArgs = coordination.browserArgs.filter((arg) => arg !== "--matrix");
   if (args.includes("--matrix")) testEnv.E2E_BROWSER_MATRIX = "true";
   currentStage = "browser";
   const tests = start("pnpm", ["exec", "playwright", "test", ...browserArgs,

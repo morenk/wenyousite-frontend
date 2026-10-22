@@ -414,3 +414,16 @@ describe("默认工具栏极窄回退", () => {
     expect(toolbar.querySelector(".top-bar-divider")).not.toHaveAttribute("hidden");
   });
 });
+
+
+test("T入口复用Foundation图标，重复同步及标题更新不会复制图标或丢失菜单语义", () => {
+ const root = document.createElement("div");
+ root.innerHTML = '<div class="milkdown-top-bar"><button class="top-bar-heading-button"><span class="top-bar-heading-label">正文</span></button></div>';
+ syncMilkdownToolbarItems(root, []);
+ root.querySelector(".top-bar-heading-label")!.textContent = "标题 2";
+ syncMilkdownToolbarItems(root, []);
+ expect(root.querySelectorAll(".top-bar-style-icon svg.lucide-type")).toHaveLength(1);
+ expect(root.querySelector("button")).toHaveAttribute("aria-haspopup", "dialog");
+ expect(root.querySelector("button")).toHaveAccessibleName("切换正文样式");
+ expect(root.querySelector(".top-bar-heading-label")).toHaveTextContent("标题 2");
+});

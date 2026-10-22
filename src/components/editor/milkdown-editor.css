@@ -314,7 +314,7 @@
  * Foundation 注入的是 Lucide 描边图标；在接入边界恢复其无填充约束，
  * 并以相同或更高的选择器优先级覆盖普通态与 active 态的上游规则。
  */
-.milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron) svg.lucide {
+.milkdown .milkdown-top-bar :is(.top-bar-item, .top-bar-chevron, .top-bar-heading-button) svg.lucide {
   fill: none;
   stroke: currentColor;
 }
@@ -325,6 +325,18 @@
 
 .milkdown .milkdown-top-bar .top-bar-heading-button {
   padding: 4px 2px 4px 8px;
+}
+
+.milkdown .milkdown-top-bar .top-bar-heading-label {
+  display: none;
+}
+
+.milkdown .milkdown-top-bar .top-bar-style-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
 }
 
 .milkdown .milkdown-top-bar .top-bar-heading-selector {

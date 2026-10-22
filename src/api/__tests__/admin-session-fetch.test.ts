@@ -65,3 +65,21 @@ it("社区请求迟到401只清社区身份，不把后台导航到login", async
   expect(getAuthAccessToken()).toBeNull();
   expect(getAdminSessionSnapshot().status).toBe("authenticated");
 });
+it.each(["complete","cancel"])("管理资产读流%s后释放请求登记",async mode=>{
+ let signal:AbortSignal|undefined;
+ const response=await createAuthenticatedFetch(async(input)=>{signal=(input as Request).signal;return new Response(new Uint8Array([1,2,3]));})("https://test.dev/api/v1/admin/text-fonts/versions/id/assets/test.png");
+ if(mode==="complete"){const reader=response.body!.getReader();expect(Array.from((await reader.read()).value!)).toEqual([1,2,3]);expect((await reader.read()).done).toBe(true);}else await response.body!.cancel();
+ authenticate("new-login");expect(signal!.aborted).toBe(false);
+});
+it("管理资产流的迟到分片不能跨会话继续展示",async()=>{
+ let body!:ReadableStreamDefaultController<Uint8Array>;
+ const cancel=vi.fn();const response=await createAuthenticatedFetch(async()=>new Response(new ReadableStream<Uint8Array>({start(controller){body=controller;},cancel})))("https://test.dev/api/v1/admin/text-fonts/versions/id/assets/test.png");
+ const reader=response.body!.getReader(),next=reader.read();authenticate("new-login");body.enqueue(new Uint8Array([1]));await expect(next).rejects.toMatchObject({name:"AbortError"});expect(cancel).toHaveBeenCalledTimes(1);
+});
+
+it("管理资产无正文响应立即释放请求登记",async()=>{
+ let signal:AbortSignal|undefined;
+ const response=await createAuthenticatedFetch(async(input)=>{signal=(input as Request).signal;return new Response(null,{status:404});})("https://test.dev/api/v1/admin/text-fonts/versions/id/assets/missing.png");
+ expect(response.status).toBe(404);expect(response.body).toBeNull();
+ authenticate("new-login");expect(signal!.aborted).toBe(false);
+});

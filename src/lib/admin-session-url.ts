@@ -6,6 +6,7 @@ export function safeAdminLoginReturn(value: string | null | undefined) {
     const url = new URL(value, "https://admin.invalid");
     const knownWorkspacePath =
       url.pathname === "/station/mobile-releases" ||
+      /^\/station\/text-fonts(?:\/(?:new|tff_[a-f0-9]{32}))?$/.test(url.pathname) ||
       /^\/station\/(dashboard|users|content|announcements|taxonomy|cases|appeals|operations|accounts|audit)(\/|$)/.test(
         url.pathname,
       );

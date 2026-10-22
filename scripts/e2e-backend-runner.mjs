@@ -4,7 +4,7 @@ import { createRequire } from "node:module";
 import { isAbsolute, join } from "node:path";
 
 /** 固定已提交 v1 接口；直接启动 supervisor，让终止信号不丢在包管理器中间层。 */
-export function backendRunner(env = process.env, discussionFixtures = false, roleMentionsV6 = false, textColorV1 = false) {
+export function backendRunner(env = process.env, discussionFixtures = false, roleMentionsV6 = false, textColorV1 = false, textFontV1 = false, textFontV2 = false) {
   const backend = env.WENYOUSITE_E2E_BACKEND_ROOT;
   const revision = env.WENYOUSITE_E2E_BACKEND_REF;
   if (!backend || !isAbsolute(backend) || !/^[a-f0-9]{40}$/.test(revision ?? "")) throw new Error("必须指定已提交 runner 的后端绝对路径与完整 SHA");
@@ -15,7 +15,13 @@ export function backendRunner(env = process.env, discussionFixtures = false, rol
   if (!existsSync(join(backend, "dist/main.js"))) throw new Error("后端必须先完成自身 pnpm check 和构建");
   const childEnv = { PATH: env.PATH, LANG: "C.UTF-8", TZ: "UTC" };
   for (const key of ["E2E_PG_BIN", "E2E_REDIS_BIN", "E2E_LIBRARY_PATH"]) if (env[key]) childEnv[key] = env[key];
+  if (textFontV2) {
+    for (const key of ["TEXT_FONT_TOOLCHAIN_DIR", "E2E_FONT_LEGACY_BUNDLE", "E2E_FONT_LEGACY_SOURCES"]) {
+      if (!env[key] || !isAbsolute(env[key]) || !existsSync(env[key])) throw new Error("动态字体隔离验收需要已核验工具链和真实历史资源");
+      childEnv[key] = env[key];
+    }
+  }
   const loader = createRequire(join(backend, "package.json")).resolve("tsx");
   return { backend, revision, env: childEnv, command: process.execPath,
-    args: ["--import", loader, join(backend, "scripts/e2e-runner.ts"), "--admin-fixtures", "--mobile-release-fixtures", ...(discussionFixtures ? ["--discussion-fixtures"] : []), ...(roleMentionsV6 ? ["--role-mentions-v6"] : []), ...(textColorV1 ? ["--text-color-v1"] : []), "--"] };
+    args: ["--import", loader, join(backend, "scripts/e2e-runner.ts"), "--admin-fixtures", "--mobile-release-fixtures", ...(discussionFixtures ? ["--discussion-fixtures"] : []), ...(roleMentionsV6 ? ["--role-mentions-v6"] : []), ...(textColorV1 ? ["--text-color-v1"] : []), ...(textFontV1 ? ["--text-font-v1"] : []), ...(textFontV2 ? ["--source", "--text-font-v2", "--text-font-v1-import"] : []), "--"] };
 }

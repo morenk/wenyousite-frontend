@@ -27,6 +27,13 @@ function message(overrides: Partial<DirectMessage> = {}): DirectMessage {
 afterEach(() => cleanup());
 
 describe("DirectMessageBubble", () => {
+  test("消息纯文本中的字体载体保持字面文本，不能注册或激活字体", () => {
+    const content = '<span data-wenyou-font-v1="great-vibes">ABC</span>';
+    const { container } = render(<DirectMessageBubble message={message({ content })} mine={false} />);
+    expect(container).toHaveTextContent(content);
+    expect(container.querySelector("[data-wenyou-font-v1], [style*='font-family']")).toBeNull();
+  });
+
   test("按纯文本展示正文并将链接安全地变为可点击链接", () => {
     const { container } = render(<DirectMessageBubble message={message()} mine={false} />);
     expect(screen.getByText(/访问/)).toBeInTheDocument();

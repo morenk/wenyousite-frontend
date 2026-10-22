@@ -16,6 +16,13 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    ...Object.fromEntries(["thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
+    ...Object.fromEntries(["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
+    "markdown-text-font-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
+    "markdown-text-font-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
+    "thread-font-catalog-v1.json": { schemaVersion: 1, fontVersion: 1, fonts: [] },
+    "thread-font-manifest-v1.json": { schemaVersion: 1, fonts: [] },
+    "thread-font-manifest-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "markdown-text-color-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
     "markdown-text-color-v1.schema.json": { $schema: "https://json-schema.org/draft/2020-12/schema" },
     "rp-identity-profile-post.v1.fixtures.json": { version: 1, contractVersion: "test", capability: "rpIdentityProfileSupported", cases: [] },
@@ -110,5 +117,6 @@ test("精确提交同步忽略后端未提交修改，并包含封面黄金fixtu
   expect(output).toContain(revision);
   expect(readFileSync(join(frontend, "contracts/openapi.json"), "utf8")).toBe(committed);
   expect(existsSync(join(frontend, "contracts/thread-cover-media-v1-fixtures.json"))).toBe(true);
+  for (const name of ["thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"]) expect(readFileSync(join(frontend, "contracts", name), "utf8")).toBe(git("show", revision + ":contracts/" + name));
   expect(existsSync(join(frontend, "contracts/markdown-block-boundary-v1-fixtures.json"))).toBe(true);
 });

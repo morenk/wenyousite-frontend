@@ -165,3 +165,21 @@ apiClient 在普通读取、SSR、导出及认证重放时独立发送 X-Text-Co
 两个字段在共享 `ThreadDetailResponseDto` 中保持可选，以兼容旧后端以及复用该 DTO 的创建/更新响应。新版详情 GET 返回真实非负整数，真实零保留为 `0`；字段缺失表示未知，Web 不补零、不保留此前响应的旧总数。既有详情 Hook 直接保留生成类型和响应值，重新读取时采用最新详情响应。本次不扩展 Web 布局、统计控件或 mutation 行为，不把创建/更新响应当成统计来源。
 
 完整同步同时带入 Backend #54 已提交的颜色与对齐组合夹具；正文协议不变。整合 Web #73 已提交 `48eb3e926b9a926152427849e7742ab03fa4aa43` 的测试配置与永久回归，并将通用夹具断言接入同一语义比较：排除 Crepe 非持久 heading id，保留标题级别、对齐、全部文字与格式及序列化幂等校验；不改生产编辑器。Foundation 维持正式 v7.4.0，不增加视觉契约、Markdown 版本或数据迁移。消费者测试覆盖正数、真实零、字段独立缺失、全部缺失及重新读取后的更新/缺失，检查使用同一 Backend SHA。发布仍是兼容 Backend 先行；Web 本批仅保源兼容，不部署、不删除旧协议。
+
+## 文本字体 v1 能力协商
+
+本批精确同步 Backend `f27898ec3b168b9e027b5d5abef43a0d3dafa242`（API `5.42.0-dev.20261022.1`），生成类型、原字体 schema/fixture/目录/manifest 及独立运行策略 v2 JSON/schema/fixture 同源。v1 消费者独立发送 `X-Text-Font-Version: 1`（当前 Web 声明包含 v1 的版本 2）；仅支持 v1 的后端上，所有主题、子帖、楼层/回复和草稿写入发送 `textFontVersion: 1`，包括删除全部字体，冻结请求不被后续 meta 刷新补入能力。`textFontV1Supported` 与 `textFontV1WriteEnabled` 独立，缺省关闭；40019/40020 刷新 meta 并保留输入，40021 表示非法字体源码。
+
+目录经共享 `queryKeys.textFonts` 与 `apiClient` 读取 `/api/v1/meta/text-fonts`，5 分钟过期。空 `assetBaseUrl` 不请求资源；ready 仅代表资源清单已核验，不代表发布或新写开放。目录 1.2.0 登记 28 款，主要设计语言 `designLanguage` 为中文 12、日文 10、英文 6；28 款均为 ready，包含怪盗予告黑体。站酷小薇体是未发布候选，已移除，不涉及线上迁移。小城拉风体已退役：历史 ID 继续解析与保源，显示默认字体，不提供新选择或资源加载；新 v2 不含原件独立额度。分类不等于完整字符覆盖，缺失或未来分类值显示未分类，不按名称推断。发布顺序仍是兼容后端、可读保源消费者、自有资源独立发布、显式批准新写，详见[正文协议](markdown-content-protocol.md#文本字体-v1)。
+
+独立运行策略经 `queryKeys.textFontPolicy` 与 `apiClient` 读取 `/api/v1/meta/text-fonts/runtime-policy`，5 分钟过期；目录和策略均按暂时错误静默退避，先前合法缓存仍可离线使用。策略严格校验并绑定 manifest SHA 后才启用文档级可回收驻留和滑动网络窗口；旧后端 404、未知版本或错绑使用旧限额，空资源地址始终系统回退。元数据传输与字库共用请求账本，预占并流式限制 64 KiB，公开请求不携带认证。详见[正文协议的资源生命周期](markdown-content-protocol.md#文本字体-v1)。
+
+v2 严格消费显式无进度超时和独立总传输上限，不接受已移除的原件额外字段；旧 v1 超时与限额语义保持兼容。
+
+## 动态文本字体 v2
+
+动态契约同步自 Backend `62a0313a75c85e42dfa39cd09b7cc90ae5c34186`（API `5.43.0-dev.20261022.3`）。共享 v2 Markdown/schema、分页与状态夹具、manifest v2、runtime-policy v3 和 v1 导入映射通过统一同步入口取得，生成类型不手改。`apiClient` 声明 `X-Text-Font-Version: 2`；写请求按服务器能力冻结 `textFontVersion: 2`（旧服务端仅支持 v1 时声明 1），新写开关独立判断。
+
+公共目录 `/meta/text-fonts/v2`、版本描述符与策略统一经过受限元数据传输；同源版本资产经 `apiClient` 返回流，由字体加载器核验格式、长度、SHA 与预算。公共字体请求不携带用户会话；管理预览使用后台 Cookie，流结束、取消或会话变化均释放管理请求登记。管理 CRUD、原始上传和版本动作位于 `/admin/text-fonts`，行为见[站务模块](admin-station.md#正文字体)。新协议保留 v1 兼容资源，正文语义与缓存规则见[正文协议](markdown-content-protocol.md#文本字体-v2)。
+
+固定 v1 导入集合全部发布后，后端才声明 v2 支持。同一浏览器文档一旦见到 `textFontV2Supported=true`，历史 v1 ID 就按已提交导入表固定访问对应 v2 版本描述符和资产网关，不随家族当前版本变化。后续能力 false、缺失、请求失败均不退回旧 manifest/CDN；已知撤回优先于能力声明。描述符暂时失败或 404 保留最后可信权限，只复用已核验缓存，不发起新的资产请求；未知版本使用默认字体，原文仍保留 v1 标记。
