@@ -709,10 +709,18 @@ for (const quoted of [false, true]) {
     await expect(paragraph).toBeVisible();
     const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
 
-    // 经编辑器键盘路径定位，并确认实际光标；DOM 选区后调用 focus
-    // 会与 ProseMirror 的焦点恢复竞争，不能用正文可见代替选区已就绪。
-    await editor.press("Control+Home");
-    await editor.press("ArrowRight");
+    // 与 placeCaretAtEnd 一样，先聚焦，再设置选区并通知 ProseMirror。
+    // DOM 光标可见并不表示异步 selectionchange 已被编辑器状态消费。
+    await paragraph.evaluate((element) => {
+      element.closest<HTMLElement>('[contenteditable="true"]')?.focus();
+      const range = document.createRange();
+      range.setStart(element.firstChild!, 1);
+      range.collapse(true);
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      document.dispatchEvent(new Event("selectionchange"));
+    });
     await expect.poll(() => paragraph.evaluate((element) => {
       const selection = window.getSelection();
       if (!selection?.isCollapsed || !selection.focusNode || !element.contains(selection.focusNode)) return null;

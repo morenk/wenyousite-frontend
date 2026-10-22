@@ -4,36 +4,45 @@ import { afterEach, expect, test, vi } from "vitest";
 import { useEditorOutsideDismiss } from "../use-editor-outside-dismiss";
 
 function Harness({ dismiss, disabled = false }: { dismiss: () => Promise<unknown>; disabled?: boolean }) {
-  const onPointerDownCapture = useEditorOutsideDismiss(dismiss, disabled);
-  return <div onPointerDownCapture={onPointerDownCapture}>
+  const events = useEditorOutsideDismiss(dismiss, disabled);
+  return <div {...events}>
     <textarea aria-label="正文" />
     {createPortal(<button>编辑器弹出菜单</button>, document.body)}
   </div>;
 }
 afterEach(cleanup);
-test("正文和 Portal 菜单不触发收起，外部主键点击仅触发一次", async () => {
+test("正文与 Portal 菜单不收起，外部点击完成后仅关闭一次", async () => {
   let finish: () => void = () => {};
   const dismiss = vi.fn(() => new Promise<void>((resolve) => { finish = resolve; }));
   render(<Harness dismiss={dismiss} />);
-  fireEvent.pointerDown(screen.getByLabelText("正文"), { button: 0 });
-  fireEvent.pointerDown(screen.getByRole("button", { name: "编辑器弹出菜单" }), { button: 0 });
-  fireEvent.pointerDown(document.body, { button: 2 });
+  fireEvent.click(screen.getByLabelText("正文"));
+  fireEvent.click(screen.getByRole("button", { name: "编辑器弹出菜单" }));
+  fireEvent.click(document.body, { button: 2 });
+  fireEvent.pointerDown(document.body, { button: 0 });
+  await Promise.resolve();
   expect(dismiss).not.toHaveBeenCalled();
-  fireEvent.pointerDown(document.body, { button: 0 });
-  fireEvent.pointerDown(document.body, { button: 0 });
-  expect(dismiss).toHaveBeenCalledOnce();
-  finish();
+  fireEvent.click(document.body, { button: 0 });
+  fireEvent.click(document.body, { button: 0 });
   await waitFor(() => expect(dismiss).toHaveBeenCalledOnce());
+  finish();
 });
-test("禁用与全局确认对话框交互不会触发收起，卸载移除监听", () => {
+test("从正文拖动到外部不收起，禁用和全局确认流程也不收起", async () => {
   const dismiss = vi.fn().mockResolvedValue(false);
-  const view = render(<Harness dismiss={dismiss} disabled />);
-  fireEvent.pointerDown(document.body, { button: 0 });
+  const view = render(<Harness dismiss={dismiss} />);
+  fireEvent.pointerDown(screen.getByLabelText("正文"), { button: 0 });
+  fireEvent.click(document.body, { detail: 1 });
+  await Promise.resolve();
+  expect(dismiss).not.toHaveBeenCalled();
+  view.rerender(<Harness dismiss={dismiss} disabled />);
+  fireEvent.click(document.body);
+  await Promise.resolve();
   expect(dismiss).not.toHaveBeenCalled();
   view.rerender(<><Harness dismiss={dismiss} /><div role="alertdialog"><button>保留正文</button></div></>);
-  fireEvent.pointerDown(screen.getByText("保留正文"), { button: 0 });
+  fireEvent.click(screen.getByText("保留正文"));
+  await Promise.resolve();
   expect(dismiss).not.toHaveBeenCalled();
   view.unmount();
-  fireEvent.pointerDown(document.body, { button: 0 });
+  fireEvent.click(document.body);
+  await Promise.resolve();
   expect(dismiss).not.toHaveBeenCalled();
 });

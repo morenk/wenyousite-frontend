@@ -4,7 +4,7 @@
 
 import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import type { MentionIdentity } from "@/lib/thread-identity";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Check, Loader2, Send } from "lucide-react";
 import { toast } from "sonner";
 import { useCreatePost, type CreatePostArgs } from "@/api/hooks/use-create-post";
@@ -101,7 +101,8 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, setSessionMediaAudios, uploadImage.isPending]);
   useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
 
-  const onPointerDownCapture = useEditorOutsideDismiss(close, pending || uploadImage.isPending || uncertain);
+  const dismiss = useCallback(() => close({ sessionKey }), [close, sessionKey]);
+  const outsideDismiss = useEditorOutsideDismiss(dismiss, pending || uploadImage.isPending || uncertain);
 
   if (!session) return null;
 
@@ -184,7 +185,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   );
 
   return (
-    <div ref={containerRef} onPointerDownCapture={onPointerDownCapture} className="space-y-2">
+    <div ref={containerRef} {...outsideDismiss} className="space-y-2">
       {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
       {session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
