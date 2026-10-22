@@ -211,7 +211,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
   test.each([
     { enabled: false, eligible: true },
     { enabled: true, eligible: false },
-  ])("开关/资格失效后回复编辑器恢复标题并保留正文：%j", async ({ enabled, eligible }) => {
+  ])("开关/资格失效后隐藏身份并保留正文：%j", async ({ enabled, eligible }) => {
     mocks.rp = true;
     renderHarness();
     await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
@@ -220,7 +220,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     mocks.identityEligible = eligible;
     await userEvent.type(screen.getByTestId("milkdown-editor"), "继续编辑正文");
     expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
-    expect(screen.getByText("发表回复")).toBeInTheDocument();
+    expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
     expect(screen.getByTestId("milkdown-editor")).toHaveValue("继续编辑正文");
     await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
     expect(screen.getByText("回复 @小明")).toBeInTheDocument();
@@ -260,7 +260,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: "发表入口" }));
     expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
-    expect(screen.getByText("发表回复")).toBeInTheDocument();
+    expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "回复入口" }));
     expect(screen.getAllByTestId("milkdown-editor")).toHaveLength(1);
@@ -346,7 +346,8 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     await user.click(screen.getByRole("button", { name: "发布" }));
     await waitFor(() => expect(mocks.error).toHaveBeenCalled());
     expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
-    expect(screen.getByRole("button", { name: "收起" })).toBeDisabled();
+    await user.click(document.body);
+    expect(screen.getByTestId("milkdown-editor")).toHaveValue("重试正文");
     await user.click(screen.getByRole("button", { name: "重试确认发表" }));
 
     await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
@@ -438,7 +439,7 @@ test("明确失败后收起保留正文，再开普通楼层提交不携带旧�
   await userEvent.type(screen.getByTestId("milkdown-editor"), "失败后续写");
   await userEvent.click(screen.getByRole("button", { name: /^回复$/ }));
   await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(1));
-  await userEvent.click(screen.getByRole("button", { name: "收起" }));
+  await userEvent.click(document.body);
   await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
   expect(screen.getByTestId("milkdown-editor")).toHaveValue("失败后续写");
   await userEvent.click(screen.getByRole("button", { name: "发布" }));
@@ -464,7 +465,7 @@ test("上传中的编辑器禁止切换到另一回复入口", async () => {
   renderHarness();
   await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
   await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
-  expect(screen.getByText("发表回复")).toBeInTheDocument();
+  expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
   expect(screen.queryByText("回复 @小明")).not.toBeInTheDocument();
 });
 
@@ -484,5 +485,27 @@ test("路由卸载前同步未 debounce 的最后一段，重挂后可在另一�
   await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
   expect(screen.getByTestId("milkdown-editor")).toHaveValue("最后一段未同步");
 });
+
+
+ test("外部点击同步最后输入并收起，重开保留草稿；发布位于编辑器页脚", async () => {
+  mocks.deferChange = true;
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  expect(screen.queryByRole("button", { name: "收起" })).not.toBeInTheDocument();
+  expect(screen.getByTestId("editor-footer")).toContainElement(screen.getByRole("button", { name: "发布" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "最后输入");
+  await userEvent.click(document.body);
+  expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("最后输入");
+ });
+ test("外部点击不能收起上传中的编辑器", async () => {
+  mocks.uploadPending = true;
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+  await userEvent.type(screen.getByTestId("milkdown-editor"), "上传中的正文");
+  await userEvent.click(document.body);
+  expect(screen.getByTestId("milkdown-editor")).toHaveValue("上传中的正文");
+ });
 
 });

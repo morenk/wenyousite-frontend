@@ -11,11 +11,11 @@ export function withEditorSubmission(Component: ComponentType<MilkdownEditorProp
       if (pending.current) { pending.current = false; onChange?.(value.current); }
       return value.current;
     } }), [onChange]);
-    return <Component {...props} onChange={(next) => {
+    return <><Component {...props} footerActions={undefined} onChange={(next) => {
       value.current = next;
       props.onDocumentChange?.();
       pending.current = options?.deferChange?.() ?? false;
       if (!pending.current) props.onChange?.(next);
-    }} />;
+    }} />{props.footerActions && <div data-testid="editor-footer">{props.footerActions}</div>}</>;
   };
 }

@@ -240,8 +240,9 @@
 }
 
 .milkdown-editor .ProseMirror {
+  height: var(--editor-user-height, auto);
   min-height: var(--editor-min-height, 280px);
-  max-height: var(--editor-max-height, 400px);
+  max-height: var(--editor-user-height, var(--editor-max-height, 400px));
   overflow-y: auto;
 }
 

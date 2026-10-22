@@ -1,4 +1,4 @@
-import type { Ref } from "react";
+import type { ReactNode, Ref } from "react";
 import type { MentionIdentity } from "@/lib/thread-identity";
 import type { MarkdownMediaAudio } from "@/lib/markdown-audio";
 import type { MarkdownMediaDisplay } from "@/lib/media-display";
@@ -24,6 +24,10 @@ export interface MilkdownEditorProps {
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
+  /** 业务提交操作，位于字数右侧；不传时保持普通编辑器页脚。 */
+  footerActions?: ReactNode;
+  /** 是否允许拖动调整正文高度；默认开启。 */
+  resizable?: boolean;
   /** 内容区最大高度（px），超过后内容区出现滚动条；默认 400 */
   maxHeight?: number;
   /** 内容区最小高度（px），保证空白区可点击落位；默认 280 */

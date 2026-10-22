@@ -709,16 +709,26 @@ for (const quoted of [false, true]) {
     await expect(paragraph).toBeVisible();
     const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
 
-    await paragraph.evaluate((el) => {
-      const text = el.firstChild!;
+    // 与 placeCaretAtEnd 一样，先聚焦，再设置选区并通知 ProseMirror。
+    // DOM 光标可见并不表示异步 selectionchange 已被编辑器状态消费。
+    await paragraph.evaluate((element) => {
+      element.closest<HTMLElement>('[contenteditable="true"]')?.focus();
       const range = document.createRange();
-      range.setStart(text, 1);
+      range.setStart(element.firstChild!, 1);
       range.collapse(true);
-      const selection = window.getSelection()!;
-      selection.removeAllRanges();
-      selection.addRange(range);
-      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
+      const selection = window.getSelection();
+      selection?.removeAllRanges();
+      selection?.addRange(range);
+      document.dispatchEvent(new Event("selectionchange"));
     });
+    await expect.poll(() => paragraph.evaluate((element) => {
+      const selection = window.getSelection();
+      if (!selection?.isCollapsed || !selection.focusNode || !element.contains(selection.focusNode)) return null;
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.setEnd(selection.focusNode, selection.focusOffset);
+      return range.toString();
+    })).toBe("甲");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");

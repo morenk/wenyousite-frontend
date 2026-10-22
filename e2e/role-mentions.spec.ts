@@ -179,7 +179,7 @@ test("平级角色@保留同名目标、账号通知去重、复制编辑和新�
     }, copied);
     await expect(pasteEditor.locator('a[href$="rpIdentityId=' + a.identityId + '"]')).toHaveText("@同名角色");
     await expect(pasteEditor.locator('a[href$="rpIdentityId=' + b.identityId + '"]')).toHaveText("@同名角色");
-    await senderPage.getByRole("button", { name: "收起", exact: true }).click();
+    await senderPage.locator("body").click({ position: { x: 2, y: 2 } });
     await expect(pasteEditor).toBeHidden();
 
     // 门禁返回空集合时前端不能改问旧主身份候选；全体玩家权限仍由原字段控制。

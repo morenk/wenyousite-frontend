@@ -55,6 +55,8 @@ export type ThreadComposerSession =
   | EditComposerSession;
 
 interface CloseOptions {
+  /** 外部点击只关闭其观察到的会话，不能关闭随后切换的新目标。 */
+  sessionKey?: string;
   force?: boolean;
   preserveReplyDraft?: boolean;
 }
@@ -242,9 +244,11 @@ function ThreadComposerScope({ children, threadId, drafts }: { children: ReactNo
     setContent(draft?.content ?? nextSession.initialContent);
     return true;
   }, [confirmDiscard, drafts, threadId, saveReplyDraft, setContent, setEditorValid, setIdentitySelection, setPendingCreate]);
-  const close = useCallback(async ({ force = false, preserveReplyDraft = false }: CloseOptions = {}) => {
+  const close = useCallback(async ({ force = false, preserveReplyDraft = false, sessionKey }: CloseOptions = {}) => {
+    if (sessionKey && live.current.session?.key !== sessionKey) return false;
     if (!live.current.active || (!force && live.current.pending)) return false;
     if (!force && !(await confirmDiscard())) return false;
+    if (sessionKey && live.current.session?.key !== sessionKey) return false;
     if (!live.current.active) return false;
     if (force && !preserveReplyDraft) drafts.delete(threadId ?? "");
     else saveReplyDraft();

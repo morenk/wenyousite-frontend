@@ -514,7 +514,7 @@ describe("FloorCard", () => {
     expect(preview).not.toHaveClass("overflow-hidden");
     expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
 
-    await user.click(within(inline).getByRole("button", { name: "收起" }));
+    await user.click(document.body);
     expect(preview).not.toHaveClass("overflow-hidden");
     expect(screen.getByRole("link", { name: "展开楼中楼（1 条）" })).toBeInTheDocument();
   });
@@ -628,7 +628,7 @@ describe("FloorCard", () => {
     expect(toast.error).toHaveBeenCalledWith("内容已被修改，请刷新后重试");
   });
 
-  test("取消编辑不调用保存", async () => {
+  test("外部点击退出未修改的编辑正文，不调用保存", async () => {
     const user = userEvent.setup();
     mockUseAuth.mockReturnValue({
       user: { id: "u1", username: "测试用户" },
@@ -638,7 +638,7 @@ describe("FloorCard", () => {
 
     await user.click(screen.getByRole("button", { name: "更多楼层操作" }));
     await user.click(screen.getByRole("menuitem", { name: "编辑" }));
-    await user.click(screen.getByRole("button", { name: "取消" }));
+    await user.click(document.body);
 
     expect(mockUpdateMutateAsync).not.toHaveBeenCalled();
     expect(screen.queryByTestId("milkdown-editor")).toBeNull();
