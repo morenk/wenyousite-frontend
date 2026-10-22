@@ -1,7 +1,7 @@
 import { Plugin, PluginKey, TextSelection, AllSelection, type EditorState, type SelectionBookmark } from "@milkdown/kit/prose/state";
 import { closeHistory, isHistoryTransaction } from "@milkdown/kit/prose/history";
 import type { EditorView } from "@milkdown/kit/prose/view";
-import type { Node } from "@milkdown/kit/prose/model";
+import { Mark, type Node } from "@milkdown/kit/prose/model";
 import { $prose } from "@milkdown/kit/utils";
 import { normalizeTextColor, TEXT_COLOR_MARK } from "@/lib/markdown-text-color";
 import { parseMentionTarget } from "@/lib/mention";
@@ -14,30 +14,74 @@ export function isColorableText(node: Node) {
 }
 
 const caretColor = new PluginKey<{ color: string | null } | null>("wenyou-caret-color");
+function restoreTypingColor(state: EditorState) {
+  const active = caretColor.getState(state);
+  const type = state.schema.marks[TEXT_COLOR_MARK];
+  if (!active || !type || !state.selection.empty) return null;
+  const marks = state.storedMarks ?? state.selection.$from.marks();
+  const next = active.color ? type.create({ color: active.color }).addToSet(marks) : type.removeFromSet(marks);
+  if (state.storedMarks && Mark.sameSet(state.storedMarks, next)) return null;
+  return state.tr.setStoredMarks(next).setMeta("addToHistory", false);
+}
+
 /** 显式选色的输入模式保留到主动移动光标；输入、IME 和换段不误清除。 */
-export const editorTextColorTyping = $prose(() => new Plugin({
-  key: caretColor,
-  state: {
-    init: () => null,
-    apply: (tr, active, oldState) => {
-      const action = tr.getMeta(caretColor);
-      if (action) return action.active;
-      if (isHistoryTransaction(tr)) return null;
-      // replaceAll / 草稿恢复等整篇替换不延续输入模式。
-      if (tr.docChanged && tr.steps.some((step) => { const json = step.toJSON(); return json.stepType === "replace" && json.from === 0 && json.to === oldState.doc.content.size; })) return null;
-      if (tr.selectionSet && !tr.docChanged && !tr.selection.eq(oldState.selection)) return null;
-      return active;
+export const editorTextColorTyping = $prose(() => {
+  let view: EditorView | undefined;
+  let compositionEnd: ReturnType<typeof setTimeout> | undefined;
+  return new Plugin({
+    key: caretColor,
+    state: {
+      init: () => null,
+      apply: (tr, active, oldState) => {
+        const action = tr.getMeta(caretColor);
+        if (action) return action.active;
+        if (isHistoryTransaction(tr)) return null;
+        // replaceAll / 草稿恢复等整篇替换不延续输入模式。
+        if (tr.docChanged && tr.steps.some((step) => { const json = step.toJSON(); return json.stepType === "replace" && json.from === 0 && json.to === oldState.doc.content.size; })) return null;
+        if (tr.selectionSet && !tr.docChanged && !tr.selection.eq(oldState.selection)) return null;
+        return active;
+      },
     },
-  },
-  appendTransaction: (transactions, _old, state) => {
-    const active = caretColor.getState(state);
-    const type = state.schema.marks[TEXT_COLOR_MARK];
-    if (!active || !type || !state.selection.empty || !transactions.some((tr) => tr.docChanged)) return null;
-    const marks = state.storedMarks ?? state.selection.$from.marks();
-    const next = active.color ? type.create({ color: active.color }).addToSet(marks) : type.removeFromSet(marks);
-    return state.tr.setStoredMarks(next).setMeta("addToHistory", false);
-  },
-}));
+    appendTransaction: (transactions, _old, state) => {
+      // ProseMirror 收到 storedMarks 会主动结束组合输入并改写 DOM 选区，
+      // 浏览器随后可能丢失 compositionend。组词期间由原生 DOM 保留颜色。
+      if (view?.composing || !transactions.some((tr) => tr.docChanged)) return null;
+      return restoreTypingColor(state);
+    },
+    props: {
+      handleTextInput: (editorView, from, to, text, defaultTransaction) => {
+        const { state } = editorView;
+        const active = caretColor.getState(state);
+        const type = state.schema.marks[TEXT_COLOR_MARK];
+        if (!active || !type || !state.doc.resolve(from).parent.type.allowsMarkType(type)) return false;
+        // 非 inclusive 颜色在整段候选替换时不会被 insertText 继承。
+        // 只给本次输入范围补色，保留默认事务的选区/组合元数据，不设置 storedMarks。
+        const transaction = defaultTransaction();
+        if (active.color) transaction.addMark(from, from + text.length, type.create({ color: active.color }));
+        else transaction.removeMark(from, from + text.length, type);
+        editorView.dispatch(transaction);
+        return true;
+      },
+      handleDOMEvents: {
+        compositionstart: () => { clearTimeout(compositionEnd); return false; },
+        compositionend: () => {
+          clearTimeout(compositionEnd);
+          // 等原生结束事件及最后的 DOM 事务处理完，再恢复下次输入的显式色。
+          compositionEnd = setTimeout(() => {
+            if (!view || view.isDestroyed || view.composing) return;
+            const transaction = restoreTypingColor(view.state);
+            if (transaction) view.dispatch(transaction);
+          }, 0);
+          return false;
+        },
+      },
+    },
+    view: (editorView) => {
+      view = editorView;
+      return { destroy: () => { clearTimeout(compositionEnd); view = undefined; } };
+    },
+  });
+});
 
 export function getEditorTextColor(state: EditorState): { enabled: boolean; color: string | null | undefined } {
   const type = state.schema.marks[TEXT_COLOR_MARK];
@@ -53,6 +97,7 @@ export function getEditorTextColor(state: EditorState): { enabled: boolean; colo
 }
 
 export function applyEditorTextColor(view: EditorView, value: string | null, bookmark?: SelectionBookmark) {
+  if (view.composing) return false;
   const color = value === null ? null : normalizeTextColor(value);
   if (value !== null && !color) return false;
   const type = view.state.schema.marks[TEXT_COLOR_MARK];

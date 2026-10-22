@@ -709,16 +709,18 @@ for (const quoted of [false, true]) {
     await expect(paragraph).toBeVisible();
     const lineHeight = await paragraph.evaluate((el) => Number.parseFloat(getComputedStyle(el).lineHeight));
 
-    await paragraph.evaluate((el) => {
-      const text = el.firstChild!;
+    // 经编辑器键盘路径定位，并确认实际光标；DOM 选区后调用 focus
+    // 会与 ProseMirror 的焦点恢复竞争，不能用正文可见代替选区已就绪。
+    await editor.press("Control+Home");
+    await editor.press("ArrowRight");
+    await expect.poll(() => paragraph.evaluate((element) => {
+      const selection = window.getSelection();
+      if (!selection?.isCollapsed || !selection.focusNode || !element.contains(selection.focusNode)) return null;
       const range = document.createRange();
-      range.setStart(text, 1);
-      range.collapse(true);
-      const selection = window.getSelection()!;
-      selection.removeAllRanges();
-      selection.addRange(range);
-      (el.closest('[contenteditable="true"]') as HTMLElement).focus();
-    });
+      range.selectNodeContents(element);
+      range.setEnd(selection.focusNode, selection.focusOffset);
+      return range.toString();
+    })).toBe("甲");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
     await page.keyboard.press("Enter");
