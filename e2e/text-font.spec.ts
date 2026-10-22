@@ -13,13 +13,20 @@ const manifestHash = createHash("sha256").update(manifestBytes).digest("hex");
 test("字体与颜色的选区应用、真实保存、旧端保护、复制及草稿恢复", async ({ page }) => {
   test.setTimeout(180000);
   const run = await requireIsolationRunner();
-  // 此用例保留 v1-only 服务端能力回归；动态 v2 的真实能力与上传链路由独立用例验收。
-  await page.route("**/api/v1/meta", async route => {
-    const response = await route.fetch(); const json = await response.json();
-    json.data.capabilities.textFontV2Supported = false;
-    json.data.capabilities.textFontV2WriteEnabled = false;
-    await route.fulfill({ response, json });
+  // 此用例保留 v1-only 能力回归；先让浏览器经隔离 HTTP 代理读取真实 meta。
+  // route.fetch 使用的请求上下文会发 CONNECT，被隔离代理按设计拒绝。
+  await page.goto("/");
+  const metadata = await page.evaluate(async () => {
+    const response = await fetch("/api/v1/meta");
+    return { status: response.status, contentType: response.headers.get("content-type"), body: await response.text() };
   });
+  expect(metadata.status, "v1 能力夹具必须读取完整 meta 响应").toBe(200);
+  expect(metadata.contentType).toContain("application/json");
+  const v1Metadata = JSON.parse(metadata.body);
+  expect(v1Metadata.data.capabilities.textFontV1Supported).toBe(true);
+  v1Metadata.data.capabilities.textFontV2Supported = false;
+  v1Metadata.data.capabilities.textFontV2WriteEnabled = false;
+  await page.route("**/api/v1/meta", route => route.fulfill({ json: v1Metadata }));
   // 正式 runner 未发布字体资源；仅替换目录资源配置并在浏览器内模拟离线。
   // API 写入仍经本轮隔离代理，字体外网请求在发出前被此路由消费。
   await page.route("**/api/v1/meta/text-fonts", async route => {
@@ -134,6 +141,7 @@ test("字体与颜色的选区应用、真实保存、旧端保护、复制及�
   await page.getByRole("region", { name: "正文草稿", exact: true }).getByRole("button", { name: "恢复", exact: true }).first().click();
   await page.getByRole("button", { name: "覆盖并恢复", exact: true }).click();
   await expect(composing.locator('[data-wenyou-font-v1="wenkai"]')).toHaveCount(9); await expect(composing).not.toContainText("临时修改");
-  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
+  await expect(composing).toHaveCount(0);
   expect((await request("GET", "/api/v1/drafts/" + draft.body.data.id)).body.data.content).toBe(source);
 });
