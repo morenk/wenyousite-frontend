@@ -37,7 +37,7 @@ export function applyFontWithoutScrollJump(root: HTMLElement, apply: () => void)
   if (owner && range && before !== undefined) owner.scrollTop += range.getBoundingClientRect().top - before;
 }
 
-export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, contentVersion?: unknown, onStatus?: (status: "loading" | "ready" | "fallback") => void, enabled = true) {
+export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, contentVersion?: unknown, onStatus?: (status: "loading" | "ready" | "fallback") => void, enabled = true, scope?: symbol) {
   const client = useContext(QueryClientContext);
   const environment = useContext(TextFontEnvironment);
   useEffect(() => {
@@ -84,9 +84,9 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
       if (ready !== metaReady) { metaReady = ready; refresh(); }
     });
     const tracking = observeFontDemands(root, (fontId, text, emit) => {
-      if(isDynamicTextFont(fontId)){onStatus?.("loading");return dynamicTextFontRuntime().watch(fontId,text,emit);}
+      if(isDynamicTextFont(fontId)){onStatus?.("loading");return dynamicTextFontRuntime().watch(fontId,text,emit,scope);}
       const route = legacyTextFontRouting.route(fontId);
-      if (route === "mapped-v2") { onStatus?.("loading"); return dynamicTextFontRuntime().watch(importedTextFontVersion(fontId)!, text, emit); }
+      if (route === "mapped-v2") { onStatus?.("loading"); return dynamicTextFontRuntime().watch(importedTextFontVersion(fontId)!, text, emit,scope); }
       if (route === "default-font" || !metaReady) {
         emit({ family: "var(--wenyou-font-body-family, system-ui)", status: "fallback" });
         return () => {};
@@ -104,5 +104,5 @@ export function useVisibleTextFonts(rootRef: RefObject<HTMLElement | null>, cont
     });
     return () => { alive = false; tracking.disconnect(); unsubscribe?.(); releaseMeta?.(); releaseRouting(); releasePermissions(); };
 
-  }, [client, environment, rootRef, contentVersion, onStatus, enabled]);
+  }, [client, environment, rootRef, contentVersion, onStatus, enabled, scope]);
 }

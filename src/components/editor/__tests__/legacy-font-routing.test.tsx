@@ -65,7 +65,7 @@ test("先确认能力再加载：旧源固定映射，能力降级不回旧通�
   );
   const id = importedTextFontVersion("great-vibes")!;
   await waitFor(() =>
-    expect(env.dynamic).toHaveBeenCalledWith(id, "Aa", expect.any(Function)),
+    expect(env.dynamic).toHaveBeenCalledWith(id, "Aa", expect.any(Function), undefined),
   );
   for (const capability of [false, undefined]) {
     await act(async () => {

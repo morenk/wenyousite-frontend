@@ -1,7 +1,7 @@
 import { Plugin, PluginKey, TextSelection, AllSelection, type EditorState, type SelectionBookmark } from "@milkdown/kit/prose/state";
 import { closeHistory, isHistoryTransaction } from "@milkdown/kit/prose/history";
 import type { EditorView } from "@milkdown/kit/prose/view";
-import type { Node } from "@milkdown/kit/prose/model";
+import { Mark, type Node } from "@milkdown/kit/prose/model";
 import { $prose } from "@milkdown/kit/utils";
 import { normalizeTextFont, isSelectableTextFont, TEXT_FONT_MARK } from "@/lib/markdown-text-font";
 import { parseMentionTarget } from "@/lib/mention";
@@ -15,7 +15,14 @@ export function isFontableText(node: Node) {
 
 const caretFont = new PluginKey<{ fontId: string | null } | null>("wenyou-caret-font");
 /** 显式选字体的输入模式保留到主动移动光标；输入、IME 和换段不误清除。 */
-export const editorTextFontTyping = $prose(() => new Plugin({
+export const editorTextFontTyping = $prose(() => {
+  let editorView: EditorView | null = null;
+  let compositionTimer: ReturnType<typeof setTimeout> | undefined;
+  return new Plugin({
+  view: (view) => {
+    editorView = view;
+    return { destroy: () => { editorView = null; clearTimeout(compositionTimer); } };
+  },
   key: caretFont,
   state: {
     init: () => null,
@@ -29,15 +36,37 @@ export const editorTextFontTyping = $prose(() => new Plugin({
       return active;
     },
   },
+  props: {
+    handleDOMEvents: {
+      compositionend: (view) => {
+        // 浏览器先提交最终组合文字，再恢复非 inclusive 字体的后续输入标记。
+        clearTimeout(compositionTimer);
+        compositionTimer = setTimeout(() => {
+          if (view.isDestroyed || view.composing) return;
+          const active = caretFont.getState(view.state);
+          const type = view.state.schema.marks[TEXT_FONT_MARK];
+          if (!active || !type || !view.state.selection.empty) return;
+          const marks = view.state.storedMarks ?? view.state.selection.$from.marks();
+          const next = active.fontId ? type.create({ fontId: active.fontId }).addToSet(marks) : type.removeFromSet(marks);
+          if (!Mark.sameSet(marks, next)) view.dispatch(view.state.tr.setStoredMarks(next).setMeta("addToHistory", false));
+        }, 0);
+        return false;
+      },
+    },
+  },
   appendTransaction: (transactions, _old, state) => {
+    if (editorView?.composing) return null;
     const active = caretFont.getState(state);
     const type = state.schema.marks[TEXT_FONT_MARK];
     if (!active || !type || !state.selection.empty || !transactions.some((tr) => tr.docChanged)) return null;
     const marks = state.storedMarks ?? state.selection.$from.marks();
     const next = active.fontId ? type.create({ fontId: active.fontId }).addToSet(marks) : type.removeFromSet(marks);
+    // 重设相同 marks 会触发光标 DOM 同步，打断浏览器正在进行的 IME 组合。
+    if (Mark.sameSet(marks, next)) return null;
     return state.tr.setStoredMarks(next).setMeta("addToHistory", false);
   },
-}));
+  });
+});
 
 export function getEditorTextFont(state: EditorState): { enabled: boolean; fontId: string | null | undefined } {
   const type = state.schema.marks[TEXT_FONT_MARK];

@@ -879,3 +879,11 @@ img.sticker-display {
 /* 内容字体只作用于受控正文范围，内层组合 marks 不重置家族。 */
 [data-wenyou-font-v1] { font-synthesis: weight style; }
 [data-wenyou-font-v1] :is(strong, em, del, s, a, code) { font-family: inherit; font-synthesis: weight style; }
+
+/* 生成样张为透明底单色字形；跟随站点显式主题，不依赖系统 dark 媒体查询。 */
+.dynamic-font-specimen-image {
+  filter: brightness(0);
+}
+[data-theme="dark"] .dynamic-font-specimen-image {
+  filter: brightness(0) invert(1);
+}

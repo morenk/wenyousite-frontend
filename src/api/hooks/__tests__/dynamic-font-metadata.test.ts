@@ -376,3 +376,24 @@ test("512条总上限优先淘汰闲置记录；全部在用时不继续增长",
   expect(metadata.get(ids[0]!)).toBeUndefined();
   expect(metadata.get(ids[513]!)).toBeDefined();
 });
+
+test("列表关闭取消policy后，新正文需求立即重读，不缓存五分钟AbortError", async () => {
+  const fetch=vi.fn<(signal:AbortSignal)=>Promise<ReturnType<typeof parseDynamicFontPolicy>>>()
+    .mockImplementationOnce(signal=>new Promise((_resolve,reject)=>signal.addEventListener("abort",()=>reject(new DOMException("released","AbortError")),{once:true})))
+    .mockResolvedValue(parseDynamicFontPolicy(policy));
+  const metadata=new DynamicFontMetadata({descriptor:vi.fn(),page:vi.fn(),policy:fetch});
+  const first=new AbortController();const pending=metadata.policy(first.signal);const rejected=expect(pending).rejects.toMatchObject({name:"AbortError"});
+  first.abort();await rejected;
+  await expect(metadata.policy(new AbortController().signal)).resolves.toMatchObject({policyVersion:3});
+  expect(fetch).toHaveBeenCalledTimes(2);
+});
+
+test("共享policy首需求取消，仍存活的正文订阅自动续接真实请求",async()=>{
+ const fetch=vi.fn<(signal:AbortSignal)=>Promise<ReturnType<typeof parseDynamicFontPolicy>>>()
+  .mockImplementationOnce(signal=>new Promise((_resolve,reject)=>signal.addEventListener("abort",()=>reject(new DOMException("released","AbortError")),{once:true})))
+  .mockResolvedValue(parseDynamicFontPolicy(policy));
+ const metadata=new DynamicFontMetadata({descriptor:vi.fn(),page:vi.fn(),policy:fetch});
+ const first=new AbortController(),second=new AbortController();
+ const a=metadata.policy(first.signal),b=metadata.policy(second.signal);const rejected=expect(a).rejects.toMatchObject({name:"AbortError"});first.abort();await rejected;
+ await expect(b).resolves.toMatchObject({policyVersion:3});expect(fetch).toHaveBeenCalledTimes(2);
+});

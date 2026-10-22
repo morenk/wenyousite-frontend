@@ -1,6 +1,7 @@
 "use client";
 import { useDynamicTextFonts } from "@/api/hooks/use-dynamic-text-fonts";
 import { rememberDynamicFont } from "@/lib/dynamic-text-font-state";
+import { EditorFontDownloadProgress, type EditorFontDownloadHandle } from "./editor-font-download-progress";
 import { DynamicFontSpecimen } from "./dynamic-font-specimen";
 import { useVisibleTextFonts } from "./use-visible-text-fonts";
 import { useTextFontCatalog } from "@/api/hooks/use-text-font-catalog";
@@ -320,6 +321,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [customMore, setCustomMore] = useState<EditorToolbarTool[]>([]);
   const [stickerAnchor, setStickerAnchor] = useState<HTMLElement | null>(null);
   const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
+  const fontDemandScope = useRef(Symbol("editor-font-demand"));
+  const fontDownloadRef = useRef<EditorFontDownloadHandle>(null);
   const colorSelectionRef = useRef<SelectionBookmark | null>(null);
   const [fontSelection, setFontSelection] = useState<{ enabled: boolean; fontId: string | null | undefined }>({ enabled: false, fontId: undefined });
   const fontCatalog = useTextFontCatalog(textFontWriteEnabled && textFontVersion === 1);
@@ -359,7 +362,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   useEffect(() => { audioActionRef.current = audioUpload.open; }, [audioUpload.open]);
   const mediaDisplay = useEditorMediaDisplay(mediaDisplays, crepeRef, loading);
   const hostRef = useRef<HTMLDivElement>(null);
-  useVisibleTextFonts(hostRef, loading, undefined, textFontRenderingEnabled);
+  useVisibleTextFonts(hostRef, loading, undefined, textFontRenderingEnabled, fontDemandScope.current);
   const onChangeRef = useRef(onChange);
   const onValidityRef = useRef(onValidityChange);
   const flushRef = useRef<(() => string | null) | null>(null);
@@ -1000,6 +1003,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       const target = event.target instanceof Element ? event.target : null;
       const trigger = target?.closest<HTMLButtonElement>(".top-bar-heading-button");
       if (!trigger || disabled) return;
+      // 候选字尚未提交时不抢焦点，避免强制结束原生输入法组合。
+      if (composingRef.current) { event.preventDefault(); event.stopPropagation(); return; }
       if (event instanceof PointerEvent && event.button !== 0) {
         event.stopPropagation();
         return;
@@ -1179,8 +1184,10 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
               if(textFontVersion === 2){const item=dynamicCatalog.data?.items.find(item=>item.versionId===fontId);if(!item)return false;rememberDynamicFont({...item,revision:dynamicCatalog.data!.revision,status:"published"});}
               else if(!fontCatalog.data?.manifest||!validatedFontBase(fontCatalog.data.assetBaseUrl)||!fontCatalog.data.fonts.some(font=>font.id===fontId&&font.availability==="ready"))return false;
             }
+            fontDownloadRef.current?.start(textFontVersion === 2 ? fontId : null, dynamicCatalog.data?.items.find(item => item.versionId === fontId)?.name);
             const applied = crepeRef.current?.editor.action((ctx) => applyEditorTextFont(ctx.get(editorViewCtx), fontId, colorSelectionRef.current ?? undefined)) ?? false;
             if (applied) setHeadingMenuAnchor(null);
+            else fontDownloadRef.current?.start(null);
             return applied;
           },
           onCancel: () => { restoreColorSelection(); setHeadingMenuAnchor(null); },
@@ -1208,6 +1215,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
         setHeadingMenuAnchor(null);
       }} />
       {!loading ? <StickerPickerPopover externalAnchor={stickerAnchor} onExternalClose={() => setStickerAnchor(null)} onSelect={handleInsertSticker} disabled={disabled} align="end" /> : null}
+      <EditorFontDownloadProgress ref={fontDownloadRef} scope={fontDemandScope.current} />
       <div
         data-slot="milkdown-editor-footer"
         className="flex items-center justify-between gap-3 border-t border-border px-3 py-2"

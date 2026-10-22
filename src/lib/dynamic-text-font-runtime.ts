@@ -8,7 +8,7 @@ import {
   fontMetadataRetryDelay,
 } from "@/api/hooks/text-font-recovery";
 import { sharedThreadFontCache } from "./thread-font-cache";
-import { FontAssetLoader, FontResourceError } from "./thread-font-assets";
+import { FontAssetLoader, FontResourceError, type FontAssetDescriptor, type FontAssetProgress } from "./thread-font-assets";
 import {
   installThreadFontFace,
   requiredFontShards,
@@ -30,6 +30,7 @@ import {
 import type { DynamicFontDescriptor } from "./dynamic-text-font-state";
 import type { ResidentFont } from "./thread-font-residency";
 import type { FontSessionResult } from "./thread-font-session";
+export interface FontDownloadSnapshot { status: FontSessionResult["status"]; started: boolean; receivedBytes: number; totalBytes: number | null; phase: "preparing" | "downloading" | "applying" }
 const fallback = "var(--wenyou-font-body-family, system-ui)";
 type ManifestEntry = {
   value: DynamicFontManifest;
@@ -39,6 +40,7 @@ type ManifestEntry = {
 type Lease = { entry: ResidentFont; release: () => void };
 type Demand = {
   id: string;
+  scope?: symbol;
   text: string;
   emit: (value: FontSessionResult) => void;
   abort: AbortController;
@@ -52,10 +54,14 @@ type Demand = {
   failures: number;
   capacityWaiting: boolean;
   status: FontSessionResult["status"];
+  transfers: Map<string, FontAssetProgress | null>;
+  networkStarted: boolean;
+  planReady: boolean;
 };
 /** 版本级可见需求；目录追加不销毁 loader、窗口、注册或退避。 */
 export class DynamicTextFontRuntime {
   private readonly demands = new Set<Demand>();
+  private readonly downloadListeners = new Set<{ id: string; scope: symbol; hasDemand: boolean; listener: (value: FontDownloadSnapshot) => void }>();
   private readonly manifests = new Map<string, ManifestEntry>();
   private readonly sfntBytes = new Map<string, number>();
   private readonly tasks = new Map<
@@ -99,6 +105,7 @@ export class DynamicTextFontRuntime {
       this.clear(demand);
     }
     this.demands.clear();
+    this.downloadListeners.clear();
     this.loader?.dispose();
     this.manifests.clear();
   }
@@ -115,13 +122,14 @@ export class DynamicTextFontRuntime {
       assets: this.loader?.snapshot,
     };
   }
-  watch(id: string, text: string, emit: Demand["emit"]): () => void {
+  watch(id: string, text: string, emit: Demand["emit"], scope?: symbol): () => void {
     if (isDynamicFontRevoked(id)) {
       emit({ family: fallback, status: "fallback" });
       return () => {};
     }
     const demand: Demand = {
       id,
+      scope,
       text,
       emit,
       abort: new AbortController(),
@@ -131,6 +139,7 @@ export class DynamicTextFontRuntime {
       failures: 0,
       capacityWaiting: false,
       status: "loading",
+      transfers: new Map(), networkStarted: false, planReady: false,
     };
     this.demands.add(demand);
     this.report(demand, "loading");
@@ -153,6 +162,8 @@ export class DynamicTextFontRuntime {
     };
   }
   private withdrawDemand(demand: Demand) {
+    demand.status = "fallback";
+    this.emitDownload(demand.id);
     demand.emit({ family: fallback, status: "fallback" });
     demand.abort.abort();
     clearTimeout(demand.retry);
@@ -213,6 +224,54 @@ export class DynamicTextFontRuntime {
         family: [...families, fallback].join(", "),
         status: demand.status,
       });
+    this.emitDownload(id);
+  }
+  /** 仅观察现有需求，不创建字体请求；供作者主动应用后的轻量状态条订阅。 */
+  subscribeDownload(id: string, scope: symbol, listener: (value: FontDownloadSnapshot) => void) {
+    const subscription = { id, scope, listener, hasDemand: false };
+    this.downloadListeners.add(subscription);
+    return () => { this.downloadListeners.delete(subscription); };
+  }
+  private emitDownload(id: string) {
+    for (const subscription of this.downloadListeners) {
+      if (subscription.id !== id) continue;
+      const demands = [...this.demands].filter(d => d.id === id && d.scope === subscription.scope && this.alive(d));
+      if (!demands.length) {
+        // 空光标尚未产生需求时，同字体的阅读事件不能提前解除作者订阅。
+        if (!subscription.hasDemand) continue;
+        queueMicrotask(() => {
+          if (!this.downloadListeners.has(subscription) || [...this.demands].some(d => d.id === id && d.scope === subscription.scope && this.alive(d))) return;
+          subscription.listener({ status: "ready", started: false, receivedBytes: 0, totalBytes: 0, phase: "applying" });
+        });
+        continue;
+      }
+      subscription.hasDemand = true;
+      const transfers = new Map<string, FontAssetProgress | null>();
+      for (const demand of demands) for (const [hash, value] of demand.transfers) {
+        const previous = transfers.get(hash);
+        if (value?.phase === "cached" && previous && previous.phase !== "cached") continue;
+        if (value || !transfers.has(hash)) transfers.set(hash, value);
+      }
+      const values = [...transfers.values()];
+      const receivedBytes = values.reduce((sum, item) => sum + (item?.receivedBytes ?? 0), 0);
+      const planReady = demands.every(d => d.planReady || d.status === "ready");
+      const totalBytes = planReady && values.every(Boolean) ? values.reduce((sum, item) => sum + (item?.totalBytes ?? 0), 0) : null;
+      const preparingMetadata = !dynamicFontMetadata.get(id) && dynamicFontMetadata.assetsAvailable(id);
+      const started = demands.some(d => d.networkStarted);
+      const value: FontDownloadSnapshot = { status: preparingMetadata ? "loading" : demands.every(d => d.status === "ready") ? "ready" : demands.some(d => d.status === "loading") ? "loading" : "fallback", started, receivedBytes, totalBytes, phase: !planReady || !started ? "preparing" : totalBytes !== null && receivedBytes >= totalBytes ? "applying" : "downloading" };
+      try { subscription.listener(value); } catch { /* 反馈订阅不影响字体注册。 */ }
+    }
+  }
+  private transferProgress(asset: FontAssetDescriptor, progress: FontAssetProgress) {
+    if (asset.path.endsWith(".png")) return;
+    const changed = new Set<string>();
+    for (const demand of this.demands) {
+      if (!this.alive(demand) || !demand.transfers.has(asset.sha256)) continue;
+      demand.transfers.set(asset.sha256, progress);
+      if (progress.phase === "receiving") demand.networkStarted = true;
+      changed.add(demand.id);
+    }
+    for (const id of changed) this.emitDownload(id);
   }
   private async prepare(signal: AbortSignal) {
     const policy = await dynamicFontMetadata.policy(signal);
@@ -245,6 +304,7 @@ export class DynamicTextFontRuntime {
           }
           return response;
         },
+        onProgress: (asset, progress) => this.transferProgress(asset, progress),
         cache: this.binary,
         scheduler,
         timeoutMs: 15000,
@@ -312,6 +372,7 @@ export class DynamicTextFontRuntime {
       return demand.manifest.value;
     let entry = this.manifests.get(asset.sha256);
     if (!entry) {
+      demand.transfers.set(asset.sha256, { phase: "queued", receivedBytes: 0, totalBytes: asset.bytes });
       const bytes = await this.bytes(descriptor, asset, demand.abort.signal);
       if (
         !this.alive(demand) ||
@@ -372,6 +433,7 @@ export class DynamicTextFontRuntime {
     }
 
     demand.running = true;
+    this.report(demand, "loading");
     demand.capacityWaiting = false;
     clearTimeout(demand.retry);
     try {
@@ -400,6 +462,11 @@ export class DynamicTextFontRuntime {
         this.clear(demand);
         throw new FontResourceError("missing-glyph");
       }
+      for (const asset of [...manifest.notices, ...demand.parts.map(part => part.web)]) {
+        if (!demand.transfers.has(asset.sha256)) demand.transfers.set(asset.sha256, { phase: "queued", receivedBytes: 0, totalBytes: asset.bytes });
+      }
+      demand.planReady = true;
+      this.emitDownload(demand.id);
       for (const notice of manifest.notices)
         await this.bytes(descriptor, notice, demand.abort.signal);
       const results = await Promise.allSettled(
@@ -428,7 +495,10 @@ export class DynamicTextFontRuntime {
             }
             demand.holds.set(key, hold);
           }
-          if (hold.entry.dispose) return;
+          if (hold.entry.dispose) {
+            if (!demand.transfers.get(part.web.sha256)?.receivedBytes) demand.transfers.set(part.web.sha256, { phase: "cached", receivedBytes: 0, totalBytes: 0 });
+            return;
+          }
           const entry = hold.entry;
           let task = this.tasks.get(key);
           if (task?.abort.signal.aborted) task = undefined;

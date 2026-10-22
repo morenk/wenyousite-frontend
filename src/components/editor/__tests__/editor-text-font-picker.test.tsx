@@ -158,25 +158,54 @@ test("缩略样张加载文字不影响按字体名称键盘定位", async () =>
 });
 
 
-test("动态样张选择后直接显示，保留分类、当前勾选和默认项；应用前不改正文", async () => {
-  const { controls } = setup({
-    value: "a", previewMode: "automatic",
+test("动态字体按语言平铺，点选立即应用；不挂载字库预览", async () => {
+  const { controls } = setup({ value: "a", previewMode: "automatic",
     options: [{ value: "a", label: "甲字体", group: "中文" }, { value: "b", label: "Beta", group: "英文" }],
-    renderThumbnail: () => <span aria-hidden="true">样张</span>,
+    renderThumbnail: () => <span aria-hidden="true">样张</span>, onOpen: vi.fn(),
   });
-  expect(screen.queryByRole("button", { name: "预览" })).not.toBeInTheDocument();
-  expect(screen.getByLabelText("字体预览")).toHaveTextContent("甲字体");
+  expect(controls.onOpen).toHaveBeenCalledOnce();
+  expect(screen.queryByRole("combobox")).not.toBeInTheDocument();
+  expect(screen.queryByRole("tab", { name: "其他" })).not.toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "甲字体" })).toHaveAttribute("aria-pressed", "true");
+  expect(controls.renderPreview).not.toHaveBeenCalled();
   const user = userEvent.setup();
-  await user.click(screen.getByRole("combobox", { name: "字体" }));
-  expect(screen.getByRole("option", { name: "甲字体" })).toHaveAttribute("aria-selected", "true");
-  expect(screen.getByRole("group", { name: "英文" })).toBeInTheDocument();
-  await user.click(screen.getByRole("option", { name: "Beta" }));
-  expect(screen.getByLabelText("字体预览")).toHaveTextContent("Beta");
+  await user.click(screen.getByRole("tab", { name: "英文" }));
+  await user.click(screen.getByRole("button", { name: "Beta" }));
+  expect(controls.onApply).toHaveBeenCalledExactlyOnceWith("b");
+  expect(readRecentTextFonts("test-account", controls.options)).toEqual(["b"]);
+});
+
+test("当前日文字体决定初始筛选，未知分组才出现其他；关闭不应用", async () => {
+  const { controls } = setup({ value: "ja", previewMode: "automatic", options: [
+    { value: "ja", label: "日文字体", group: "日文" }, { value: "future", label: "未来字体", group: "新语言" },
+  ] });
+  expect(screen.getByRole("tab", { name: "日文" })).toHaveAttribute("aria-selected", "true");
+  await userEvent.setup().click(screen.getByRole("tab", { name: "其他" }));
+  expect(screen.getByRole("button", { name: "未来字体" })).toBeInTheDocument();
+  await userEvent.setup().click(screen.getByRole("button", { name: "关闭字体面板" }));
+  expect(controls.onCancel).toHaveBeenCalledOnce();
   expect(controls.onApply).not.toHaveBeenCalled();
-  await choose("系统默认");
-  expect(screen.queryByLabelText("字体预览")).not.toBeInTheDocument();
-  await user.click(screen.getByRole("button", { name: "应用" }));
-  expect(controls.onApply).toHaveBeenCalledExactlyOnceWith(null);
+});
+
+test("动态列表离线仍可恢复默认，应用失败保留面板且不记最近使用", async () => {
+  const { controls, rerender } = setup({ previewMode: "automatic", value: "a", options: [{value: "a", label: "甲字体", group: "中文"}], error: "读取失败" });
+  expect(screen.getByRole("button", { name: "甲字体" })).toBeDisabled();
+  await userEvent.setup().click(screen.getByRole("button", { name: "系统默认" }));
+  expect(controls.onApply).toHaveBeenCalledWith(null);
+  rerender(<EditorTextFontPicker controls={{...controls, error: undefined, onApply: () => false}}/>);
+  await userEvent.setup().click(screen.getByRole("button", { name: "甲字体" }));
+  expect(screen.getByRole("alert")).toHaveTextContent("未能应用字体");
+  expect(readRecentTextFonts("test-account", controls.options)).toEqual([]);
+});
+
+test("动态字体行支持上下键和首尾定位，语言分段使用标准方向键", async () => {
+  setup({previewMode:"automatic",options:[{value:"a",label:"甲",group:"中文"},{value:"b",label:"乙",group:"中文"}]});
+  const user=userEvent.setup();
+  screen.getByRole("button",{name:"甲"}).focus();
+  await user.keyboard("{ArrowDown}");expect(screen.getByRole("button",{name:"乙"})).toHaveFocus();
+  await user.keyboard("{Home}");expect(screen.getByRole("button",{name:"甲"})).toHaveFocus();
+  screen.getByRole("tab",{name:"中文"}).focus();await user.keyboard("{ArrowRight}");
+  expect(screen.getByRole("tab",{name:"日文"})).toHaveFocus();
 });
 
 
@@ -192,4 +221,15 @@ test("目录首次离线时仍能将现有字体恢复默认，未核验的新�
   expect(screen.getByRole("button", { name: "应用" })).toBeEnabled();
   await user.click(screen.getByRole("button", { name: "应用" }));
   expect(controls.onApply).toHaveBeenCalledExactlyOnceWith(null);
+});
+
+
+test("目录延迟返回时定位当前字体语言，用户切换后不被后台刷新重置", async () => {
+ const {controls,rerender}=setup({previewMode:"automatic",value:"ja",options:[],loading:true});
+ const loaded=[{value:"ja",label:"日文字体",group:"日文"}];
+ rerender(<EditorTextFontPicker controls={{...controls,loading:false,options:loaded}}/>);
+ expect(screen.getByRole("tab",{name:"日文"})).toHaveAttribute("aria-selected","true");
+ await userEvent.setup().click(screen.getByRole("tab",{name:"英文"}));
+ rerender(<EditorTextFontPicker controls={{...controls,loading:false,options:loaded.map(option=>({...option}))}}/>);
+ expect(screen.getByRole("tab",{name:"英文"})).toHaveAttribute("aria-selected","true");
 });

@@ -13,11 +13,11 @@ import { applyEditorTextFont, editorTextFontTyping, getEditorTextFont } from "..
 import { editorBoundaryTextSchema, editorAttentionBoundaryParser, prepareEditorMarkdown, serializeEditorMarkdown } from "../milkdown-markdown-codec";
 import { configureTextColorTestEditor, textColorSemanticJson } from "@/test/rich-text/text-color-editor";
 afterAll(async () => { await new Promise((resolve) => setTimeout(resolve, 3100)); });
-async function withEditor(source: string, action: (view: EditorView, ctx: Ctx) => void) {
+async function withEditor(source: string, action: (view: EditorView, ctx: Ctx) => void | Promise<void>) {
  const root = document.createElement("div"); document.body.append(root);
  const crepe = new CrepeBuilder({ root, defaultValue: prepareEditorMarkdown(source) });
  crepe.editor.config(configureTextColorTestEditor).use(editorTextFontSchema).use(editorBoundaryTextSchema).use(editorAttentionBoundaryParser).use(editorTextFontAtomicPolicy).use(editorTextFontTyping).use(editorMarkdownPastePlugin);
- try { await crepe.create(); crepe.editor.action((ctx) => action(ctx.get(editorViewCtx), ctx)); }
+ try { await crepe.create(); await crepe.editor.action((ctx) => action(ctx.get(editorViewCtx), ctx)); }
  finally { await crepe.destroy(); root.remove(); }
 }
 test("光标选字体连续输入中文、emoji、组合字符，回车后延续，主动移动后结束", async () => withEditor("原文", (view) => {
@@ -149,4 +149,28 @@ test("退役字体历史正文保源，不能新设该字体，仍可显式恢�
  view.dispatch(view.state.tr.setSelection(new AllSelection(view.state.doc)));expect(applyEditorTextFont(view,"xiaocheng-lafeng")).toBe(false);expect(view.state.doc.eq(source)).toBe(true);
  expect(applyEditorTextFont(view,null)).toBe(true);expect(view.state.doc.textContent).toBe("历史正文");expect(view.state.doc.firstChild!.firstChild!.marks.map(m=>m.type.name)).toContain("strong");
  expect(serializeEditorMarkdown(ctx,view.state.doc,{markdownContractVersion:6,textFontVersion:1})).not.toContain("data-wenyou-font");
+}));
+
+
+test("浏览器组合态中不追加 storedMarks 事务，避免打断预编辑 DOM", async () => withEditor("原", (view) => {
+ view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, 2)));
+ applyEditorTextFont(view, "wenkai");
+ Object.defineProperty(view, "composing", {configurable: true, value: true});
+ const result = view.state.applyTransaction(view.state.tr.insertText("预编辑").setMeta("composition", 1));
+ expect(result.transactions.filter(tr => tr.storedMarksSet)).toEqual([]);
+ expect(result.state.doc.lastChild?.lastChild?.marks.find(mark => mark.type.name === "wenyouTextFont")?.attrs.fontId).toBe("wenkai");
+}));
+
+
+test("组合结束后恢复后续输入字体", async () => withEditor("原", async (view) => {
+ view.dispatch(view.state.tr.setSelection(TextSelection.create(view.state.doc, 2)));
+ applyEditorTextFont(view, "wenkai");
+ Object.defineProperty(view, "composing", {configurable:true,value:true});
+ view.dispatch(view.state.tr.insertText("中文").setMeta("composition",1));
+ Object.defineProperty(view, "composing", {configurable:true,value:false});
+ view.someProp("handleDOMEvents", handlers => handlers.compositionend?.(view,new CompositionEvent("compositionend",{data:"中文"})));
+ await new Promise(resolve => setTimeout(resolve,10));
+ view.dispatch(view.state.tr.insertText("继续"));
+ expect(view.state.doc.lastChild?.lastChild?.text).toBe("中文继续");
+ expect(view.state.doc.lastChild?.lastChild?.marks.find(mark=>mark.type.name === "wenyouTextFont")?.attrs.fontId).toBe("wenkai");
 }));

@@ -235,6 +235,8 @@ export class DynamicFontMetadata {
           return value;
         })
         .catch((error) => {
+          // 关闭样张面板等需求取消不是资源失败，不能污染后续正文的策略读取。
+          if (signal.aborted || (error instanceof DOMException && error.name === "AbortError")) throw error;
           this.policyError = error;
           this.policyRetryAt =
             performance.now() +

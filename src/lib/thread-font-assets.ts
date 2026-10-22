@@ -2,6 +2,11 @@ import { FontTransferTimeout, type FontTransferTimeoutPolicy } from "./thread-fo
 import type { ThreadFontAssetCache } from "./thread-font-cache";
 import { FontDownloadScheduler } from "./thread-font-scheduler";
 export interface FontAssetDescriptor { path: string; sha256: string; bytes: number; contentType?: string; cacheable?: boolean }
+export interface FontAssetProgress {
+  phase: "queued" | "receiving" | "verified" | "cached" | "error" | "aborted";
+  receivedBytes: number;
+  totalBytes: number;
+}
 export class FontResourceError extends Error {
   constructor(message: string, readonly retryAt?: number) { super(message); }
 }
@@ -17,6 +22,7 @@ export class FontAssetLoader {
     base: string; transport: typeof fetch; cache: ThreadFontAssetCache; scheduler: FontDownloadScheduler;
     timeoutMs: number; transferTimeout?: FontTransferTimeoutPolicy; cacheBytes: number; retryBaseMs: number; retryMaxMs: number;
     verify: (bytes: ArrayBuffer, descriptor: FontAssetDescriptor) => Promise<boolean>;
+    onProgress?: (descriptor: FontAssetDescriptor, progress: FontAssetProgress) => void;
     protectedHashes: () => ReadonlySet<string>; resourceKey?: (descriptor: FontAssetDescriptor) => string; maxFailures?: number; random?: () => number;
   }) {}
   async tightenCacheBytes(bytes:number) {this.options.cacheBytes=Math.min(this.options.cacheBytes,bytes);await this.options.cache.tightenLimit?.(this.options.cacheBytes);}
@@ -61,20 +67,25 @@ export class FontAssetLoader {
       entry.promise.then(bytes => finish(undefined, bytes), error => finish(error));
     });
   }
+  private progress(descriptor: FontAssetDescriptor, progress: FontAssetProgress) {
+    try { this.options.onProgress?.(descriptor, progress); } catch { /* 观察者失败不能影响校验或传输。 */ }
+  }
   private async read(descriptor: FontAssetDescriptor, signal: AbortSignal, original: boolean) {
     const { cache, verify, scheduler } = this.options;
     const check = () => { if (signal.aborted) throw new DOMException("Demand released", "AbortError"); };
     let cached = descriptor.cacheable === false ? null : await cache.get(descriptor.sha256); check();
     if (cached) {
-      if (await verify(cached, descriptor)) { check(); this.stats.cacheHits++; return cached; }
+      if (await verify(cached, descriptor)) { check(); this.stats.cacheHits++; this.progress(descriptor, { phase: "cached", receivedBytes: 0, totalBytes: 0 }); return cached; }
       await cache.delete(descriptor.sha256); cached = null; check();
     }
+    this.progress(descriptor, { phase: "queued", receivedBytes: 0, totalBytes: descriptor.bytes });
     return scheduler.run(descriptor.bytes, original, signal, async () => {
       check(); this.stats.requests++;
       const timeout = new FontTransferTimeout(this.options.transferTimeout ?? { mode: "absolute", timeoutMs: this.options.timeoutMs }, signal);
-      let buffered = 0;
+      let buffered = 0, receivedBytes = 0;
       const hold = (bytes: number) => { buffered += bytes; this.stats.bufferedBytes += bytes; this.stats.peakBufferedBytes = Math.max(this.stats.peakBufferedBytes, this.stats.bufferedBytes); };
       try {
+        this.progress(descriptor, { phase: "receiving", receivedBytes: 0, totalBytes: descriptor.bytes });
         const response = await this.options.transport(new URL(descriptor.path, this.options.base), { credentials: "omit", redirect: "error", signal: timeout.signal, cache: "no-store" });
         timeout.check();
         if (!response.ok || !response.body) {
@@ -103,6 +114,8 @@ export class FontAssetLoader {
             size += next.value.byteLength; this.stats.downloadBytes += next.value.byteLength;
             if (size > descriptor.bytes) { await reader.cancel(); throw new FontResourceError("asset-length"); }
             timeout.bytesReceived(next.value.byteLength);
+            receivedBytes = size;
+            this.progress(descriptor, { phase: "receiving", receivedBytes, totalBytes: descriptor.bytes });
             chunks.push(next.value); hold(next.value.byteLength);
           }
         } finally {
@@ -116,7 +129,11 @@ export class FontAssetLoader {
         chunks.length = 0; hold(-size);
         if (!await verify(result.buffer, descriptor)) throw new FontResourceError("asset-integrity");
         check(); if(descriptor.cacheable !== false)await cache.put(descriptor.sha256, result.buffer, this.options.cacheBytes, this.options.protectedHashes()); check();
+        this.progress(descriptor, { phase: "verified", receivedBytes, totalBytes: descriptor.bytes });
         return result.buffer;
+      } catch (error) {
+        this.progress(descriptor, { phase: signal.aborted ? "aborted" : "error", receivedBytes, totalBytes: descriptor.bytes });
+        throw error;
       } finally { hold(-buffered); timeout.complete(); }
     });
   }

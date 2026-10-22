@@ -521,17 +521,13 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
       page.getByRole("dialog", { name: "正文样式" }),
     ).not.toBeVisible();
     await expect(editor).toHaveText("Aa Aa");
-    await page
-      .getByRole("button", { name: "切换正文样式", exact: true })
-      .click();
+    await page.getByRole("button", { name: "切换正文样式", exact: true }).click();
     await page.getByRole("button", { name: "字体", exact: true }).click();
-    await page.getByRole("combobox", { name: "字体" }).click();
     await screenshotModes(page, output, "editor-font-list");
-    await page.getByRole("option", { name, exact: true }).click();
-    await expect(
-      page.getByLabel("字体预览").getByRole("img", { name: "字体样张" }),
-    ).toBeVisible();
-    await screenshotModes(page, output, "editor-font-selected");
+    const fontChoice = page.getByRole("button", { name, exact: true });
+    await fontChoice.scrollIntoViewIfNeeded();
+    await expect(fontChoice.locator("img")).toBeVisible();
+    await screenshotModes(page, output, "editor-font-specimen");
     expect(fontAssetRequests).toHaveLength(0);
     const sessionMarker = await page.evaluate(() => {
       const marker = crypto.randomUUID();
@@ -543,7 +539,7 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     coldRecovery.downloadsBeforeApply = fontAssetRequests.length;
     coldRecovery.interruptedAt = Date.now();
     const interruptedDownload = isolationNetwork.interruptFontDownloads(first);
-    await page.getByRole("button", { name: "应用", exact: true }).click();
+    await page.getByRole("button", { name, exact: true }).click();
     const coldSpan = editor.locator(`[data-wenyou-font-v2="${first}"]`);
     await expect
       .poll(
@@ -639,13 +635,9 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     });
     await secondReply.fill("Aa");
     await secondReply.press("Control+A");
-    await page
-      .getByRole("button", { name: "切换正文样式", exact: true })
-      .click();
+    await page.getByRole("button", { name: "切换正文样式", exact: true }).click();
     await page.getByRole("button", { name: "字体", exact: true }).click();
-    await page.getByRole("combobox", { name: "字体" }).click();
-    await page.getByRole("option", { name, exact: true }).click();
-    await page.getByRole("button", { name: "应用", exact: true }).click();
+    await page.getByRole("button", { name, exact: true }).click();
     await expect(
       secondReply.locator(`[data-wenyou-font-v2="${second}"]`),
     ).toHaveAttribute("data-font-load", "ready");

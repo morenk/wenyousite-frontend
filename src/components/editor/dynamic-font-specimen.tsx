@@ -14,6 +14,7 @@ import {
 import { isDynamicFontRevoked } from "@/lib/dynamic-font-revocations";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { fontSpecimenBounds, type FontSpecimenBounds } from "@/lib/font-specimen-bounds";
 /** 可见样张才下载 PNG；选择器从不为样张安装 FontFace。 */
 export function DynamicFontSpecimen({
   versionId,
@@ -29,6 +30,7 @@ export function DynamicFontSpecimen({
   const ref = useRef<HTMLSpanElement>(null),
     readyCallback = useRef(onReady),
     retry = useRef<() => void>(() => {});
+  const [measured, setMeasured] = useState<{ url: string; bounds: FontSpecimenBounds; naturalWidth: number }>();
   const [url, setUrl] = useState<string>(),
     [failed, setFailed] = useState(false);
   useEffect(() => {
@@ -135,28 +137,46 @@ export function DynamicFontSpecimen({
       cancel();
     };
   }, [versionId, descriptor]);
+  const crop = compact && measured?.url === url ? measured : undefined;
   return (
     <span
       ref={ref}
       aria-hidden={compact || undefined}
       className={cn(
         "inline-flex items-center justify-center overflow-hidden",
-        compact ? "h-14 w-full" : "h-24 w-full",
+        compact ? "h-7 w-full justify-start" : "h-24 w-full",
       )}
     >
       {url ? (
-        // eslint-disable-next-line @next/next/no-img-element -- 已校验 PNG 的临时 blob URL
-        <img
-          src={url}
-          alt={compact ? "" : "字体样张"}
-          className="max-h-full max-w-full object-contain"
-          onLoad={() => readyCallback.current?.(true)}
-          onError={() => {
-            readyCallback.current?.(false);
-            setFailed(true);
-            setUrl(undefined);
-          }}
-        />
+        <span className={cn("relative inline-flex items-center overflow-hidden", compact ? "justify-start" : "justify-center", crop ? "shrink-0" : "h-full w-full")} style={crop ? { width: `min(100%, ${crop.bounds.width / crop.bounds.height * 1.5}rem)`, aspectRatio: `${crop.bounds.width} / ${crop.bounds.height}` } : undefined}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- 已校验 PNG 的临时 blob URL */}
+          <img
+            src={url}
+            alt={compact ? "" : "字体样张"}
+            className={cn("dynamic-font-specimen-image object-contain", crop ? "absolute" : "max-h-full max-w-full")}
+            style={crop ? { width: `${crop.naturalWidth / crop.bounds.width * 100}%`, maxWidth: "none", height: "auto", left: `${-crop.bounds.x / crop.bounds.width * 100}%`, top: `${-crop.bounds.y / crop.bounds.height * 100}%` } : undefined}
+            onLoad={event => {
+              readyCallback.current?.(true);
+              const img = event.currentTarget;
+              if (!compact || img.naturalWidth * img.naturalHeight > 4_194_304) return;
+              const canvas = document.createElement("canvas");
+              try {
+                canvas.width = img.naturalWidth; canvas.height = img.naturalHeight;
+                const context = canvas.getContext("2d", { willReadFrequently: true });
+                if (!context) return;
+                context.drawImage(img, 0, 0);
+                const bounds = fontSpecimenBounds(context.getImageData(0, 0, canvas.width, canvas.height).data, canvas.width, canvas.height);
+                if (bounds) setMeasured({ url, bounds, naturalWidth: img.naturalWidth });
+              } catch { /* 无法读取像素时完整显示原样张。 */ }
+              finally { canvas.width = 0; canvas.height = 0; }
+            }}
+            onError={() => {
+              readyCallback.current?.(false);
+              setFailed(true);
+              setUrl(undefined);
+            }}
+          />
+        </span>
       ) : failed && descriptor ? (
         <span className="flex items-center gap-2 text-sm">
           <span role="alert">样张读取失败</span>
@@ -169,7 +189,7 @@ export function DynamicFontSpecimen({
           </Button>
         </span>
       ) : (
-        <span className="text-xs text-muted-foreground">样张</span>
+        <span className="text-xs text-muted-foreground">{failed ? "样张暂不可用" : "样张"}</span>
       )}
     </span>
   );

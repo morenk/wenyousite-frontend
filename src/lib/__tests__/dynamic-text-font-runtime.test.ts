@@ -607,3 +607,91 @@ test("独立撤回账本立即移除已加载版本，但合法同资产别名�
   expect(env.transport).toHaveBeenCalledTimes(requests);
   expect(env.install).toHaveBeenCalledTimes(1);
 });
+
+test("作者进度按编辑scope与实际needed分片隔离，不广播chunk为正文状态", async () => {
+  const f = await fixture(), scope = Symbol("author"), progress = vi.fn(), shown = vi.fn();
+  const streams = new Map<string, ReadableStreamDefaultController<Uint8Array>>();
+  f.runtime.subscribeDownload(f.first.versionId, scope, progress);
+  env.transport.mockImplementation(async input => {
+    const key = String(input).split("/").at(-1)!;
+    if (!key.endsWith("woff2")) return f.transport(input);
+    return new Response(new ReadableStream<Uint8Array>({ start: controller => { streams.set(key, controller); } }), { headers: { "content-type": "font/woff2" } });
+  });
+  f.runtime.watch(f.first.versionId, "A", shown, scope);
+  f.runtime.watch(f.first.versionId, "B", vi.fn()); // 同字体旁路阅读，不能计入作者分片。
+  await vi.waitFor(() => expect(streams.size).toBe(2));
+  const total = f.first.manifest!.bytes + [...f.assets].filter(([key]) => key.endsWith("json") && !key.startsWith(f.first.manifest!.sha256)).reduce((sum, [, bytes]) => sum + bytes.byteLength, 0) + 48;
+  expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({totalBytes:total,status:"loading"}));
+  const beforeChunks = shown.mock.calls.length;
+  const a = f.shards[0]!.web.sha256 + ".woff2", other = f.shards[1]!.web.sha256 + ".woff2";
+  streams.get(a)!.enqueue(new Uint8Array(f.assets.get(a)!).slice(0,12)); await flush();
+  const authorBytes = progress.mock.calls.at(-1)![0].receivedBytes;
+  streams.get(other)!.enqueue(new Uint8Array(f.assets.get(other)!).slice(0,24)); await flush();
+  expect(progress.mock.calls.at(-1)![0].receivedBytes).toBe(authorBytes);
+  expect(shown.mock.calls.length).toBe(beforeChunks);
+  streams.get(other)!.enqueue(new Uint8Array(f.assets.get(other)!).slice(24)); streams.get(other)!.close();
+  streams.get(a)!.enqueue(new Uint8Array(f.assets.get(a)!).slice(12)); streams.get(a)!.close();
+  await vi.waitFor(() => expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({status:"ready",receivedBytes:total,totalBytes:total})));
+});
+
+test("manifest就绪即给出多分片总量，尚未开始的串行notice也在计划内", async () => {
+  const f=await fixture(), scope=Symbol("multi"), progress=vi.fn();
+  let release!:()=>void;let blocked=false;
+  env.transport.mockImplementation(async input=>{
+    const key=String(input).split("/").at(-1)!;
+    if(key.endsWith("json")&&!key.startsWith(f.first.manifest!.sha256)){blocked=true;await new Promise<void>(resolve=>{release=resolve;});}
+    return f.transport(input);
+  });
+  f.runtime.subscribeDownload(f.first.versionId,scope,progress);
+  f.runtime.watch(f.first.versionId,"AB",vi.fn(),scope);
+  await vi.waitFor(()=>expect(blocked).toBe(true));
+  const total=[...f.assets].filter(([key])=>!key.endsWith("png")).reduce((sum,[,bytes])=>sum+bytes.byteLength,0);
+  expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({totalBytes:total,phase:"downloading"}));
+  release();await vi.waitFor(()=>expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({status:"ready"})));
+});
+
+test("完整缓存不宣称网络开始，撤回未完成资源发出回退而非永久进度", async () => {
+  const f=await fixture(), scope=Symbol("cached"), progress=vi.fn();
+  for(const [key,bytes] of f.assets)env.cache.set(key.split(".")[0]!,bytes);
+  f.runtime.subscribeDownload(f.first.versionId,scope,progress);
+  f.runtime.watch(f.first.versionId,"A",vi.fn(),scope);
+  await vi.waitFor(()=>expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({status:"ready",started:false,receivedBytes:0,totalBytes:0})));
+  expect(env.transport).not.toHaveBeenCalled();
+  const otherScope=Symbol("withdraw"), other=vi.fn();
+  env.cache.delete(f.shards[1]!.web.sha256);
+  env.transport.mockImplementation(async()=>new Response(new ReadableStream<Uint8Array>({start(controller){controller.enqueue(new Uint8Array(4));}}),{headers:{"content-type":"font/woff2"}}));
+  f.runtime.subscribeDownload(f.first.versionId,otherScope,other);
+  f.runtime.watch(f.first.versionId,"B",vi.fn(),otherScope);
+  await vi.waitFor(()=>expect(other.mock.calls.at(-1)?.[0].started).toBe(true));
+  const {dynamicFontMetadata}=await import("@/api/dynamic-font-metadata");dynamicFontMetadata.withdraw(f.first.versionId);
+  expect(other).toHaveBeenLastCalledWith(expect.objectContaining({status:"fallback"}));
+});
+
+test("实际需求等待描述符时仅准备，失败回退且恢复后完成；纯订阅不造需求", async () => {
+  const f = await fixture(), scope = Symbol("slow-metadata"), progress = vi.fn();
+  f.runtime.subscribeDownload(f.first.versionId, scope, progress);
+  expect(progress).not.toHaveBeenCalled();
+  expect(env.transport).not.toHaveBeenCalled();
+  env.values.delete(f.first.versionId);
+  f.runtime.watch(f.first.versionId, "A", vi.fn(), scope);
+  expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ status: "loading", started: false, phase: "preparing", receivedBytes: 0, totalBytes: null }));
+  env.unavailable.add(f.first.versionId);
+  for (const cb of env.listeners.get(f.first.versionId)!) cb();
+  expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ status: "fallback" }));
+  env.unavailable.delete(f.first.versionId);
+  env.values.set(f.first.versionId, f.first);
+  for (const cb of env.listeners.get(f.first.versionId)!) cb();
+  await vi.waitFor(() => expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready" })));
+});
+
+test("空光标预订阅不会被同字体阅读完成解除，稍后输入仍可报告下载", async () => {
+  const f = await fixture(), scope = Symbol("empty-author-caret"), progress = vi.fn(), reader = vi.fn();
+  f.runtime.subscribeDownload(f.first.versionId, scope, progress);
+  f.runtime.watch(f.first.versionId, "A", reader);
+  await vi.waitFor(() => expect(reader).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready" })));
+  await flush();
+  expect(progress).not.toHaveBeenCalled();
+  f.runtime.watch(f.first.versionId, "B", vi.fn(), scope);
+  await vi.waitFor(() => expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready", started: true })));
+  expect(progress.mock.calls.some(([value]) => value.status === "loading" && value.totalBytes > 0)).toBe(true);
+});
