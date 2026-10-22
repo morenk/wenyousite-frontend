@@ -35,6 +35,8 @@ agent 对真实数据环境的自动化验收仍只允许匿名只读烟雾；�
 
 ## 框架安全依赖
 
-Next.js 与 eslint-config-next 固定为 16.3.8，对应[官方安全修复版本](https://github.com/vercel/next.js/releases/tag/v16.3.8)。`next>sharp` 固定为 0.35.5，确保安装包含 librsvg 2.63.2 的原生包，修复[上游 librsvg 安全问题](https://github.com/lovell/sharp/security/advisories/GHSA-wq5f-xc86-pv6w)。升级由锁文件记录，保留生产依赖审计，不通过忽略 advisory 交付。
+Next.js 与 eslint-config-next 固定为 16.4.1，对应[官方安全修复版本](https://github.com/vercel/next.js/releases/tag/v16.4.1)。`next>sharp` 固定为 0.35.5，确保安装包含 librsvg 2.63.2 的原生包，修复[上游 librsvg 安全问题](https://github.com/lovell/sharp/security/advisories/GHSA-wq5f-xc86-pv6w)。升级由锁文件记录，保留生产依赖审计，不通过忽略 advisory 交付。
 
-Next 的字体度量补丁仅删除 212 个已禁用家族，其余 1541 个条目与上游一致；16.3.8 仍需此补丁。依赖升级须验证补丁应用和实际原生库版本，并运行 SVG 解码、常见图片格式转换、产物字体检查及隔离页面回归。重资源的覆盖率、构建与隔离 E2E 串行执行，避免共享 VPS 上的资源争用。
+Next 的字体度量补丁仅删除 212 个已禁用家族，其余 1541 个条目与上游一致；16.4.1 仍需此补丁。依赖升级须验证补丁应用和实际原生库版本，并运行 SVG 解码、常见图片格式转换、产物字体检查及隔离页面回归。重资源的覆盖率、构建与隔离 E2E 串行执行，避免共享 VPS 上的资源争用。
+
+`markdown-it` 固定为 14.3.3，修复 `GHSA-r7fv-28h4-cvq7`、`GHSA-gfr2-rv44-r23c` 与 `GHSA-vfgh-jcmw-g37q`；正文解析与规范化仍由既有协议与回归测试约束，不调整协议或内容白名单。

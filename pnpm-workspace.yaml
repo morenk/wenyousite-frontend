@@ -15,5 +15,5 @@ overrides:
   katex@0.16.47: 0.18.2
   katex@0.17.0: 0.18.2
 patchedDependencies:
-  next@16.3.8: patches/next@16.3.8.patch
+  next@16.4.1: patches/next@16.4.1.patch
   sonner@2.0.7: patches/sonner@2.0.7.patch
