@@ -281,7 +281,7 @@ test("App规范颜色源在Web阅读、编辑、复制与草稿保源，旧端�
   await expect(composing.locator('[data-wenyou-color-v1="#D14343"]')).toHaveText(["中文😀", " ", "斜体", " ", "删除", " ", "链接", " ", "字面"]);
   await expect(composing).toContainText("普通文字");
   await expect(composing).not.toContainText("临时修改");
-  await page.getByRole("button", { name: "收起", exact: true }).click();
+  await page.locator("body").click({ position: { x: 2, y: 2 } });
   const storedDraft = await request("GET", "/api/v1/drafts/" + draft.body.data.id);
   expect(storedDraft.body.data.content).toBe(source);
 });
