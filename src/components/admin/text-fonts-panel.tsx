@@ -1,118 +1,39 @@
 "use client";
-import Link from "next/link";
+
 import { useState } from "react";
-import { useAdminTextFonts } from "@/api/hooks/admin/use-admin-text-fonts";
-import { Button, buttonVariants } from "@/components/ui/button";
-import {
-  AdminTable,
-  AdminTableHead,
-  AdminTableHeader,
-  AdminTableBody,
-  AdminTableRow,
-  AdminTableCell,
-  AdminTableActionCell,
-  AdminTableActionHeader,
-} from "./admin-table";
-import { textFontGroup } from "@/components/editor/editor-text-font-options";
+import { parseAsString, parseAsStringLiteral, useQueryStates } from "nuqs";
+import { getApiError } from "@/api/errors";
+import { useAdminFontManagement } from "@/api/hooks/admin/use-admin-font-management";
+import { useCursorPagination } from "@/hooks/use-cursor-pagination";
+import { TextFontListView } from "./text-font-list-view";
+import { TextFontOrderPanel } from "./text-font-order-panel";
+
+const parsers = {
+  search: parseAsString.withDefault(""),
+  language: parseAsStringLiteral(["all", "zh", "ja", "en", "other"]).withDefault("all"),
+  status: parseAsStringLiteral(["all", "draft", "enabled", "disabled", "withdrawn"]).withDefault("all"),
+  sort: parseAsStringLiteral(["created", "updated", "name", "display"]).withDefault("created"),
+  direction: parseAsStringLiteral(["asc", "desc"]).withDefault("desc"),
+};
 export function TextFontsPanel() {
-  const [cursors, setCursors] = useState<(string | undefined)[]>([undefined]);
-  const query = useAdminTextFonts(cursors.at(-1));
-  return (
-    <div className="space-y-4">
-      <div className="flex justify-end">
-        <Link href="/station/text-fonts/new" className={buttonVariants()}>
-          新建字体
-        </Link>
-      </div>
-      {query.isError && (
-        <div
-          role="alert"
-          className="flex items-center gap-3 text-sm text-destructive"
-        >
-          字体列表读取失败
-          <Button
-            variant="outline"
-            disabled={query.isFetching}
-            onClick={() => void query.refetch()}
-          >
-            重试
-          </Button>
-        </div>
-      )}
-      {query.isLoading ? (
-        <p role="status">正在读取字体…</p>
-      ) : (
-        <AdminTable>
-          <AdminTableHead>
-            <AdminTableRow>
-              {["名称", "语言", "状态", "排序", "当前版本"].map((label) => (
-                <AdminTableHeader key={label}>{label}</AdminTableHeader>
-              ))}
-              <AdminTableActionHeader>操作</AdminTableActionHeader>
-            </AdminTableRow>
-          </AdminTableHead>
-          <AdminTableBody>
-            {query.data?.items.map((font) => (
-              <AdminTableRow key={font.familyId}>
-                <AdminTableCell>{font.name || "未命名字体"}</AdminTableCell>
-                <AdminTableCell>
-                  {textFontGroup(font.designLanguage)}
-                </AdminTableCell>
-                <AdminTableCell>
-                  {!font.currentVersionId
-                    ? "草稿"
-                    : font.enabled
-                      ? "启用"
-                      : "停用"}
-                </AdminTableCell>
-                <AdminTableCell>{font.sortOrder}</AdminTableCell>
-                <AdminTableCell>
-                  {font.currentVersionId?.slice(-8) ?? "尚未发布"}
-                </AdminTableCell>
-                <AdminTableActionCell>
-                  <Link
-                    href={`/station/text-fonts/${font.familyId}`}
-                    className={buttonVariants({
-                      variant: "ghost",
-                      size: "compact",
-                    })}
-                  >
-                    管理
-                  </Link>
-                </AdminTableActionCell>
-              </AdminTableRow>
-            ))}
-            {!query.isError && !query.data?.items.length && (
-              <AdminTableRow>
-                <AdminTableCell colSpan={6}>暂无字体</AdminTableCell>
-              </AdminTableRow>
-            )}
-          </AdminTableBody>
-        </AdminTable>
-      )}
-      <div className="flex items-center justify-between text-sm">
-        <span>
-          第 {cursors.length} 页 · {query.data?.items.length ?? 0} 条
-        </span>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            disabled={cursors.length === 1 || query.isFetching}
-            onClick={() => setCursors((previous) => previous.slice(0, -1))}
-          >
-            上一页
-          </Button>
-          <Button
-            variant="outline"
-            disabled={!query.data?.nextAfter || query.isFetching}
-            onClick={() =>
-              setCursors((previous) => [...previous, query.data!.nextAfter!])
-            }
-          >
-            下一页
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
+  const [ordering, setOrdering] = useState(false);
+  return ordering ? <TextFontOrderPanel onClose={() => setOrdering(false)} /> : <TextFontManagementList onReorder={() => setOrdering(true)} />;
+}
+function TextFontManagementList({ onReorder }: { onReorder: () => void }) {
+  const [filters, setFilters] = useQueryStates(parsers, { shallow: true });
+  const [reset, setReset] = useState(0);
+  const pagination = useCursorPagination(JSON.stringify([filters, reset]));
+  const query = useAdminFontManagement({
+    q: filters.search || undefined,
+    language: filters.language === "all" ? undefined : filters.language,
+    status: filters.status === "all" ? undefined : filters.status,
+    sort: ({ created: "createdAt", updated: "updatedAt", name: "name", display: "sortOrder" } as const)[filters.sort],
+    direction: filters.direction, cursor: pagination.cursor,
+  });
+  if (pagination.cursor && query.isError && getApiError(query.error).code === 40931) setReset(reset + 1);
+  return <TextFontListView filters={filters} onFiltersChange={(value) => void setFilters(value)}
+    rows={(query.data?.items ?? []).map((item) => ({ id: item.familyId, name: item.name, language: item.language, status: item.status, processing: item.latestJob?.status, submissionId: item.latestSubmissionId ?? undefined, currentVersion: item.currentVersionId?.slice(-8) }))}
+    page={pagination.page} hasNext={Boolean(query.data?.nextCursor)} loading={query.isLoading} error={query.isError} busy={query.isFetching}
+    onRetry={() => void query.refetch()} onReorder={onReorder}
+    onPageChange={(page) => { if (page < pagination.page) pagination.previous(); else if (query.data?.nextCursor) pagination.next(query.data.nextCursor); }} />;
 }

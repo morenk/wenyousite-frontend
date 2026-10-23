@@ -85,7 +85,12 @@ if (JSON.parse(source.read(audioFiles[1])).$schema !== "https://json-schema.org/
 const fontFiles = ["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json", "markdown-text-font-v1-fixtures.json", "markdown-text-font-v1.schema.json", "thread-font-catalog-v1.json", "thread-font-manifest-v1.json", "thread-font-manifest-v1.schema.json", "thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"];
 const fontCatalog = JSON.parse(source.read("thread-font-catalog-v1.json"));
 if (fontCatalog.fontVersion !== 1 || fontCatalog.schemaVersion !== 1 || !Array.isArray(fontCatalog.fonts)) throw new Error("后端字体目录不是 v1");
-const names = [...fontFiles, profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
+const adminFontName = "admin-font-management-v1-fixtures.json";
+const adminFonts = JSON.parse(source.read(adminFontName));
+if (adminFonts.fixtureVersion !== 1 || adminFonts.apiContractVersion !== contract.info.version
+  || adminFonts.authorizationRuleVersion !== "admin-font-upload-v1" || adminFonts.pageSize !== 20
+  || !Array.isArray(adminFonts.createCases)) throw new Error("后端字体管理契约不是同版本 v1");
+const names = [adminFontName, ...fontFiles, profileName, identityName, discussionName, "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json",
   "markdown-editor-newline-v1-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", boundaryName, ...audioFiles, ...textColorFiles, ...behaviorFiles, ...inlineCombinationFiles, ...markdownFiles];
 // 在写入前读取全部内容，来源缺失时不留下半套契约。
 const contents = names.map((name) => [name, source.read(name)]);

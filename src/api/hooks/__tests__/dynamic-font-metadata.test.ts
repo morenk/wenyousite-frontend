@@ -397,3 +397,18 @@ test("共享policy首需求取消，仍存活的正文订阅自动续接真实�
  const a=metadata.policy(first.signal),b=metadata.policy(second.signal);const rejected=expect(a).rejects.toMatchObject({name:"AbortError"});first.abort();await rejected;
  await expect(b).resolves.toMatchObject({policyVersion:3});expect(fetch).toHaveBeenCalledTimes(2);
 });
+
+test("合并分页保留服务端顺序，同版本ID的新revision目录可在原实例调整顺序", async () => {
+  const page = vi.fn()
+    .mockResolvedValueOnce({ data: catalogPage(1200, ["e"], "next"), etag: '"1200"', unchanged: false })
+    .mockResolvedValueOnce({ data: catalogPage(1200, ["d"]), unchanged: false })
+    .mockResolvedValueOnce({ data: catalogPage(1201, ["d"], "next"), etag: '"1201"', unchanged: false })
+    .mockResolvedValueOnce({ data: catalogPage(1201, ["e"]), unchanged: false });
+  const metadata = new DynamicFontMetadata({ descriptor: vi.fn(), page, policy: async () => parseDynamicFontPolicy(policy) });
+  const first = await metadata.catalog(new AbortController().signal);
+  expect(first.items.map(item => item.versionId)).toEqual([id("e"), id("d")]);
+  const second = await metadata.catalog(new AbortController().signal);
+  expect(second.revision).toBe(1201);
+  expect(second.items.map(item => item.versionId)).toEqual([id("d"), id("e")]);
+  expect(page.mock.calls[2]!.slice(0, 2)).toEqual([undefined, '"1200"']);
+});

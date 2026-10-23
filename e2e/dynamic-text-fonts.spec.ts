@@ -45,44 +45,40 @@ async function lastObservedPost(page: Page): Promise<ObservedPost> {
   return body!;
 }
 
-async function uploadProcessPreview(page: Page, version: 1 | 2) {
-  const upload = page.waitForResponse(
-    (response) =>
-      response.request().method() === "POST" &&
-      new URL(response.url()).pathname.endsWith("/sources"),
-  );
-  await page
-    .getByLabel("TTF / OTF 文件")
-    .setInputFiles(`e2e/fixtures/dynamic-fonts/synthetic-${version}.ttf`);
-  await page.getByRole("button", { name: "上传", exact: true }).click();
+async function uploadProcessPreview(page: Page, version: 1 | 2, output: string) {
+  if (await page.getByRole("button", { name: "上传另一个文件", exact: true }).isVisible())
+    await page.getByRole("button", { name: "上传另一个文件", exact: true }).click();
+  const upload = page.waitForResponse((response) => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/sources"));
+  await page.getByLabel("字体文件", { exact: true }).setInputFiles(`e2e/fixtures/dynamic-fonts/synthetic-${version}.ttf`);
+  await page.getByRole("button", { name: "上传并处理", exact: true }).click();
   const uploaded = await upload;
   expect(uploaded.status()).toBe(201);
-  // Chromium 的 inspector 可提前回收上传正文；使用真实 fetch 响应副本中的 jobId。
-  await expect
-    .poll(() =>
-      page.evaluate(
-        () =>
-          (window as unknown as { uploadedFontJobIds: string[] })
-            .uploadedFontJobIds.length,
-      ),
-    )
-    .toBe(version);
-  const jobId = await page.evaluate(() =>
-    (
-      window as unknown as { uploadedFontJobIds: string[] }
-    ).uploadedFontJobIds.at(-1)!,
-  );
-  const row = page.getByRole("row").filter({
-    has: page.getByRole("cell", { name: jobId.slice(-8), exact: true }),
-  });
-  await row.getByRole("button", { name: "开始处理", exact: true }).click();
-  await expect(
-    row.getByRole("button", { name: "预览", exact: true }),
-  ).toBeVisible({ timeout: 600000 });
-  await expect(
-    page.getByRole("button", { name: "预览", exact: true }),
-  ).toHaveCount(version, { timeout: 600000 });
+  // Chromium 可回收 XHR 大上传的 inspector 正文；从真实详情按完整源 SHA 查到同一任务。
+  const familyId = new URL(uploaded.url()).pathname.split("/").at(-2)!;
+  const sourceSha256 = createHash("sha256").update(readFileSync(`e2e/fixtures/dynamic-fonts/synthetic-${version}.ttf`)).digest("hex");
+  const job = await page.evaluate(async ({ familyId, sourceSha256 }) => {
+    const response = await fetch(`/api/v1/admin/text-fonts/${familyId}`);
+    if (!response.ok) throw new Error("隔离字体详情读取失败");
+    const detail = (await response.json()).data as components["schemas"]["FontAdminFamilyDetailDto"];
+    return detail.jobs.find((job) => job.sourceSha256 === sourceSha256);
+  }, { familyId, sourceSha256 });
+  expect(job).toBeDefined();
+  if (!job) throw new Error("完整源 SHA 未对应到上传任务");
+  if (new URL(page.url()).pathname.endsWith("/new")) {
+    await expect(page.getByRole("link", { name: "预览并发布", exact: true })).toBeVisible({ timeout: 600000 });
+    await expect(page.getByRole("img", { name: "字体样张", exact: true })).toBeVisible();
+    await screenshotModes(page, output, "admin-upload-ready");
+    await page.getByRole("link", { name: "预览并发布", exact: true }).click();
+  }
+  const row = page.getByRole("row").filter({ has: page.getByRole("cell", { name: job.jobId.slice(-8), exact: true }) });
+  await expect(row.getByRole("button", { name: "预览", exact: true })).toBeVisible({ timeout: 600000 });
+  await expect(page.getByRole("button", { name: "预览", exact: true })).toHaveCount(version);
   await row.getByRole("button", { name: "预览", exact: true }).click();
+  const beforePublish = await page.evaluate(async (familyId) => (await (await fetch(`/api/v1/admin/text-fonts/${familyId}`)).json()).data as components["schemas"]["FontAdminFamilyDetailDto"], job.familyId);
+  const readyVersionId = beforePublish.jobs.find((entry) => entry.jobId === job.jobId)!.versionId;
+  expect(readyVersionId).toMatch(/^tfv_/);
+  expect(beforePublish.currentVersionId).not.toBe(readyVersionId); // 自动编排不会发布此次新版本。
+  await expect(page.getByRole("heading", { name: "版本与发布", exact: true })).toBeInViewport();
   await expect(page.getByRole("img", { name: "字体样张" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "发布此版本", exact: true }),
@@ -226,15 +222,19 @@ async function screenshotModes(page: Page, output: string, name: string) {
         await expect(
           page.getByRole("navigation", { name: "管理功能" }),
         ).not.toBeVisible();
+        if (new URL(page.url()).pathname.endsWith("/new") && await page.getByRole("link", { name: "预览并发布", exact: true }).count()) {
+          await expect(page.getByRole("img", { name: "字体样张", exact: true })).toBeVisible();
+        } else {
         expect(
           (await page.getByLabel("字体名称", { exact: true }).boundingBox())!
             .width,
         ).toBeGreaterThan(250);
         await expect(
           page
-            .getByRole("combobox", { name: "主要语言" })
+            .getByRole("combobox", { name: /^(语言|语言分类)$/ })
             .locator('[data-slot="select-value"]'),
-        ).toHaveText("中文");
+        ).toHaveText("未分类");
+        }
       }
       // 390px 保留实际视口裁切，记录 PC 布局的宽度，不用整页截图伪装窄屏画面。
       await page.screenshot({
@@ -466,47 +466,12 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     await editor.fill("Aa Aa");
     await checkpoints.checkpoint("sessions-ready", []);
     const admin = await page.context().newPage();
-    await admin.addInitScript(() => {
-      const ids: string[] = [];
-      (
-        window as unknown as { uploadedFontJobIds: string[] }
-      ).uploadedFontJobIds = ids;
-      const nativeFetch = window.fetch.bind(window);
-      window.fetch = async (input, init) => {
-        const response = await nativeFetch(input, init);
-        const method =
-          init?.method ?? (input instanceof Request ? input.method : "GET");
-        if (
-          method === "POST" &&
-          response.status === 201 &&
-          /^\/api\/v1\/admin\/text-fonts\/tff_[a-f0-9]{32}\/sources$/u.test(
-            new URL(response.url).pathname,
-          )
-        ) {
-          const body = await response.clone().json();
-          ids.push(body.data.jobId);
-        }
-        return response;
-      };
-    });
     await loginIsolatedAdmin(admin, "/station/text-fonts");
-    await admin.getByRole("link", { name: "新建字体", exact: true }).click();
+    await admin.getByRole("link", { name: "上传字体", exact: true }).click();
     const name = "隔离样本 " + run.manifest.runId.slice(-8);
     await admin.getByLabel("字体名称").fill(name);
-    await admin.getByLabel("作者", { exact: true }).fill("温油站测试");
-    await admin
-      .getByLabel("来源链接")
-      .fill("https://example.invalid/original-synthetic-glyphs");
-    await admin.getByLabel("授权名称").fill("CC0-1.0");
-    await admin
-      .getByLabel("完整授权材料")
-      .fill("原创合成测试字形，按 CC0-1.0 允许分发、转换、分片。");
-    await admin.getByLabel("样张文字").fill("Aa Aa");
-    for (const label of ["允许分发", "允许转码", "允许分片"])
-      await admin.getByLabel(label, { exact: true }).check();
-    await admin.getByRole("button", { name: "保存配置", exact: true }).click();
-    await admin.waitForURL(/\/station\/text-fonts\/tff_[a-f0-9]{32}$/);
-    const first = await uploadProcessPreview(admin, 1);
+    await screenshotModes(admin, output, "admin-upload-three-fields");
+    const first = await uploadProcessPreview(admin, 1, output);
     expect(initialIds.has(first)).toBe(false);
     await screenshotModes(admin, output, "admin-first-published");
     await page.bringToFront();
@@ -523,6 +488,7 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     await expect(editor).toHaveText("Aa Aa");
     await page.getByRole("button", { name: "切换正文样式", exact: true }).click();
     await page.getByRole("button", { name: "字体", exact: true }).click();
+    await page.getByRole("tab", { name: "其他", exact: true }).click();
     await screenshotModes(page, output, "editor-font-list");
     const fontChoice = page.getByRole("button", { name, exact: true });
     await fontChoice.scrollIntoViewIfNeeded();
@@ -625,7 +591,7 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
       threadId,
       fontName: name,
     });
-    const second = await uploadProcessPreview(admin, 2);
+    const second = await uploadProcessPreview(admin, 2, output);
     expect(second).not.toBe(first);
     // 同一页面的新选择必须获得第二版，不能只验证后台当前指针。
     await page.getByRole("button", { name: "发表回复…", exact: true }).click();
@@ -637,6 +603,7 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     await secondReply.press("Control+A");
     await page.getByRole("button", { name: "切换正文样式", exact: true }).click();
     await page.getByRole("button", { name: "字体", exact: true }).click();
+    await page.getByRole("tab", { name: "其他", exact: true }).click();
     await page.getByRole("button", { name, exact: true }).click();
     await expect(
       secondReply.locator(`[data-wenyou-font-v2="${second}"]`),
@@ -996,20 +963,12 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
 
 
 test("管理员浏览器经 Next 完整上传 64 MiB，超限预检及处理失败可恢复", async ({ page }, testInfo) => {
-  test.setTimeout(240000);
+  test.setTimeout(600000);
   const run = await requireIsolationRunner();
   const output = join(process.cwd(), ".e2e-results", `admin-font-upload-${run.manifest.runId}`);
   mkdirSync(output, { recursive: true, mode: 0o700 });
   await loginIsolatedAdmin(page, "/station/text-fonts/new");
   await page.getByLabel("字体名称").fill("上传边界 " + run.manifest.runId.slice(-8));
-  await page.getByLabel("作者", { exact: true }).fill("温油站测试");
-  await page.getByLabel("来源链接").fill("https://example.invalid/synthetic");
-  await page.getByLabel("授权名称").fill("CC0-1.0");
-  await page.getByLabel("完整授权材料").fill("原创合成测试字形，允许分发、转换、分片。");
-  for (const label of ["允许分发", "允许转码", "允许分片"]) await page.getByLabel(label, { exact: true }).check();
-  await page.getByRole("button", { name: "保存配置", exact: true }).click();
-  await page.waitForURL(/\/station\/text-fonts\/tff_[a-f0-9]{32}$/);
-  const familyId = new URL(page.url()).pathname.split("/").at(-1)!;
   const source = Buffer.alloc(64 * 1024 * 1024 + 1);
   readFileSync("e2e/fixtures/dynamic-fonts/synthetic-1.ttf").copy(source);
   let uploads = 0;
@@ -1018,18 +977,22 @@ test("管理员浏览器经 Next 完整上传 64 MiB，超限预检及处理失�
   });
   const oversizedPath = join(run.root, "web-font-upload-too-large.ttf");
   writeFileSync(oversizedPath, source, { mode: 0o600 });
-  await page.getByLabel("TTF / OTF 文件").setInputFiles(oversizedPath);
-  await page.getByRole("button", { name: "上传", exact: true }).click();
+  await page.getByLabel("字体文件", { exact: true }).setInputFiles(oversizedPath);
+  await page.getByRole("button", { name: "上传并处理", exact: true }).click();
   await expect(page.getByText("字体文件不能超过 64 MiB", { exact: true })).toBeVisible();
   expect(uploads).toBe(0);
   const exact = source.subarray(0, 64 * 1024 * 1024);
   const sha256 = createHash("sha256").update(exact).digest("hex");
   const uploaded = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/sources"), { timeout: 120000 });
+  const created = page.waitForRequest(request => request.method() === "POST" && new URL(request.url()).pathname.endsWith("/text-fonts/submissions"));
   const boundaryPath = join(run.root, "web-font-upload-boundary.ttf");
   writeFileSync(boundaryPath, exact, { mode: 0o600 });
-  await page.getByLabel("TTF / OTF 文件").setInputFiles(boundaryPath);
-  await page.getByRole("button", { name: "上传", exact: true }).click();
-  expect((await uploaded).status()).toBe(201);
+  await page.getByLabel("字体文件", { exact: true }).setInputFiles(boundaryPath);
+  await page.getByRole("button", { name: "上传并处理", exact: true }).click();
+  const submitted = (await created).postDataJSON() as components["schemas"]["CreateFontSubmissionDto"];
+  const uploadResponse = await uploaded;
+  expect(uploadResponse.status()).toBe(201);
+  const familyId = new URL(uploadResponse.url()).pathname.split("/").at(-2)!;
   const readDetail = () => page.evaluate(async (id) => {
     const response = await fetch(`/api/v1/admin/text-fonts/${id}`);
     if (!response.ok) throw new Error("隔离字体详情读取失败");
@@ -1037,20 +1000,25 @@ test("管理员浏览器经 Next 完整上传 64 MiB，超限预检及处理失�
   }, familyId);
   await expect.poll(async () => (await readDetail()).jobs.some(job => job.sourceBytes === exact.length && job.sourceSha256 === sha256)).toBe(true);
   expect(uploads).toBe(1);
-  await expect(page.getByLabel("TTF / OTF 文件")).toHaveValue("");
-  // 小型无效字体检验真实 Worker 失败/重试；不处理边界文件，避免无关大字体转换开销。
+  const boundaryJob = (await readDetail()).jobs.find(job => job.sourceBytes === exact.length && job.sourceSha256 === sha256)!;
+  expect(boundaryJob.submissionId).toBe(submitted.submissionId);
+  expect(boundaryJob.familyId).toBe(familyId);
+  await expect.poll(async () => (await readDetail()).jobs.find(job => job.jobId === boundaryJob.jobId)?.status, { timeout: 300000 }).toMatch(/^(ready|failed)$/);
+  expect((await readDetail()).currentVersionId).toBeNull();
+  await page.goto(`/station/text-fonts/${familyId}`);
+  // 小型无效字体检验真实 Worker 失败/重试；重试必须复用已上传源。
+
   const invalidUploaded = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith("/sources"));
-  await page.getByLabel("TTF / OTF 文件").setInputFiles({ name: "invalid.ttf", mimeType: "application/octet-stream", buffer: Buffer.from("invalid-font") });
-  await page.getByRole("button", { name: "上传", exact: true }).click();
+  await page.getByLabel("字体文件", { exact: true }).setInputFiles({ name: "invalid.ttf", mimeType: "application/octet-stream", buffer: Buffer.from("invalid-font") });
+  await page.getByRole("button", { name: "上传并处理", exact: true }).click();
   expect((await invalidUploaded).status()).toBe(201);
   const invalid = (await readDetail()).jobs.find(job => job.sourceBytes === 12)!;
   expect(invalid).toBeDefined();
   const row = page.getByRole("row").filter({ has: page.getByRole("cell", { name: invalid.jobId.slice(-8), exact: true }) });
-  await row.getByRole("button", { name: "开始处理", exact: true }).click();
   await expect(row.getByRole("button", { name: "重试处理", exact: true })).toBeVisible({ timeout: 60000 });
   const firstFailure = (await readDetail()).jobs.find(job => job.jobId === invalid.jobId)!;
   expect(firstFailure.status).toBe("failed");
-  const retryResponse = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.endsWith(`/jobs/${invalid.jobId}/process`));
+  const retryResponse = page.waitForResponse(response => response.request().method() === "POST" && new URL(response.url()).pathname.includes("/submissions/") && new URL(response.url()).pathname.endsWith("/process"));
   await row.getByRole("button", { name: "重试处理", exact: true }).click();
   const retryAccepted = await retryResponse;
   expect(retryAccepted.ok()).toBe(true);
@@ -1060,8 +1028,133 @@ test("管理员浏览器经 Next 完整上传 64 MiB，超限预检及处理失�
     return job.status === "failed";
   }, { timeout: 60000 }).toBe(true);
   await expect(row.getByRole("button", { name: "重试处理", exact: true })).toBeVisible();
+  expect(uploads).toBe(2);
   await screenshotModes(page, output, "admin-upload-failure-retry");
-  const evidence = { ...evidenceSource(), runId: run.manifest.runId, backendURL: run.manifest.backendURL, candidateBuildId: readFileSync(join(process.env.E2E_BUILD_DIR!, "BUILD_ID"), "utf8").trim(), browserOrigin: new URL(page.url()).origin, bytes: exact.length, sha256, uploads, oversizedBlockedBeforeRequest: true, failedJob: (await readDetail()).jobs.find(job => job.jobId === invalid.jobId) };
+  const evidence = { ...evidenceSource(), runId: run.manifest.runId, backendURL: run.manifest.backendURL, candidateBuildId: readFileSync(join(process.env.E2E_BUILD_DIR!, "BUILD_ID"), "utf8").trim(), browserOrigin: new URL(page.url()).origin, uploadHttpStatus: uploadResponse.status(), boundaryJobId: boundaryJob.jobId, boundarySubmissionId: boundaryJob.submissionId, bytes: exact.length, sha256, uploads, oversizedBlockedBeforeRequest: true, failedJob: (await readDetail()).jobs.find(job => job.jobId === invalid.jobId) };
   writeFileSync(join(output, "evidence.json"), JSON.stringify(evidence, null, 2));
   await testInfo.attach("admin-font-upload-evidence", { body: JSON.stringify(evidence), contentType: "application/json" });
+});
+
+
+test("字体管理全量筛选分页、URL恢复与键盘整组排序一次保存", async ({ page }, testInfo) => {
+  test.setTimeout(240000);
+  const run = await requireIsolationRunner();
+  const output = join(process.cwd(), ".e2e-results", `font-management-${run.manifest.runId}`); mkdirSync(output, { recursive: true });
+  await loginIsolatedAdmin(page, "/station/text-fonts");
+  const request = (path: string) => page.evaluate(async (path) => {
+    const response = await fetch(`/api/v1/admin/text-fonts${path}`);
+    if (!response.ok) throw new Error(`隔离字体管理请求失败：${response.status}`);
+    return (await response.json()).data;
+  }, path);
+  const prefix = `分页-${run.manifest.runId.slice(-8)}-`;
+  await page.evaluate(async (prefix) => {
+    // 会话接口限流10次/分钟；整个夹具批次复用一次读取的 CSRF，仅保留在页面内存。
+    const sessionResponse = await fetch("/api/v1/admin/auth/session");
+    if (!sessionResponse.ok) throw new Error(`隔离管理会话读取失败：${sessionResponse.status}`);
+    const session = (await sessionResponse.json()).data;
+    for (let index = 0; index < 23; index++) {
+      const response = await fetch("/api/v1/admin/text-fonts/submissions", {
+        method: "POST", headers: { "X-CSRF-Token": session.csrfToken, "Content-Type": "application/json" },
+        body: JSON.stringify({ submissionId: crypto.randomUUID(), name: prefix + String(index).padStart(2, "0"), language: "en" }),
+      });
+      if (response.status !== 201) throw new Error(`隔离字体夹具创建失败：${response.status}`);
+    }
+  }, prefix);
+  await page.goto(`/station/text-fonts?search=${encodeURIComponent(prefix)}&language=en&status=draft&sort=name&direction=asc`);
+  await expect(page.getByText(prefix + "00", { exact: true })).toBeVisible();
+  await expect(page.locator("tbody tr")).toHaveCount(20);
+  await screenshotModes(page, output, "management-filtered");
+  await page.getByRole("button", { name: "下一页", exact: true }).click();
+  await expect(page.getByText(prefix + "22", { exact: true })).toBeVisible();
+  await expect(page.locator("tbody tr")).toHaveCount(3);
+  await page.getByRole("textbox", { name: "名称搜索" }).fill(prefix + "22");
+  await expect(page.locator("tbody tr")).toHaveCount(1);
+  await expect(page.getByRole("button", { name: "上一页", exact: true })).toBeDisabled();
+  await expect.poll(() => new URL(page.url()).searchParams.get("search")).toBe(prefix + "22");
+  await page.reload();
+  await expect(page.getByRole("textbox", { name: "名称搜索" })).toHaveValue(prefix + "22");
+  await expect(page.getByText(prefix + "22", { exact: true })).toBeVisible();
+  await page.getByRole("button", { name: /^重置\s*3$/ }).click();
+  await expect(page.getByRole("combobox", { name: "排序" }).locator('[data-slot="select-value"]')).toHaveText("最近新增");
+  await expect(page.getByRole("button", { name: "降序排列，切换为升序" })).toBeVisible();
+  const beforeDefault = await request("/management?sort=createdAt&direction=desc") as components["schemas"]["FontManagementPageDto"];
+  const before: components["schemas"]["FontManagementItemDto"][] = [];
+  let cursor: string | null = null, catalogRevision = 0;
+  do {
+    const next = await request(`/management?status=enabled&sort=sortOrder&direction=asc${cursor ? `&cursor=${encodeURIComponent(cursor)}` : ""}`) as components["schemas"]["FontManagementPageDto"];
+    before.push(...next.items); cursor = next.nextCursor; catalogRevision = next.catalogRevision;
+  } while (cursor);
+  const language = (["zh", "ja", "en", "other"] as const).find((language) => before.filter((font) => font.language === language).length >= 2)!;
+  expect(language, "本轮隔离资源须提供完整历史字体导入集合").toBeDefined();
+  const group = before.filter((font) => font.language === language);
+  const editorPage = await page.context().newPage();
+  await loginAsE2eUser(editorPage); await openFreshThreadDraft(editorPage);
+  const editor = editorPage.locator(".ProseMirror"); await editor.fill("Aa"); await editor.press("Control+A");
+  await editorPage.getByRole("button", { name: "切换正文样式", exact: true }).click();
+  await editorPage.getByRole("button", { name: "字体", exact: true }).click();
+  const pickerLanguage = ({ zh: "中文", ja: "日文", en: "英文", other: "其他" } as const)[language];
+  await editorPage.getByRole("tab", { name: pickerLanguage, exact: true }).click();
+  const choices = editorPage.locator(`[aria-label="${pickerLanguage}字体"]`).getByRole("button");
+  await expect(choices.nth(0)).toHaveAccessibleName(group[0]!.name);
+  await expect(choices.nth(1)).toHaveAccessibleName(group[1]!.name);
+  const documentMarker = await editorPage.evaluate(() => {
+    const state = window as unknown as { orderDocument: string; orderForeground: { type: string; trusted: boolean; visibility: string }[] };
+    state.orderDocument = crypto.randomUUID(); state.orderForeground = [];
+    const record = (event: Event) => state.orderForeground.push({ type: event.type, trusted: event.isTrusted, visibility: document.visibilityState });
+    window.addEventListener("focus", record); window.addEventListener("visibilitychange", record);
+    return state.orderDocument;
+  });
+  let fontDownloads = 0; editorPage.on("request", (request) => { if (/\/meta\/text-fonts\/v2\/versions\/[^/]+\/assets\/[^?]+\.(woff2|ttf|otf)(?:\?|$)/.test(request.url())) fontDownloads++; });
+  await page.bringToFront();
+  await page.getByRole("button", { name: "调整展示顺序", exact: true }).click();
+  const languageLabel = ({ zh: "中文", ja: "日文", en: "英文", other: "未分类" } as const)[language];
+  const section = page.getByRole("region", { name: `${languageLabel}展示顺序`, exact: true });
+  const moving = section.getByRole("listitem").nth(1);
+  await expect(moving).toHaveAttribute("aria-label", `${group[1]!.name}，第 2 位`);
+  let writes = 0; page.on("request", (request) => { if (request.method() === "PUT" && new URL(request.url()).pathname.endsWith("/text-fonts/order")) writes++; });
+  await moving.focus(); await moving.press("Alt+ArrowUp");
+  await expect(section.getByRole("listitem").first()).toHaveAttribute("aria-label", `${group[1]!.name}，第 1 位`);
+  expect(writes).toBe(0);
+  const saved = page.waitForResponse((response) => response.request().method() === "PUT" && new URL(response.url()).pathname.endsWith("/text-fonts/order"));
+  await page.getByRole("button", { name: "保存顺序", exact: true }).click();
+  const response = await saved; expect(response.ok()).toBe(true); expect(writes).toBe(1);
+  const body = response.request().postDataJSON() as components["schemas"]["ReorderFontsDto"];
+  expect(body.expectedCatalogRevision).toBe(catalogRevision); expect(body.groups).toHaveLength(1);
+  expect(body.groups[0]!.items).toEqual([group[1]!, group[0]!, ...group.slice(2)].map((font) => ({ familyId: font.familyId, expectedFamilyRevision: font.revision })));
+  await expect(page.getByRole("combobox", { name: "排序" }).locator('[data-slot="select-value"]')).toHaveText("最近新增");
+  const afterDefault = await request("/management?sort=createdAt&direction=desc") as components["schemas"]["FontManagementPageDto"];
+  expect(afterDefault.items.map((font) => font.familyId)).toEqual(beforeDefault.items.map((font) => font.familyId));
+  const catalog = await page.evaluate(async () => {
+    const items: components["schemas"]["FontCatalogEntryDto"][] = []; let cursor: string | null = null;
+    do {
+      const response = await fetch(`/api/v1/meta/text-fonts/v2${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ""}`);
+      if (!response.ok) throw new Error("隔离目录读取失败");
+      const body = (await response.json()).data as components["schemas"]["FontCatalogPageDto"]; items.push(...body.items); cursor = body.nextCursor;
+    } while (cursor);
+    return items;
+  });
+  expect(catalog.filter((font) => font.designLanguage === language).slice(0, 2).map((font) => font.familyId)).toEqual([group[1]!.familyId, group[0]!.familyId]);
+  const refreshed = editorPage.waitForResponse(response => response.request().method() === "GET" && new URL(response.url()).pathname === "/api/v1/meta/text-fonts/v2");
+  await editorPage.bringToFront();
+  const nativeForeground = await editorPage.evaluate(() => (window as unknown as { orderForeground: { type: string; trusted: boolean; visibility: string }[] }).orderForeground);
+  // Playwright 多页均视作活动页；显式发送浏览器事件验证生产订阅，不调用 refetch 或注入目录。
+  await editorPage.evaluate(() => window.dispatchEvent(new Event("visibilitychange")));
+  const refreshedResponse = await refreshed;
+  expect(refreshedResponse.status()).toBe(200);
+  const refreshedCatalog = (await refreshedResponse.json()).data as components["schemas"]["FontCatalogPageDto"];
+  expect(refreshedCatalog.revision).toBeGreaterThan(catalogRevision);
+  const foreground = await editorPage.evaluate(() => (window as unknown as { orderForeground: { type: string; trusted: boolean; visibility: string }[] }).orderForeground);
+  await expect(choices.nth(0)).toHaveAccessibleName(group[1]!.name);
+  await expect(choices.nth(1)).toHaveAccessibleName(group[0]!.name);
+  expect(await editorPage.evaluate(() => (window as unknown as { orderDocument: string }).orderDocument)).toBe(documentMarker);
+  expect(fontDownloads).toBe(0);
+  await page.bringToFront();
+  await screenshotModes(page, output, "management-list");
+  await page.getByRole("button", { name: "调整展示顺序", exact: true }).click();
+  await expect(page.getByRole("button", { name: "保存顺序", exact: true })).toBeVisible();
+  await screenshotModes(page, output, "management-order");
+  const evidence = { ...evidenceSource(), runId: run.manifest.runId, matched: 23, pageSizes: [20, 3], writes, language, openedPickerOrderUpdated: true, sameDocument: true, nativeForeground, foreground, foregroundTrigger: "controlled visibilitychange browser event", refreshedCatalogStatus: refreshedResponse.status(), catalogRevisionAfter: refreshedCatalog.revision, fontDownloads, catalogRevisionBefore: catalogRevision, changedFamilies: body.groups[0]!.items.map((item) => item.familyId) };
+  writeFileSync(join(output, "evidence.json"), JSON.stringify(evidence, null, 2), { mode: 0o600 });
+  await testInfo.attach("font-management-evidence", { body: JSON.stringify(evidence), contentType: "application/json" });
+  await editorPage.close();
 });
