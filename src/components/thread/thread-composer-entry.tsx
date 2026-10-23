@@ -42,19 +42,19 @@ export function ThreadComposerEntry({
   }
 
   return (
-    <div className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-4">
+    <div>
       {!isActive ? (
         <Button
           type="button"
           variant="outline"
-          className="w-full justify-start text-muted-foreground"
+          className="w-full justify-start bg-background text-muted-foreground"
           onClick={() => void open(composerSession)}
         >
           <WenyouIcon id={iconId} className="mr-2 size-4" />
           发表回复…
         </Button>
       ) : null}
-      <ThreadComposerOutlet anchorId={anchorId} />
+      <ThreadComposerOutlet anchorId={anchorId} resizeEdge="top" />
     </div>
   );
 }
