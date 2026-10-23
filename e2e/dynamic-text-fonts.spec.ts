@@ -83,6 +83,10 @@ async function uploadProcessPreview(page: Page, version: 1 | 2) {
     page.getByRole("button", { name: "预览", exact: true }),
   ).toHaveCount(version, { timeout: 600000 });
   await row.getByRole("button", { name: "预览", exact: true }).click();
+  // 样张只在进入视口后加载；新增任务行可能把版本预览区推到屏幕下方。
+  await page
+    .getByRole("button", { name: "发布此版本", exact: true })
+    .scrollIntoViewIfNeeded();
   await expect(page.getByRole("img", { name: "字体样张" })).toBeVisible();
   await expect(
     page.getByRole("button", { name: "发布此版本", exact: true }),
