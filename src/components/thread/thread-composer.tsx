@@ -38,7 +38,7 @@ function getErrorMessage(error: unknown, fallback: string) {
   return err.message || fallback;
 }
 
-function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly MentionIdentity[] }) {
+function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?: readonly MentionIdentity[]; resizeEdge?: "top" | "bottom" }) {
   const editor = useEditorSubmission();
   const [syncError, setSyncError] = useState(false);
   const { clearThread } = useContentAccessCache();
@@ -204,6 +204,7 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
         disabled={pending || uncertain}
         maxHeight={isReply ? 200 : 300}
         minHeight={isReply ? 120 : 180}
+        resizeEdge={resizeEdge}
         threadId={threadId}
         diceRolls={session.diceRolls}
         footerActions={
@@ -229,8 +230,8 @@ function ThreadComposer({ mentionIdentities }: { mentionIdentities?: readonly Me
   );
 }
 
-export function ThreadComposerOutlet({ anchorId, mentionIdentities }: { anchorId: string; mentionIdentities?: readonly MentionIdentity[] }) {
+export function ThreadComposerOutlet({ anchorId, mentionIdentities, resizeEdge }: { anchorId: string; mentionIdentities?: readonly MentionIdentity[]; resizeEdge?: "top" | "bottom" }) {
   const { session } = useThreadComposerSession();
   if (session?.anchorId !== anchorId) return null;
-  return <ThreadComposer key={session.key} mentionIdentities={mentionIdentities} />;
+  return <ThreadComposer key={session.key} mentionIdentities={mentionIdentities} resizeEdge={resizeEdge} />;
 }
