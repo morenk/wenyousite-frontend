@@ -76,3 +76,23 @@ test("管理预览不读取或写入公共持久缓存，每次经授权网关",
  const loader=new FontAssetLoader({base:"https://wenyou.site/",transport,scheduler,cache,timeoutMs:1000,cacheBytes:1000,retryBaseMs:1000,retryMaxMs:60000,verify:async()=>true,protectedHashes:()=>new Set()});
  for(let n=0;n<2;n++)await loader.get({...descriptor,cacheable:false},new AbortController().signal);expect(transport).toHaveBeenCalledTimes(2);expect(cache.get).not.toHaveBeenCalled();expect(cache.put).not.toHaveBeenCalled();expect(loader.snapshot.cacheHits).toBe(0);
 });
+
+test.each(["gzip", "br", "deflate", "gzip, br"])("%s响应按解压后流校验，不拿压缩Content-Length比较资产长度", async encoding => {
+ const transport=vi.fn<typeof fetch>(async()=>new Response(new Uint8Array(4),{headers:{"content-type":"font/woff2","content-encoding":encoding,"content-length":"2"}}));
+ const f=fixture(transport);
+ await expect(f.loader.get(descriptor,new AbortController().signal)).resolves.toHaveProperty("byteLength",4);
+ expect(f.loader.snapshot).toMatchObject({downloadBytes:4,failures:0,bufferedBytes:0});
+ expect(f.scheduler.snapshot.windowBytes).toBe(4);
+});
+test.each([undefined,"identity"])("未压缩响应%s仍在读流前拒绝错误Content-Length",async encoding=>{
+ const cancel=vi.fn(),transport=vi.fn<typeof fetch>(async()=>new Response(new ReadableStream({cancel}),{headers:{"content-type":"font/woff2","content-length":"2",...(encoding?{"content-encoding":encoding}:{})}}));
+ const f=fixture(transport);
+ await expect(f.loader.get(descriptor,new AbortController().signal)).rejects.toThrow("asset-length");
+ expect(cancel).toHaveBeenCalledOnce();expect(f.loader.snapshot.downloadBytes).toBe(0);
+});
+test.each([3,5])("压缩响应解压后%d字节仍拒绝截断或超额并释放缓冲",async size=>{
+ const transport=vi.fn<typeof fetch>(async()=>new Response(new Uint8Array(size),{headers:{"content-type":"font/woff2","content-encoding":"gzip","content-length":"2"}}));
+ const f=fixture(transport);
+ await expect(f.loader.get(descriptor,new AbortController().signal)).rejects.toThrow(size>4?"asset-length":"asset-integrity");
+ expect(f.loader.snapshot).toMatchObject({cacheHits:0,bufferedBytes:0,failures:1});
+});
