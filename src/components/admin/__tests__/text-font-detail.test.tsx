@@ -244,7 +244,47 @@ test("更多信息默认折叠，补充信息和样张可留空且无排序或�
   fireEvent.change(await screen.findByLabelText("样张文字"), { target: { value: "" } });
   expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
-  await waitFor(() => expect(env.update).toHaveBeenCalledWith(expect.objectContaining({ author: "", licenseName: "", specimenText: "温油站，一起书写故事。0123456789", expectedFamilyRevision: 7 })));
+  await waitFor(() => expect(env.update).toHaveBeenCalledWith(expect.objectContaining({ author: "", licenseName: "", specimenText: "温油文字 Aa 0123", expectedFamilyRevision: 7 })));
+});
+
+const specimenDefaults = [
+  ["zh", "温油文字 Aa 0123"],
+  ["ja", "温油文字 Aa 0123"],
+  ["en", "Wenyou Aa 0123"],
+  ["other", "Wenyou Aa 0123"],
+] as const;
+
+test.each(specimenDefaults.flatMap(([designLanguage, expected]) =>
+  ["", "   "].map((specimenText) => ({ designLanguage, expected, specimenText })),
+))("$designLanguage 样张为空或纯空格 '$specimenText' 时保存统一默认文案", async ({ designLanguage, expected, specimenText }) => {
+  env.record = { ...record(), designLanguage };
+  render(<TextFontDetail familyId={familyId} />);
+  fireEvent.click(screen.getByRole("button", { name: "更多信息" }));
+  fireEvent.change(await screen.findByLabelText("样张文字"), { target: { value: specimenText } });
+  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
+  await waitFor(() => expect(env.update).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+    familyId, designLanguage, specimenText: expected, expectedFamilyRevision: 7,
+  })));
+});
+
+test.each(["zh", "ja", "en", "other"] as const)("%s 自定义样张保留，仅去除首尾空格", async (designLanguage) => {
+  env.record = { ...record(), designLanguage };
+  render(<TextFontDetail familyId={familyId} />);
+  fireEvent.click(screen.getByRole("button", { name: "更多信息" }));
+  fireEvent.change(await screen.findByLabelText("样张文字"), { target: { value: "  我的样张 Custom Aa 0123  " } });
+  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
+  await waitFor(() => expect(env.update).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({
+    designLanguage, specimenText: "我的样张 Custom Aa 0123",
+  })));
+});
+
+test("仅编辑资料不会把已有非空历史样张改成新默认文案", async () => {
+  const specimenText = "The quick brown fox jumps over the lazy dog. 0123456789";
+  env.record = { ...record(), designLanguage: "en", specimenText };
+  render(<TextFontDetail familyId={familyId} />);
+  fireEvent.change(screen.getByLabelText("字体名称"), { target: { value: "修改名称" } });
+  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
+  await waitFor(() => expect(env.update).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ name: "修改名称", specimenText })));
 });
 
 test("新流程历史任务按submissionId恢复，旧任务仍使用旧处理API", async () => {
