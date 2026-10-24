@@ -136,3 +136,12 @@ CDP 调用经过 Chromium 原生组合输入管线；单元测试使用合成事
 本轮持久证据沿用上述 Worktree 外目录：`editor-interaction-check.log`、`editor-interaction-targeted.log`、`editor-interaction-e2e-full-2.log`／`editor-interaction-e2e-full-3.log`、按 runId 保存的脱敏报告／资源／清理记录、`editor-edge-light.png`／`editor-edge-dark.png`／`editor-edge-narrow.png` 和 `editor-color-icons.png`。完整运行源码未再改变；交付前 fetch 确认 `origin/dev` 仍为 `dbbacc1f6206150df5f53a05a8b25b1e47ee0953`。
 
 本轮提交至 PR #85，尚未合并或部署；线上仍为原基线。保留任务 Worktree 和视觉候选供负责人验收，不把自动检查通过视为负责人观感确认。
+
+
+## PR #85 最新基线整合准备（2026-10-24）
+
+按治理任务协调，将 `origin/dev` 的 `2514846` 合入原任务分支，不 rebase、不强推。仅 `e2e/dynamic-text-fonts.spec.ts` 的样张预览准备发生冲突：本任务旧测试主动滚动到发布按钮，而最新字体后台已经在用户点击预览时自动定位，并通过 `toBeInViewport()` 验证产品行为。保留最新版 E2E 的上传编排、源 SHA 校验、未自动发布断言及自动定位检查，移除已被产品修复替代的测试手动滚动，避免它掩盖自动定位回归。该 E2E 文件与本轮 `origin/dev` 完全一致；音频误提示、边框拖动、颜色图标和回复容器的运行代码保持原实现。
+
+按锁文件同步 Zod 4.6.6 后，定向检查 7 文件／88 项通过，涵盖外部点击、上下边框调整、颜色选择器、回复会话、字体详情自动定位和字体选择器。当前尚未重新执行完整门禁、生产构建或浏览器 E2E；上文两轮完整结果仅属于原基线，不能替代最终整合候选验证。字体运行时问题由原字体任务修复，等待其最终已提交基线和治理调度后再串行验证，避免重复重负载。
+
+原浅色、深色和窄桌面截图仍保留；本线程没有用户明确认可这些画面的记录，不声称视觉验收已完成。治理已传递本轮合并部署授权，但本任务不执行合并或部署。整合准备状态和本轮日志保存在原持久证据目录的 `editor-interaction-integration/status.json`，最终交付以之后的实际检查、SHA 和部署记录为准。

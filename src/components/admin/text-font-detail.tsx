@@ -1,8 +1,7 @@
 "use client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAdminSession } from "@/api/hooks/use-admin";
 import {
@@ -11,11 +10,11 @@ import {
   useAdminTextFontPreview,
   type AdminFontFamily,
 } from "@/api/hooks/admin/use-admin-text-fonts";
+import { useContinueAdminFontJob } from "@/api/hooks/admin/use-admin-font-submission";
 import { getApiError, getApiErrorMessage } from "@/api/errors";
 import {
   emptyTextFontConfiguration,
-  textFontConfigurationSchema,
-  textFontUploadError,
+  textFontMetadataSchema,
   type TextFontConfigurationValues,
 } from "@/lib/admin-text-font-form";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -29,7 +28,10 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { DynamicFontSpecimen } from "@/components/editor/dynamic-font-specimen";
-import { TextFontFields } from "./text-font-fields";
+import { TextFontMetadataFields } from "./text-font-metadata-fields";
+import { TextFontUploadPanel } from "./text-font-upload-panel";
+import { fontJobFailureMessage, fontLanguageLabels } from "@/lib/admin-text-font-upload";
+import fontManagementFixture from "../../../contracts/admin-font-management-v1-fixtures.json";
 import { TextFontWithdrawDialog } from "./text-font-withdraw-dialog";
 import {
   AdminTable,
@@ -48,15 +50,7 @@ const statuses = {
   ready: "处理完成",
   failed: "处理失败",
 };
-const failures = {
-  "invalid-font": "字体文件无效",
-  "unsupported-font": "不支持此字体格式",
-  "rights-required": "授权材料或权限不完整",
-  "resource-limit": "超出处理资源限制",
-  "sandbox-unavailable": "处理环境暂不可用",
-  "processing-failed": "字体处理失败",
-};
-export function TextFontDetail({ familyId }: { familyId?: string }) {
+export function TextFontDetail({ familyId, submissionId }: { familyId?: string; submissionId?: string }) {
   const detail = useAdminTextFont(familyId);
   if (familyId && !detail.data)
     return (
@@ -76,10 +70,12 @@ export function TextFontDetail({ familyId }: { familyId?: string }) {
         )}
       </div>
     );
+  if (!familyId) return <TextFontUploadPanel />;
   return (
     <TextFontEditor
       key={familyId ?? "new"}
       record={detail.data}
+      submissionId={submissionId}
       readFailed={detail.isError}
       reload={async () => {
         const result = await detail.refetch();
@@ -90,40 +86,41 @@ export function TextFontDetail({ familyId }: { familyId?: string }) {
   );
 }
 function TextFontEditor({
-  record,
+  record, submissionId,
   readFailed,
   reload,
 }: {
   record?: AdminFontFamily;
+  submissionId?: string;
   readFailed: boolean;
   reload: () => Promise<AdminFontFamily>;
 }) {
-  const router = useRouter(),
-    session = useAdminSession(),
+  const session = useAdminSession(),
     actions = useAdminTextFontActions();
+  const continueJob = useContinueAdminFontJob();
   const [base, setBase] = useState(record),
+    [uploading, setUploading] = useState(false),
     [pending, setPending] = useState<string>(),
     [conflict, setConflict] = useState(false),
     [comparison, setComparison] = useState<AdminFontFamily>(),
-    [file, setFile] = useState<File>(),
-    [fileError, setFileError] = useState<string>(),
     [selected, setSelected] = useState(
       record?.currentVersionId ?? record?.versionIds.at(-1),
     ),
     [withdraw, setWithdraw] = useState(false),
-    [readyVersion, setReadyVersion] = useState<string>(),
-    [fileKey, setFileKey] = useState(0);
+    [readyVersion, setReadyVersion] = useState<string>();
   const lock = useRef(false);
+  const previewSection = useRef<HTMLElement>(null);
   const preview = useAdminTextFontPreview(selected);
   const form = useForm<TextFontConfigurationValues>({
-    resolver: zodResolver(textFontConfigurationSchema),
+    resolver: zodResolver(textFontMetadataSchema),
     defaultValues: record ?? emptyTextFontConfiguration,
   });
+  const language = useWatch({ control: form.control, name: "designLanguage" });
   const authenticated = session.sessionStatus === "authenticated";
   const stale =
     conflict || Boolean(base && record && base.revision !== record.revision);
-  const disabled = Boolean(pending) || !authenticated;
-  function error(error: unknown, operation: string) {
+  const disabled = Boolean(pending) || uploading || !authenticated;
+  function error(error: unknown) {
     const info = getApiError(error);
     if (info.code === 40928 || (info.status === 409 && info.code !== 40929)) {
       setConflict(true);
@@ -133,13 +130,7 @@ function TextFontEditor({
       return;
     }
     if (info.code === 40929) {
-      for (const field of ["author", "sourceUrl", "licenseName", "licenseText"] as const) {
-        if (!form.getValues(field).trim()) form.setError(field, { message: "处理字体前请补齐此项授权材料" });
-      }
-      for (const field of ["redistribution", "conversion", "subsetting"] as const) {
-        if (!form.getValues(`rights.${field}`)) form.setError(`rights.${field}`, { message: "处理字体前请确认此项权利" });
-      }
-      form.setError("root", { message: "请补齐授权材料并保存，然后重新上传源文件再处理。" });
+      form.setError("root", { message: "此历史任务缺少授权材料，请通过上传新版重新提交并确认字体使用权利。" });
       return;
     }
     const message = getApiErrorMessage(error, "操作失败，请重试");
@@ -156,10 +147,6 @@ function TextFontEditor({
         return;
       }
     }
-    if (operation === "upload" && !field) {
-      setFileError(message);
-      return;
-    }
     form.setError(
       (field as keyof TextFontConfigurationValues | undefined) ?? "root",
       { message },
@@ -173,7 +160,7 @@ function TextFontEditor({
     try {
       await action();
     } catch (reason) {
-      error(reason, operation);
+      error(reason);
     } finally {
       lock.current = false;
       setPending(undefined);
@@ -184,10 +171,16 @@ function TextFontEditor({
     setReadyVersion(undefined);
     setSelected(versionId);
   }
-  const refresh = async () => {
+  const refresh = async (automatic = false) => {
     const value = await reload();
-    setBase(value);
-    setConflict(false);
+    const configurationChanged = base && (["name", "designLanguage", "author", "sourceUrl", "licenseName", "licenseText", "specimenText"] as const)
+      .some((field) => JSON.stringify(base[field]) !== JSON.stringify(value[field]));
+    if (automatic && form.formState.isDirty && configurationChanged) {
+      setComparison(value); setConflict(true);
+      return value;
+    }
+    setBase(value); setConflict(false);
+    if (!form.formState.isDirty) form.reset(value);
     return value;
   };
   const ready = Boolean(
@@ -209,20 +202,30 @@ function TextFontEditor({
             if (base) {
               const saved = await actions.update.mutateAsync({
                 ...values,
+                specimenText: values.specimenText.trim() || fontManagementFixture.specimens[values.designLanguage],
+                sortOrder: base.sortOrder, rights: base.rights,
                 familyId: base.familyId,
                 expectedFamilyRevision: base.revision,
               });
               setBase({ ...base, ...saved });
               form.reset(values);
               setComparison(undefined);
-            } else {
-              const saved = await actions.create.mutateAsync(values);
-              router.replace(`/station/text-fonts/${saved.familyId}`);
             }
           }, "save"),
         )}
       >
-        <TextFontFields form={form} disabled={disabled} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <FormField id="font-name" label="字体名称" error={form.formState.errors.name?.message} errorRole="alert">
+            {(props) => <Input {...props} {...form.register("name")} disabled={disabled} />}
+          </FormField>
+          <FormField id="font-language" label="语言">
+            {(props) => <Select value={language} disabled={disabled} onValueChange={(value) => { if (value && value in fontLanguageLabels) form.setValue("designLanguage", value as TextFontConfigurationValues["designLanguage"], { shouldDirty: true }); }}>
+              <SelectTrigger {...props} className="w-full"><SelectValue>{fontLanguageLabels[language]}</SelectValue></SelectTrigger>
+              <SelectContent>{Object.entries(fontLanguageLabels).map(([value, label]) => <SelectItem key={value} value={value}>{label}</SelectItem>)}</SelectContent>
+            </Select>}
+          </FormField>
+        </div>
+        <TextFontMetadataFields form={form} disabled={disabled} />
         <Button type="submit" disabled={disabled || stale || readFailed}>
           {pending === "save" ? "正在保存…" : "保存配置"}
         </Button>
@@ -260,7 +263,7 @@ function TextFontEditor({
             variant="outline"
             disabled={disabled}
             onClick={() => {
-              form.reset(comparison);
+              form.reset(comparison); setBase(comparison); setConflict(false);
               setComparison(undefined);
             }}
           >
@@ -270,56 +273,8 @@ function TextFontEditor({
       )}
       {base && (
         <>
-          <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-4">
-            <h2 className="text-base font-semibold">上传源文件</h2>
-            <FormField
-              id="font-source-file"
-              label="TTF / OTF 文件"
-              description="单个文件，最大 64 MiB。源文件绑定上传时的配置；修改配置后请重新上传。"
-              error={fileError}
-              errorRole="alert"
-            >
-              {(props) => (
-                <Input
-                  key={fileKey}
-                  {...props}
-                  type="file"
-                  accept=".ttf,.otf"
-                  disabled={disabled}
-                  onChange={(event) => {
-                    setFile(event.target.files?.[0]);
-                    setFileError(undefined);
-                  }}
-                />
-              )}
-            </FormField>
-            {form.formState.isDirty && (
-              <p className="text-sm text-muted-foreground">请先保存配置。</p>
-            )}
-            <Button
-              disabled={disabled || !ready}
-              onClick={() => {
-                const invalid = textFontUploadError(file);
-                setFileError(invalid);
-                if (invalid) return;
-                void run(async () => {
-                  await actions.upload.mutateAsync({
-                    familyId: base.familyId,
-                    file: file!,
-                    format: file!.name.toLowerCase().endsWith(".otf")
-                      ? "otf"
-                      : "ttf",
-                    expectedFamilyRevision: base.revision,
-                  });
-                  await refresh();
-                  setFile(undefined);
-                  setFileKey((key) => key + 1);
-                }, "upload");
-              }}
-            >
-              {pending === "upload" ? "正在上传…" : "上传"}
-            </Button>
-          </section>
+          <TextFontUploadPanel submissionId={submissionId} existing={{ familyId: base.familyId, revision: base.revision, name: base.name, language: base.designLanguage }} disabled={disabled || !ready} onBusyChange={setUploading} onUpdated={async () => { await refresh(true); }}
+            onReady={(submission) => { if (submission.job?.versionId) selectVersion(submission.job.versionId); void refresh(true).catch((reason) => error(reason)); }} />
           <section className="space-y-3">
             <h2 className="text-base font-semibold">处理任务</h2>
             <AdminTable className="whitespace-nowrap">
@@ -340,9 +295,7 @@ function TextFontEditor({
                     </AdminTableCell>
                     <AdminTableCell>{statuses[job.status]}</AdminTableCell>
                     <AdminTableCell>
-                      {job.failureCode
-                        ? failures[job.failureCode]
-                        : (job.versionId?.slice(-8) ?? "—")}
+                      {fontJobFailureMessage(job) ?? job.versionId?.slice(-8) ?? "—"}
                     </AdminTableCell>
                     <AdminTableActionCell>
                       {job.status === "draft" || job.status === "failed" ? (
@@ -352,7 +305,9 @@ function TextFontEditor({
                           disabled={disabled || !ready}
                           onClick={() =>
                             void run(async () => {
-                              await actions.process.mutateAsync(job.jobId);
+                              const submissionId = job.submissionId;
+                              if (submissionId) await continueJob.mutateAsync({ submissionId, jobId: job.jobId, familyId: base.familyId, retryFailed: job.status === "failed" });
+                              else await actions.process.mutateAsync(job.jobId);
                               await refresh();
                             }, `process:${job.jobId}`)
                           }
@@ -364,7 +319,7 @@ function TextFontEditor({
                           size="compact"
                           variant="ghost"
                           disabled={disabled}
-                          onClick={() => selectVersion(job.versionId!)}
+                          onClick={() => { selectVersion(job.versionId!); previewSection.current?.scrollIntoView({ block: "start" }); }}
                         >
                           预览
                         </Button>
@@ -380,7 +335,7 @@ function TextFontEditor({
               </AdminTableBody>
             </AdminTable>
           </section>
-          <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-4">
+          <section ref={previewSection} className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-4">
             <h2 className="text-base font-semibold">版本与发布</h2>
             <Select
               value={selected ?? null}

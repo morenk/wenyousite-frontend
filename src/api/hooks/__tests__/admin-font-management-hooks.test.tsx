@@ -1,0 +1,41 @@
+import { act, cleanup, renderHook, waitFor } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { afterEach, beforeEach, expect, test, vi } from "vitest";
+import { useAdminFontManagement, useAdminFontOrder, useSaveAdminFontOrder } from "../admin/use-admin-font-management";
+import { fontSubmissionApi, useAdminFontSubmission } from "../admin/use-admin-font-submission";
+import { acceptAdminSession, beginAdminSessionChange } from "@/lib/admin-session-store";
+import { queryKeys } from "@/api/query-keys";
+const submissionId = "f48fc025-1ff4-48b5-b6c2-fc9ae6517f79";
+beforeEach(() => { const generation = beginAdminSessionChange(); acceptAdminSession({ csrfToken: "test-csrf", user: { id: "test-admin", role: "ADMIN" }, session: { id: "test-session", createdAt: "", lastActiveAt: "", expiresAt: "2099-01-01T00:00:00Z", elevatedUntil: null } }, generation); });
+afterEach(() => { cleanup(); beginAdminSessionChange(); vi.restoreAllMocks(); });
+test("真实apiClient查询键独立；原子保存后刷新管理、审计和当前会话公共目录", async () => {
+  const calls: Request[] = [];
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+    const request = input as Request; calls.push(request);
+    return Response.json({ code: 0, message: "ok", data: request.method === "PUT" ? { catalogRevision: 10, changed: true } : { items: [], total: 0, listingRevision: 11, catalogRevision: 9, nextCursor: null } });
+  });
+  const client = new QueryClient({ defaultOptions: { queries: { retry: false }, mutations: { retry: false } } });
+  const invalidate = vi.spyOn(client, "invalidateQueries");
+  const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const { result } = renderHook(() => ({ list: useAdminFontManagement({ q: "全部", sort: "name", direction: "asc" }), order: useAdminFontOrder(), save: useSaveAdminFontOrder() }), { wrapper });
+  await waitFor(() => expect(result.current.list.isSuccess && result.current.order.isSuccess).toBe(true));
+  expect(calls.filter((request) => request.method === "GET")).toHaveLength(2);
+  const body = { expectedCatalogRevision: 9, groups: [{ language: "zh" as const, items: [{ familyId: "font-a", expectedFamilyRevision: 7 }] }] };
+  await act(() => result.current.save.mutateAsync(body));
+  const write = calls.find((request) => request.method === "PUT")!;
+  expect(new URL(write.url).pathname).toBe("/api/v1/admin/text-fonts/order"); expect(await write.json()).toEqual(body);
+  expect(write.headers.get("X-CSRF-Token")).toBe("test-csrf");
+  for (const queryKey of [queryKeys.admin.textFontsRoot, queryKeys.admin.auditsRoot, queryKeys.dynamicFonts.catalog]) expect(invalidate).toHaveBeenCalledWith({ queryKey });
+  client.clear();
+});
+test("简化创建仅发送三项与提交键；恢复查询绑定独立缓存，不发布", async () => {
+  const calls: Request[] = []; const data = { submissionId, familyId: "tff_" + "a".repeat(32), familyRevision: 1, name: "字体", language: "other", sortOrder: 0, authorizationRuleVersion: "admin-font-upload-v1", job: null, createdAt: "", updatedAt: "" };
+  vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => { calls.push(input as Request); return Response.json({ code: 0, message: "ok", data }); });
+  await fontSubmissionApi.create({ submissionId, name: "字体", language: "other" });
+  expect(await calls[0]!.json()).toEqual({ submissionId, name: "字体", language: "other" });
+  const client = new QueryClient(); const wrapper = ({ children }: { children: React.ReactNode }) => <QueryClientProvider client={client}>{children}</QueryClientProvider>;
+  const { result } = renderHook(() => useAdminFontSubmission(submissionId), { wrapper });
+  await waitFor(() => expect(result.current.data).toEqual(data));
+  expect(client.getQueryData(queryKeys.admin.fontSubmission(submissionId))).toEqual(data);
+  expect(calls.map((request) => request.method)).toEqual(["POST", "GET"]); client.clear();
+});

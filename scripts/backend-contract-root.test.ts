@@ -13,13 +13,16 @@ test("指定后端来源必须存在且逐字校验，不回退相邻 checkout",
   roots.push(root);
   const contracts = join(root, "contracts");
   mkdirSync(contracts);
-  for (const name of ["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json", "markdown-text-font-v1-fixtures.json", "markdown-text-font-v1.schema.json", "thread-font-catalog-v1.json", "thread-font-manifest-v1.json", "thread-font-manifest-v1.schema.json", "thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json", "markdown-text-color-v1-fixtures.json", "markdown-text-color-v1.schema.json", "rp-identity-profile-post.v1.fixtures.json", "markdown-v6-role-mentions-fixtures.json", "thread-identity.v1.fixtures.json", "discussion-navigation.v1.json", "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json", "markdown-inline-combinations-v1-fixtures.json", "markdown-inline-combinations-v1.schema.json"]) {
+  for (const name of ["admin-font-management-v1-fixtures.json", "markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json", "markdown-text-font-v1-fixtures.json", "markdown-text-font-v1.schema.json", "thread-font-catalog-v1.json", "thread-font-manifest-v1.json", "thread-font-manifest-v1.schema.json", "thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json", "markdown-text-color-v1-fixtures.json", "markdown-text-color-v1.schema.json", "rp-identity-profile-post.v1.fixtures.json", "markdown-v6-role-mentions-fixtures.json", "thread-identity.v1.fixtures.json", "discussion-navigation.v1.json", "openapi.json", "internal-reference-v1-fixtures.json", "editor-clipboard-v2-fixtures.json", "thread-cover-media-v1-fixtures.json", "media-display-v1-fixtures.json", "markdown-block-boundary-v1-fixtures.json", "markdown-inline-combinations-v1-fixtures.json", "markdown-inline-combinations-v1.schema.json"]) {
     copyFileSync(resolve("contracts", name), join(contracts, name));
   }
   const run = (source: string) => execFileSync(process.execPath, [resolve("scripts/check-generated-api.mjs")], {
     cwd: process.cwd(), env: { ...process.env, BACKEND_CONTRACT_REF: "", WENYOUSITE_BACKEND_ROOT: source }, encoding: "utf8", stdio: "pipe",
   });
   expect(run(root)).toContain("OpenAPI generated types are current");
+  rmSync(join(contracts, "admin-font-management-v1-fixtures.json"));
+  expect(() => run(root)).toThrow(/admin-font-management-v1-fixtures/u);
+  copyFileSync(resolve("contracts/admin-font-management-v1-fixtures.json"), join(contracts, "admin-font-management-v1-fixtures.json"));
   writeFileSync(join(contracts, "openapi.json"), "{}");
   expect(() => run(root)).toThrow(/OpenAPI|openapi/u);
   expect(() => run(join(root, "missing"))).toThrow(/缺少 contracts/u);

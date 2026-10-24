@@ -233,3 +233,18 @@ test("目录延迟返回时定位当前字体语言，用户切换后不被后�
  rerender(<EditorTextFontPicker controls={{...controls,loading:false,options:loaded.map(option=>({...option}))}}/>);
  expect(screen.getByRole("tab",{name:"英文"})).toHaveAttribute("aria-selected","true");
 });
+
+test("v2语言组遵循目录顺序，不按名称、最近使用或选中项重排，原会话可更新顺序", () => {
+  const a = { value: "tfv-a", label: "A字体", group: "中文" };
+  const z = { value: "tfv-z", label: "Z字体", group: "中文" };
+  localStorage.setItem("wenyou:text-fonts:test-account", JSON.stringify([a.value]));
+  const { controls, rerender } = setup({ options: [z, a], value: a.value, previewMode: "automatic" });
+  const labels = () => within(screen.getByLabelText("中文字体")).getAllByRole("button").map(button => button.getAttribute("aria-label"));
+  expect(labels()).toEqual(["Z字体", "A字体"]);
+  fireEvent.click(screen.getByRole("button", { name: "Z字体" }));
+  rerender(<EditorTextFontPicker controls={{ ...controls, value: z.value }} />);
+  expect(labels()).toEqual(["Z字体", "A字体"]);
+  rerender(<EditorTextFontPicker controls={{ ...controls, value: z.value, options: [a, z] }} />);
+  expect(labels()).toEqual(["A字体", "Z字体"]);
+  expect(screen.getByRole("button", { name: "Z字体" })).toHaveAttribute("aria-pressed", "true");
+});

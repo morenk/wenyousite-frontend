@@ -24,10 +24,12 @@ const env = vi.hoisted(() => ({
   update: vi.fn(),
   upload: vi.fn(),
   process: vi.fn(),
+  continueJob: vi.fn(),
   publish: vi.fn(),
   enabled: vi.fn(),
   withdraw: vi.fn(),
 }));
+vi.mock("@/api/hooks/admin/use-admin-font-submission", () => ({ useContinueAdminFontJob: () => ({ mutateAsync: env.continueJob }) }));
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ replace: env.replace }),
 }));
@@ -66,6 +68,9 @@ vi.mock("@/components/editor/dynamic-font-specimen", () => ({
     <button onClick={() => onReady(true)}>模拟样张加载成功</button>
   ),
 }));
+vi.mock("../text-font-upload-panel", () => ({
+  TextFontUploadPanel: ({ disabled, onReady }: { disabled?: boolean; onReady?: (value: object) => void }) => <><button disabled={disabled}>上传并处理</button><button onClick={() => onReady?.({ job: { versionId: "tfv_" + "b".repeat(32) } })}>模拟处理完成</button></>,
+}));
 vi.mock("../text-font-withdraw-dialog", () => ({
   TextFontWithdrawDialog: () => <span>撤回确认</span>,
 }));
@@ -97,32 +102,10 @@ beforeEach(() => {
   env.update.mockResolvedValue({ revision: 8 });
 });
 afterEach(cleanup);
-test("新建可缺授权但重复提交锁定；成功进入具体家族", async () => {
-  let finish!: (value: unknown) => void;
-  env.create.mockImplementation(
-    () =>
-      new Promise((resolve) => {
-        finish = resolve;
-      }),
-  );
+test("新建入口使用上传并处理表单", () => {
   render(<TextFontDetail />);
-  expect(screen.getByRole("combobox", { name: "主要语言" })).toHaveTextContent("中文");
-  fireEvent.change(screen.getByLabelText("字体名称"), {
-    target: { value: "新字体" },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
-  await waitFor(() => expect(env.create).toHaveBeenCalledTimes(1));
-  expect(screen.getByRole("button", { name: "正在保存…" })).toBeDisabled();
-  expect(env.create.mock.calls[0]![0].designLanguage).toBe("zh");
-  expect(env.create.mock.calls[0]![0].rights).toEqual({
-    redistribution: false,
-    conversion: false,
-    subsetting: false,
-  });
-  finish({ familyId });
-  await waitFor(() =>
-    expect(env.replace).toHaveBeenCalledWith(`/station/text-fonts/${familyId}`),
-  );
+  expect(screen.getByRole("button", { name: "上传并处理" })).toBeVisible();
+  expect(screen.queryByRole("button", { name: "保存配置" })).not.toBeInTheDocument();
 });
 test("修订冲突保留编辑输入，读取最新状态后可重新提交", async () => {
   env.record = record();
@@ -174,18 +157,12 @@ test("会话复核失败保留表单并停用管理操作", () => {
   expect(screen.getByLabelText("字体名称")).toHaveValue("原字体");
   expect(screen.getByLabelText("字体名称")).toBeDisabled();
   expect(screen.getByRole("button", { name: "保存配置" })).toBeDisabled();
-  expect(screen.getByRole("button", { name: "上传" })).toBeDisabled();
+  expect(screen.getByRole("button", { name: "上传并处理" })).toBeDisabled();
 });
-test("非法文件在上传前拒绝；服务器字段错误定位且保留内容", async () => {
+test("服务器配置字段错误定位且保留内容", async () => {
   env.record = record();
   env.update.mockRejectedValue({ code: 40001, message: "name 太长" });
   render(<TextFontDetail familyId={familyId} />);
-  fireEvent.change(screen.getByLabelText("TTF / OTF 文件"), {
-    target: { files: [new File(["zip"], "font.zip")] },
-  });
-  fireEvent.click(screen.getByRole("button", { name: "上传" }));
-  expect(await screen.findByText("仅支持单个 TTF 或 OTF 文件")).toBeVisible();
-  expect(env.upload).not.toHaveBeenCalled();
   fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
   await waitFor(() =>
     expect(screen.getByLabelText("字体名称")).toHaveAttribute(
@@ -196,33 +173,7 @@ test("非法文件在上传前拒绝；服务器字段错误定位且保留内�
   expect(screen.getByLabelText("字体名称")).toHaveValue("原字体");
 });
 
-test("新建空名称就近提示，不提交请求", async () => {
-  render(<TextFontDetail />);
-  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
-  await waitFor(() => expect(screen.getByLabelText("字体名称")).toHaveAttribute("aria-invalid", "true"));
-  expect(screen.getByText("请填写字体名称")).toBeVisible();
-  expect(env.create).not.toHaveBeenCalled();
-});
-test("上传只显示上传等待；网关失败保留文件并允许核对状态", async () => {
-  env.record = record();
-  let fail!: (reason: unknown) => void;
-  env.upload.mockImplementation(() => new Promise((_resolve, reject) => { fail = reject; }));
-  render(<TextFontDetail familyId={familyId} />);
-  const file = new File(["font"], "font.ttf");
-  fireEvent.change(screen.getByLabelText("TTF / OTF 文件"), { target: { files: [file] } });
-  fireEvent.click(screen.getByRole("button", { name: "上传" }));
-  await screen.findByRole("button", { name: "正在上传…" });
-  expect(screen.getByRole("button", { name: "保存配置" })).toBeDisabled();
-  expect(screen.queryByRole("button", { name: "正在保存…" })).not.toBeInTheDocument();
-  fail({ status: 504, message: "请求超时，操作结果尚未确认。请读取最新状态后重试。" });
-  await screen.findByText(/请求超时/);
-  expect((screen.getByLabelText("TTF / OTF 文件") as HTMLInputElement).files?.[0]).toBe(file);
-  expect(screen.getByLabelText("字体名称")).toHaveValue("原字体");
-  expect(screen.getByRole("button", { name: "上传" })).toBeDisabled();
-  fireEvent.click(screen.getByRole("button", { name: "读取最新状态" }));
-  await waitFor(() => expect(screen.getByRole("button", { name: "上传" })).toBeEnabled());
-});
-test("处理提交有独立等待反馈；缺少授权定位材料和权利并保留草稿", async () => {
+test("历史任务处理等待锁定管理；旧授权不足引导新版上传且保留草稿", async () => {
   env.record = { ...record(), jobs: [{ jobId: "job", sourceBytes: 4, status: "failed", failureCode: "rights-required" } as AdminFontFamily["jobs"][number]] };
   let fail!: (reason: unknown) => void;
   env.process.mockImplementation(() => new Promise((_resolve, reject) => { fail = reject; }));
@@ -231,9 +182,8 @@ test("处理提交有独立等待反馈；缺少授权定位材料和权利并�
   await screen.findByRole("button", { name: "提交处理中…" });
   expect(screen.getByRole("button", { name: "保存配置" })).toBeDisabled();
   fail({ code: 40929, message: "请补齐授权材料并确认字体使用权利" });
-  await waitFor(() => expect(screen.getByLabelText("作者")).toHaveAttribute("aria-invalid", "true"));
-  expect(screen.getByLabelText("完整授权材料")).toHaveAttribute("aria-invalid", "true");
-  expect(screen.getByLabelText("允许分发")).toHaveAttribute("aria-invalid", "true");
+  await screen.findByText("此历史任务缺少授权材料，请通过上传新版重新提交并确认字体使用权利。");
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
   expect(screen.getByLabelText("字体名称")).toHaveValue("原字体");
   expect(screen.queryByRole("button", { name: "读取最新状态" })).not.toBeInTheDocument();
 });
@@ -270,18 +220,6 @@ test("处理轮询失败保留任务和表单，手动读取成功后恢复操�
   await waitFor(() => expect(screen.getByRole("button", { name: "保存配置" })).toBeEnabled());
 });
 
-test("新建结果未知时先返回列表核对，不读取不存在的家族或重复创建", async () => {
-  env.create.mockRejectedValue(new Error("连接中断，操作结果尚未确认"));
-  render(<TextFontDetail />);
-  fireEvent.change(screen.getByLabelText("字体名称"), { target: { value: "可能已创建" } });
-  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
-  await screen.findByText("操作结果尚未确认，请返回字体列表核对后再试。");
-  expect(screen.getByRole("button", { name: "保存配置" })).toBeDisabled();
-  expect(screen.queryByRole("button", { name: "读取最新状态" })).not.toBeInTheDocument();
-  expect(screen.getByRole("link", { name: "返回字体列表" })).toHaveAttribute("href", "/station/text-fonts");
-  expect(env.create).toHaveBeenCalledTimes(1);
-});
-
 test("已有样张不能绕过预览读取错误，重试成功才恢复发布", async () => {
   env.record = record();
   env.preview = { versionId, name: "字体", versionNumber: 1, status: "preview" };
@@ -296,4 +234,83 @@ test("已有样张不能绕过预览读取错误，重试成功才恢复发布",
   env.previewFailed = false;
   rerender(<TextFontDetail familyId={familyId} />);
   expect(screen.getByRole("button", { name: "发布此版本" })).toBeEnabled();
+});
+
+test("更多信息默认折叠，补充信息和样张可留空且无排序或权利输入", async () => {
+  env.record = record();
+  render(<TextFontDetail familyId={familyId} />);
+  expect(screen.queryByLabelText("作者")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "更多信息" }));
+  fireEvent.change(await screen.findByLabelText("样张文字"), { target: { value: "" } });
+  expect(screen.queryByRole("checkbox")).not.toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
+  await waitFor(() => expect(env.update).toHaveBeenCalledWith(expect.objectContaining({ author: "", licenseName: "", specimenText: "温油站，一起书写故事。0123456789", expectedFamilyRevision: 7 })));
+});
+
+test("新流程历史任务按submissionId恢复，旧任务仍使用旧处理API", async () => {
+  const submissionId = "f48fc025-1ff4-48b5-b6c2-fc9ae6517f79";
+  env.record = { ...record(), jobs: [{ jobId: "new-job", familyId, sourceBytes: 4, status: "draft", sourceSha256: "a".repeat(64), versionId: null, failureCode: null, submissionId } as AdminFontFamily["jobs"][number]] };
+  env.continueJob.mockResolvedValue({});
+  render(<TextFontDetail familyId={familyId} />);
+  fireEvent.click(screen.getByRole("button", { name: "开始处理" }));
+  await waitFor(() => expect(env.continueJob).toHaveBeenCalledExactlyOnceWith({ submissionId, jobId: "new-job", familyId, retryFailed: false }));
+  expect(env.process).not.toHaveBeenCalled();
+});
+
+test("任务详情与上传面板共用处理环境失败文案", () => {
+  env.record = { ...record(), jobs: [{ jobId: "unavailable", familyId, sourceBytes: 4, status: "failed", sourceSha256: "a".repeat(64), versionId: null, failureCode: "sandbox-unavailable" }] };
+  render(<TextFontDetail familyId={familyId} />);
+  expect(screen.getByRole("cell", { name: "处理环境暂不可用" })).toBeVisible();
+});
+
+test.each([["embedding-restricted", "字体禁止嵌入"], ["subsetting-restricted", "字体禁止分片"], ["bitmap-only", "字体仅允许位图嵌入"]] as const)("直接进入详情仍显示字体限制原因%s", (failureReason, message) => {
+  env.record = { ...record(), jobs: [{ jobId: "restricted", familyId, sourceBytes: 4, status: "failed", sourceSha256: "a".repeat(64), versionId: null, failureCode: "rights-required", failureReason, submissionId: null }] };
+  render(<TextFontDetail familyId={familyId} />);
+  expect(screen.getByRole("cell", { name: message })).toBeVisible();
+  expect(screen.queryByText("授权材料或权限不完整")).not.toBeInTheDocument();
+});
+
+test("处理完成的后台刷新不把并发配置修订悄悄用于覆盖本地编辑", async () => {
+  env.record = record(); const view = render(<TextFontDetail familyId={familyId} />);
+  fireEvent.change(screen.getByLabelText("字体名称"), { target: { value: "本地未保存" } });
+  env.record = { ...record(), name: "他人已保存", revision: 9 };
+  view.rerender(<TextFontDetail familyId={familyId} />);
+  fireEvent.click(screen.getByRole("button", { name: "模拟处理完成" }));
+  await screen.findByRole("button", { name: "采用服务端配置" });
+  expect(screen.getByLabelText("字体名称")).toHaveValue("本地未保存");
+  expect(screen.getByRole("button", { name: "保存配置" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "采用服务端配置" }));
+  expect(screen.getByLabelText("字体名称")).toHaveValue("他人已保存");
+  expect(screen.getByRole("button", { name: "保存配置" })).toBeEnabled();
+});
+
+test("保存资料沿用最新隐藏排序与旧授权值，不覆盖并发排序", async () => {
+  env.record = { ...record(), sortOrder: 10 };
+  const view = render(<TextFontDetail familyId={familyId} />);
+  fireEvent.change(screen.getByLabelText("字体名称"), { target: { value: "本地名称" } });
+  const rights = { redistribution: true, conversion: true, subsetting: true };
+  env.record = { ...record(), sortOrder: 0, rights, revision: 8 };
+  view.rerender(<TextFontDetail familyId={familyId} />);
+  fireEvent.click(screen.getByRole("button", { name: "模拟处理完成" }));
+  await waitFor(() => expect(screen.getByRole("button", { name: "保存配置" })).toBeEnabled());
+  expect(screen.getByLabelText("字体名称")).toHaveValue("本地名称");
+  fireEvent.click(screen.getByRole("button", { name: "保存配置" }));
+  await waitFor(() => expect(env.update).toHaveBeenCalledWith(expect.objectContaining({ name: "本地名称", sortOrder: 0, rights, expectedFamilyRevision: 8 })));
+});
+
+
+test("明确点击已选任务预览仍定位样张，后台处理完成不抢滚动", async () => {
+  env.record = { ...record(), jobs: [{ jobId: "job", sourceBytes: 4, status: "ready", versionId } as AdminFontFamily["jobs"][number]] };
+  env.preview = { versionId, name: "字体", versionNumber: 1, status: "preview" };
+  render(<TextFontDetail familyId={familyId} />);
+  const section = screen.getByRole("heading", { name: "版本与发布" }).closest("section")!;
+  const scroll = vi.fn();
+  section.scrollIntoView = scroll;
+  fireEvent.click(screen.getByRole("button", { name: "预览" }));
+  expect(scroll).toHaveBeenCalledWith({ block: "start" });
+  expect(screen.getByRole("button", { name: "发布此版本" })).toBeDisabled();
+  scroll.mockClear();
+  fireEvent.click(screen.getByRole("button", { name: "模拟处理完成" }));
+  await waitFor(() => expect(env.refetch).toHaveBeenCalled());
+  expect(scroll).not.toHaveBeenCalled();
 });

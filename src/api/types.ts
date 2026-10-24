@@ -1980,6 +1980,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/text-fonts/management": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsManagement"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/submissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsCreateSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/submissions/{submissionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["adminTextFontsSubmission"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/submissions/{submissionId}/process": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["adminTextFontsProcessSubmission"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/text-fonts/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put: operations["adminTextFontsReorder"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/text-fonts/jobs/{jobId}": {
         parameters: {
             query?: never;
@@ -6300,6 +6380,135 @@ export interface components {
             items: components["schemas"]["FontFamilyDto"][];
             nextAfter: string | null;
         };
+        FontJobDto: {
+            /**
+             * Format: uuid
+             * @description 本任务准确绑定的简化提交；旧手工任务为 null。详情/刷新恢复必须使用该值，不以最新提交替代。
+             */
+            submissionId?: string | null;
+            jobId: string;
+            familyId: string;
+            /** @enum {string} */
+            status: "draft" | "queued" | "processing" | "ready" | "failed";
+            sourceSha256: string;
+            sourceBytes: number;
+            versionId: string | null;
+            /** @enum {string|null} */
+            failureCode: "invalid-font" | "unsupported-font" | "rights-required" | "resource-limit" | "sandbox-unavailable" | "processing-failed" | null;
+            /**
+             * @description 固定、无原始解析错误的拒绝说明；fsType 限制即使管理员确认也不能绕过。
+             * @enum {string|null}
+             */
+            failureReason?: "embedding-restricted" | "subsetting-restricted" | "bitmap-only" | null;
+        };
+        FontManagementItemDto: {
+            familyId: string;
+            name: string;
+            /** @enum {string} */
+            language: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            revision: number;
+            enabled: boolean;
+            /**
+             * @description 最后当前版本已撤回优先；从未发布为 draft，否则按家族 enabled 分类。
+             * @enum {string}
+             */
+            status: "draft" | "enabled" | "disabled" | "withdrawn";
+            currentVersionId: string | null;
+            /** @description 最后被设为当前的已发布版本，含撤回墓碑；不是按版本号猜测。 */
+            lastPublishedVersionId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description 家族修改时间；心跳和仅任务进度变化不作为排序修改。
+             */
+            updatedAt: string;
+            /** Format: date-time */
+            publishedAt: string | null;
+            /** Format: date-time */
+            withdrawnAt: string | null;
+            latestJob: components["schemas"]["FontJobDto"] | null;
+            /** Format: uuid */
+            latestSubmissionId: string | null;
+        };
+        FontManagementPageDto: {
+            items: components["schemas"]["FontManagementItemDto"][];
+            /** @description 先对全量家族筛选，再计算匹配数量。 */
+            total: number;
+            listingRevision: number;
+            catalogRevision: number;
+            nextCursor: string | null;
+        };
+        CreateFontSubmissionDto: {
+            /**
+             * Format: uuid
+             * @description 客户端为一次提交生成并持久化 UUID v4；超时、刷新和并发重试复用。
+             */
+            submissionId: string;
+            name: string;
+            /**
+             * @default other
+             * @enum {string}
+             */
+            language: "zh" | "ja" | "en" | "other";
+            /** @description 为已有家族上传新版时提供；须同时提供 expectedFamilyRevision。 */
+            familyId?: string;
+            expectedFamilyRevision?: number;
+        };
+        FontSubmissionDto: {
+            /** Format: uuid */
+            submissionId: string;
+            familyId: string;
+            /** @description 当前家族修订；首次源上传使用此值。已绑定源的重放不重新校验旧修订。 */
+            familyRevision: number;
+            name: string;
+            /** @enum {string} */
+            language: "zh" | "ja" | "en" | "other";
+            sortOrder: number;
+            /**
+             * @description 上传即确认分发、转码和分片；服务端记录实际上传者、时间及源 SHA，不能替代字体原始许可。
+             * @enum {string}
+             */
+            authorizationRuleVersion: "admin-font-upload-v1";
+            /** @description null 表示尚未完成源绑定；非 null 时无需重传，直接恢复查询/处理。 */
+            job: components["schemas"]["FontJobDto"] | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ProcessFontSubmissionDto: {
+            /**
+             * Format: uuid
+             * @description 一次启动/重试意图的 UUID v4；网络重发复用，用户明确再次重试才生成新值。
+             */
+            requestId: string;
+        };
+        FontOrderItemDto: {
+            familyId: string;
+            expectedFamilyRevision: number;
+        };
+        FontOrderGroupDto: {
+            /**
+             * @description 当前已发布版本的语言，与公开目录一致。
+             * @enum {string}
+             */
+            language: "zh" | "ja" | "en" | "other";
+            /** @description 此语言全部当前可选家族，数组顺序为最终展示顺序；不能只提交当前分页或搜索结果。 */
+            items: components["schemas"]["FontOrderItemDto"][];
+        };
+        ReorderFontsDto: {
+            /** @description 本次变更的语言组，语言不得重复；所有组一次事务提交。 */
+            groups: components["schemas"]["FontOrderGroupDto"][];
+            expectedCatalogRevision: number;
+        };
+        FontReorderResultDto: {
+            catalogRevision: number;
+            listingRevision: number;
+            /** @description 顺序未变为 false，不产生修订或审计；有变化后客户端刷新列表。 */
+            changed: boolean;
+        };
         FontConfigurationDto: {
             name: string;
             /** @enum {string} */
@@ -6314,17 +6523,6 @@ export interface components {
             /** @description 展示于 PNG 的样张文字；不允许换行或控制字符。 */
             specimenText: string;
             rights: components["schemas"]["FontRightsDto"];
-        };
-        FontJobDto: {
-            jobId: string;
-            familyId: string;
-            /** @enum {string} */
-            status: "draft" | "queued" | "processing" | "ready" | "failed";
-            sourceSha256: string;
-            sourceBytes: number;
-            versionId: string | null;
-            /** @enum {string|null} */
-            failureCode: "invalid-font" | "unsupported-font" | "rights-required" | "resource-limit" | "sandbox-unavailable" | "processing-failed" | null;
         };
         FontAssetDto: {
             sha256: string;
@@ -8447,6 +8645,21 @@ export interface components {
         AdminTextFontsCreate201Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["FontFamilyDto"];
         };
+        AdminTextFontsManagement200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontManagementPageDto"];
+        };
+        AdminTextFontsCreateSubmission201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontSubmissionDto"];
+        };
+        AdminTextFontsSubmission200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontSubmissionDto"];
+        };
+        AdminTextFontsProcessSubmission201Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontJobDto"];
+        };
+        AdminTextFontsReorder200Response: components["schemas"]["ApiSuccessEnvelope"] & {
+            data: components["schemas"]["FontReorderResultDto"];
+        };
         AdminTextFontsGetJob200Response: components["schemas"]["ApiSuccessEnvelope"] & {
             data: components["schemas"]["FontJobDto"];
         };
@@ -8760,7 +8973,7 @@ export interface components {
          * @description 稳定业务错误码；名称和值来源于 ErrorCode
          * @enum {integer}
          */
-        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40019 | 40020 | 40021 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 40927 | 40928 | 40929 | 41001 | 50301 | 42900 | 42901 | 42902 | 50000;
+        BusinessErrorCode: 0 | 40000 | 40001 | 40002 | 40003 | 40004 | 40005 | 40006 | 40007 | 40008 | 40009 | 40010 | 40011 | 40012 | 40013 | 40014 | 40015 | 40016 | 40017 | 40018 | 40019 | 40020 | 40021 | 40100 | 40101 | 40102 | 40103 | 40104 | 40105 | 40106 | 40108 | 40109 | 40110 | 40111 | 40112 | 40113 | 40114 | 40115 | 40116 | 40117 | 40118 | 40119 | 40120 | 40300 | 40301 | 40302 | 40303 | 40304 | 40305 | 40306 | 40307 | 40308 | 40309 | 40310 | 40400 | 40401 | 40402 | 40403 | 40404 | 40405 | 40406 | 40407 | 40408 | 40409 | 40410 | 40411 | 40412 | 40413 | 40414 | 40415 | 40416 | 40417 | 40418 | 40419 | 40900 | 40901 | 40902 | 40903 | 40904 | 40905 | 40906 | 40907 | 40908 | 40909 | 40910 | 40911 | 40912 | 40913 | 40914 | 40915 | 40916 | 40917 | 40918 | 40919 | 40920 | 40921 | 40922 | 40923 | 40926 | 40924 | 40925 | 40927 | 40928 | 40929 | 40930 | 40931 | 41001 | 50301 | 42900 | 42901 | 42902 | 50000;
         ApiErrorEnvelope: {
             code: components["schemas"]["BusinessErrorCode"];
             message: string;
@@ -18662,6 +18875,261 @@ export interface operations {
             };
         };
     };
+    adminTextFontsManagement: {
+        parameters: {
+            query?: {
+                /** @description 管理展示名称包含匹配；已发布按最后当前版本、未发布按草稿。NFC、去首尾空白、不区分大小写，%/_ 按文字处理。 */
+                q?: string;
+                language?: "zh" | "ja" | "en" | "other";
+                status?: "draft" | "enabled" | "disabled" | "withdrawn";
+                sort?: "createdAt" | "updatedAt" | "name" | "sortOrder";
+                direction?: "asc" | "desc";
+                /** @description 不透明游标，绑定规范筛选、排序及管理列表修订；变化返回 409/40931，从第一页重取。 */
+                cursor?: string;
+            };
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 全量筛选后稳定排序、每页20条；独立于旧 after/limit 列表。游标绑定筛选排序与列表修订。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsManagement200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsCreateSubmission: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateFontSubmissionDto"];
+            };
+        };
+        responses: {
+            /** @description 按 submissionId 幂等创建/恢复简化提交；新字体自动分配语言分类末尾顺序，已有家族新版沿用顺序。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsCreateSubmission201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsSubmission: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description 按持久化提交标识恢复；job 非 null 时不再重传源。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsSubmission200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsProcessSubmission: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path: {
+                submissionId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProcessFontSubmissionDto"];
+            };
+        };
+        responses: {
+            /** @description 按 requestId 幂等启动或重试已上传的同一任务；旧请求重放不能重复排队，新的明确重试才生成新的尝试。成功后仍需预览和独立发布。 */
+            201: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsProcessSubmission201Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
+    adminTextFontsReorder: {
+        parameters: {
+            query?: never;
+            header?: {
+                /** @description 管理后台写操作必填 */
+                "X-CSRF-Token"?: string;
+                /** @description 声明 6 以读取原始角色提及源和稳定目标投影；省略/低版本安全降级响应副本，不能回写 v6 正文。服务端全局 Markdown 仍为 5 */
+                "X-Markdown-Contract-Version"?: 6;
+                /** @description 声明 1 读取文本颜色原始源码；缺失只返回安全去色副本，不能覆盖彩色原文。 */
+                "X-Text-Color-Version"?: 1;
+                /** @description 声明 2 读取 v1/v2 混合字体源；1 仅保留 v1，缺失去除两版字体。降级副本不能覆盖未支持字体的原文。颜色能力单独协商。 */
+                "X-Text-Font-Version"?: 1 | 2;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReorderFontsDto"];
+            };
+        };
+        responses: {
+            /** @description 原子保存受影响语言的完整可选家族顺序；校验成员及修订，一次更新目录。顺序未变不增修订，不重建、不改版本ID或正文。 */
+            200: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["AdminTextFontsReorder200Response"];
+                };
+            };
+            /** @description 未在此操作中单独列出的错误响应 */
+            default: {
+                headers: {
+                    /** @description 追加 X-Markdown-Contract-Version 、X-Text-Color-Version 与 X-Text-Font-Version，保留已有 Origin/Accept 等；缓存不得混用能力响应或会话 */
+                    Vary?: string;
+                    "X-Request-ID": components["headers"]["XRequestId"];
+                    "X-API-Contract-Version": components["headers"]["XApiContractVersion"];
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApiErrorEnvelope"];
+                };
+            };
+        };
+    };
     adminTextFontsGetJob: {
         parameters: {
             query?: never;
@@ -19007,6 +19475,8 @@ export interface operations {
     adminTextFontsUpload: {
         parameters: {
             query: {
+                /** @description 简化提交标识；绑定已有提交、授权确认及唯一任务。省略时完全沿用旧授权流程。 */
+                submissionId?: string;
                 expectedFamilyRevision: number;
                 /** @description 只接受单个 TTF/OTF 文件；扩展名不替代 Worker 对实际容器的验证。 */
                 format: "ttf" | "otf";

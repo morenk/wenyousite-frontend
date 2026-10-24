@@ -207,6 +207,9 @@ export const queryKeys = {
       ["search", "moments", keyword, viewerScope] as const,
   },
   admin: {
+    fontManagement: (params: object) => ["admin", "text-fonts", "management", params] as const,
+    fontOrder: ["admin", "text-fonts", "order"] as const,
+    fontSubmission: (id?: string) => ["admin", "text-fonts", "submission", id] as const,
     textFontsRoot: ["admin", "text-fonts"] as const,
     textFonts: (after?: string) => ["admin", "text-fonts", "list", after] as const,
     textFont: (id?: string) => ["admin", "text-fonts", "family", id] as const,
