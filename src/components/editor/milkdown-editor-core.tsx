@@ -43,6 +43,7 @@ function EditorCore({
   disabled,
   footerActions,
   resizable = true,
+  resizeEdge = "bottom",
   maxHeight = 400,
   minHeight = 280,
   threadId,
@@ -154,7 +155,7 @@ function EditorCore({
     <div
       ref={wrapperRef}
       className={cn(
-        "rounded-[var(--radius-control)] border border-border bg-background overflow-hidden",
+        "relative isolate rounded-[var(--radius-control)] border border-border bg-background overflow-hidden",
         disabled && "opacity-60 pointer-events-none",
       )}
       style={{
@@ -209,8 +210,8 @@ function EditorCore({
               {charCount}/{MAX_CHARS}
             </span>
             {footerActions}
-            {resizable && !protectedContent && <EditorResizeHandle containerRef={wrapperRef} minHeight={minHeight} maxHeight={maxHeight} disabled={disabled} />}
           </div>, footerTarget)}
+      {resizable && !protectedContent && <EditorResizeHandle containerRef={wrapperRef} minHeight={minHeight} maxHeight={maxHeight} disabled={disabled} edge={resizeEdge} />}
       {protectedContent && (
         <div className="space-y-2 p-3">
           <p role="alert" className="text-sm text-destructive">此正文包含当前版本无法安全编辑的内容，原文已保留。请使用兼容版本继续编辑。</p>

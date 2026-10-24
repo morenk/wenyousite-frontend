@@ -3,6 +3,7 @@
 import { useState, type PointerEvent } from "react";
 import { EDITOR_TEXT_COLOR_PRESETS, EDITOR_TEXT_COLOR_PROFILE } from "@wenyousite/foundation/editor";
 import { Button } from "@/components/ui/button";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { normalizeTextColor } from "@/lib/markdown-text-color";
@@ -86,7 +87,7 @@ export function EditorTextColorPicker({ controls, onModeChange }: { controls: Ed
     <div className="flex h-11 items-center justify-center rounded-[var(--radius-control)] border border-border bg-background text-lg" style={{ color }}>文字预览 Aa</div>
     <div className="flex justify-end gap-2"><Button variant="ghost" size="sm" onClick={controls.onCancel}>取消</Button><Button size="sm" disabled={!valid} onClick={() => { if (controls.onApply(color)) rememberTextColor(controls.accountId, color); }}>应用</Button></div>
   </div>;
-  const swatch = (label: string, rgb: string | null, key: string) => <Button key={key} variant="ghost" size="icon-sm" disabled={!controls.enabled} aria-label={label} title={label} aria-pressed={controls.color !== undefined && controls.color === rgb} className={cn("size-8 shrink-0 rounded-[var(--radius-control)]", controls.color !== undefined && controls.color === rgb && "bg-accent ring-1 ring-ring/40")} onClick={() => { if (controls.onApply(rgb) && rgb && key === rgb) rememberTextColor(controls.accountId, rgb); }}>{rgb ? <span className="size-4 rounded-full border border-foreground/15" style={{ backgroundColor: rgb }} /> : <span className="text-base font-semibold underline decoration-2 underline-offset-4">T</span>}</Button>;
+  const swatch = (label: string, rgb: string | null, key: string) => <Button key={key} variant="ghost" size="icon-sm" disabled={!controls.enabled} aria-label={label} title={label} aria-pressed={controls.color !== undefined && controls.color === rgb} className={cn("size-8 shrink-0 rounded-[var(--radius-control)]", controls.color !== undefined && controls.color === rgb && "bg-accent ring-1 ring-ring/40")} onClick={() => { if (controls.onApply(rgb) && rgb && key === rgb) rememberTextColor(controls.accountId, rgb); }}>{rgb ? <span className="size-4 rounded-full border border-foreground/15" style={{ backgroundColor: rgb }} /> : <span className="flex size-5 items-center justify-center rounded-full border border-border bg-card"><WenyouIcon id="editor.text-color" className="size-4" /></span>}</Button>;
   return <div className="border-t border-border pt-1">
     <div className="flex items-center gap-0.5">
       {swatch("默认文字颜色", null, "default")}
