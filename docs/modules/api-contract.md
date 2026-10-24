@@ -183,3 +183,8 @@ v2 严格消费显式无进度超时和独立总传输上限，不接受已移�
 公共目录 `/meta/text-fonts/v2`、版本描述符与策略统一经过受限元数据传输；同源版本资产经 `apiClient` 返回流，由字体加载器核验格式、长度、SHA 与预算。公共字体请求不携带用户会话；管理预览使用后台 Cookie，流结束、取消或会话变化均释放管理请求登记。管理 CRUD、原始上传和版本动作位于 `/admin/text-fonts`，行为见[站务模块](admin-station.md#正文字体)。新协议保留 v1 兼容资源，正文语义与缓存规则见[正文协议](markdown-content-protocol.md#文本字体-v2)。
 
 固定 v1 导入集合全部发布后，后端才声明 v2 支持。同一浏览器文档一旦见到 `textFontV2Supported=true`，历史 v1 ID 就按已提交导入表固定访问对应 v2 版本描述符和资产网关，不随家族当前版本变化。后续能力 false、缺失、请求失败均不退回旧 manifest/CDN；已知撤回优先于能力声明。描述符暂时失败或 404 保留最后可信权限，只复用已核验缓存，不发起新的资产请求；未知版本使用默认字体，原文仍保留 v1 标记。
+
+
+## 简化字体管理
+
+管理员字体管理契约同步自 Backend `2b8abf3b6ae23c94dd843dfd6ce72865554a657e`（HTTP `5.44.0-dev.20261024.2`）；该提交包含运行实现，契约与先前 `1ce559b42be9ac04c4fd09137ee30f482facbfe2` 逐字一致。固定契约、共享样例 `admin-font-management-v1-fixtures.json` 与生成类型通过同一 Git 提交同步。简化提交使用 `/admin/text-fonts/submissions`，管理列表使用 `/management`，整组排序使用一次 `PUT /order`；旧接口继续保留。新接口仍经统一 `apiClient` 和后台 Cookie／CSRF，请求不会带社区 Bearer。上传单次传输实现提供真实字节进度，并继承管理请求中止与响应会话校验。提交键冲突 40930、列表游标过期 40931、排序修订冲突 40928 分别处理，详见[站务字体管理](admin-station.md#正文字体)。

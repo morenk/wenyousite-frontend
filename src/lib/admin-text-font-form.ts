@@ -21,6 +21,9 @@ export const textFontConfigurationSchema = z.object({
     subsetting: z.boolean(),
   }),
 });
+export const textFontMetadataSchema = textFontConfigurationSchema.extend({
+  specimenText: text(200).refine((value) => !/[\p{Cc}\p{Cf}]/u.test(value), "样张文字不能包含换行或控制字符"),
+});
 export type TextFontConfigurationValues = z.infer<
   typeof textFontConfigurationSchema
 >;

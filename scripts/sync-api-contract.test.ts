@@ -16,6 +16,7 @@ function workspace() {
   mkdirSync(backend, { recursive: true });
   mkdirSync(join(frontend, "contracts"), { recursive: true });
   const fixtures = {
+    "admin-font-management-v1-fixtures.json": { fixtureVersion: 1, apiContractVersion: "test", authorizationRuleVersion: "admin-font-upload-v1", pageSize: 20, createCases: [] },
     ...Object.fromEntries(["thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
     ...Object.fromEntries(["markdown-text-font-v2-fixtures.json", "markdown-text-font-v2.schema.json", "thread-font-dynamic-v2-fixtures.json", "thread-font-manifest-v2.schema.json", "thread-font-runtime-policy-v3.json", "thread-font-runtime-policy-v3.schema.json", "thread-font-v1-import-map.json"].map(name => [name, JSON.parse(readFileSync(resolve("contracts", name), "utf8"))])),
     "markdown-text-font-v1-fixtures.json": { version: 1, validCases: [], invalidSources: [] },
@@ -119,4 +120,19 @@ test("精确提交同步忽略后端未提交修改，并包含封面黄金fixtu
   expect(existsSync(join(frontend, "contracts/thread-cover-media-v1-fixtures.json"))).toBe(true);
   for (const name of ["thread-font-runtime-policy-v2.json", "thread-font-runtime-policy-v2.schema.json", "thread-font-runtime-policy-v2-fixtures.json"]) expect(readFileSync(join(frontend, "contracts", name), "utf8")).toBe(git("show", revision + ":contracts/" + name));
   expect(existsSync(join(frontend, "contracts/markdown-block-boundary-v1-fixtures.json"))).toBe(true);
+});
+
+
+test.each([
+  { apiContractVersion: "other" },
+  { authorizationRuleVersion: "unknown" },
+  { pageSize: 10 },
+])("字体管理夹具不匹配时不写入半套契约：%j", (override) => {
+  const { frontend, backend, fixtures } = workspace();
+  const name = "admin-font-management-v1-fixtures.json";
+  writeFileSync(join(backend, name), JSON.stringify({ ...fixtures[name], ...override }));
+  expect(() => execFileSync(process.execPath, [script], { env: defaultEnvironment, cwd: frontend, stdio: "pipe" }))
+    .toThrow(/字体管理契约不是同版本 v1/u);
+  expect(existsSync(join(frontend, "contracts/openapi.json"))).toBe(false);
+  expect(readFileSync(join(frontend, "contracts/markdown-editor-roundtrip-v6-fixtures.json"), "utf8")).toBe("old");
 });
