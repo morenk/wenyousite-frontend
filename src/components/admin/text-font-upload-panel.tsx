@@ -9,7 +9,7 @@ import { useAdminSession } from "@/api/hooks/use-admin";
 import { fontSubmissionApi, useAdminFontSubmission, useRefreshAdminFonts, type FontSubmission } from "@/api/hooks/admin/use-admin-font-submission";
 import { getAdminSessionSnapshot } from "@/lib/admin-session-store";
 import { continueFontSubmission, FontSubmissionCreateRejected, fontRecoveryId, resumeFontSubmissionRecovery, newFontSubmissionRecovery, readFontRecovery, saveFontRecovery, type FontSubmissionRecovery, type FontSubmissionProgress } from "@/lib/admin-font-submission";
-import { fontFailureReasons, type AdminTextFontUploadValues, type FontLanguage } from "@/lib/admin-text-font-upload";
+import { fontJobFailureMessage, type AdminTextFontUploadValues, type FontLanguage } from "@/lib/admin-text-font-upload";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { TextFontUploadForm } from "./text-font-upload-form";
 
@@ -89,9 +89,8 @@ function SubmissionUpload({ storageKey, existing, disabled, onReady, onUpdated, 
         disabled={disabled || readError} progress={progress} onSubmit={run} />
       <p className="text-xs text-muted-foreground">上传即确认有权分发、转换和分片此字体。</p>
     </> : <>
-      <p role="status" className="text-sm">{progress ? "正在查询并继续处理…" : job.status === "queued" ? "排队中…" : job.status === "processing" ? "正在处理…" : job.status === "ready" ? "处理完成，请预览后发布。" : job.status === "draft" ? "文件已上传，可继续处理。" : "处理失败，可使用已上传文件重试。"}</p>
+      <p role={!progress && job.status === "failed" ? "alert" : "status"} className="text-sm">{progress ? "正在查询并继续处理…" : job.status === "queued" ? "排队中…" : job.status === "processing" ? "正在处理…" : job.status === "ready" ? "处理完成，请预览后发布。" : job.status === "draft" ? "文件已上传，可继续处理。" : `${fontJobFailureMessage(job) ?? "处理失败"}，可使用已上传文件重试。`}</p>
       {!existing && job.status === "ready" && job.versionId && <NewFontPreview versionId={job.versionId} />}
-      {job.failureReason && <p role="alert" className="text-sm text-destructive">{fontFailureReasons[job.failureReason]}</p>}
       <div className="flex flex-wrap gap-2">
         {(job.status === "draft" || job.status === "failed") && <Button disabled={disabled || readError || Boolean(progress)} onClick={() => void run(undefined, job.status === "failed")}>{job.status === "failed" ? "重试处理" : "继续处理"}</Button>}
         {job.status === "ready" && !existing && <Link href={`/station/text-fonts/${value!.familyId}`} className={buttonVariants()}>预览并发布</Link>}

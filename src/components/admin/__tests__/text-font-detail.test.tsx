@@ -257,6 +257,12 @@ test("新流程历史任务按submissionId恢复，旧任务仍使用旧处理AP
   expect(env.process).not.toHaveBeenCalled();
 });
 
+test("任务详情与上传面板共用处理环境失败文案", () => {
+  env.record = { ...record(), jobs: [{ jobId: "unavailable", familyId, sourceBytes: 4, status: "failed", sourceSha256: "a".repeat(64), versionId: null, failureCode: "sandbox-unavailable" }] };
+  render(<TextFontDetail familyId={familyId} />);
+  expect(screen.getByRole("cell", { name: "处理环境暂不可用" })).toBeVisible();
+});
+
 test.each([["embedding-restricted", "字体禁止嵌入"], ["subsetting-restricted", "字体禁止分片"], ["bitmap-only", "字体仅允许位图嵌入"]] as const)("直接进入详情仍显示字体限制原因%s", (failureReason, message) => {
   env.record = { ...record(), jobs: [{ jobId: "restricted", familyId, sourceBytes: 4, status: "failed", sourceSha256: "a".repeat(64), versionId: null, failureCode: "rights-required", failureReason, submissionId: null }] };
   render(<TextFontDetail familyId={familyId} />);
