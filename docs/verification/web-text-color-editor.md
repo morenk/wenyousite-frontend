@@ -145,3 +145,21 @@ CDP 调用经过 Chromium 原生组合输入管线；单元测试使用合成事
 按锁文件同步 Zod 4.6.6 后，定向检查 7 文件／88 项通过，涵盖外部点击、上下边框调整、颜色选择器、回复会话、字体详情自动定位和字体选择器。当前尚未重新执行完整门禁、生产构建或浏览器 E2E；上文两轮完整结果仅属于原基线，不能替代最终整合候选验证。字体运行时问题由原字体任务修复，等待其最终已提交基线和治理调度后再串行验证，避免重复重负载。
 
 原浅色、深色和窄桌面截图仍保留；本线程没有用户明确认可这些画面的记录，不声称视觉验收已完成。治理已传递本轮合并部署授权，但本任务不执行合并或部署。整合准备状态和本轮日志保存在原持久证据目录的 `editor-interaction-integration/status.json`，最终交付以之后的实际检查、SHA 和部署记录为准。
+
+
+## 最终字体修复整合验收（2026-10-25）
+
+按治理确认的最终基线 `d53450af25b7a611d326cc6650340dbc63d980f4`（PR #89 字体压缩传输长度修复）生成合并提交 `c729735817152f0b67a57b79842fc74ee8783f09`，无冲突，不改写历史；PR #88 的样张契约变化未带入。该源码重新通过完整 `pnpm check`：468 文件／6,163 项测试，覆盖率 statements 88.23%、branches 81.71%、functions 87.03%、lines 91.88%；安全审计、静态门禁、发布源检查、文档、生产构建与构建字体检查均通过。
+
+两轮完整隔离 E2E 使用干净且已检查的 Backend `33574ae73d88123aa216a93f9cc81eab60fb9ee9`。旧字体任务已清理，其固定资源从 `/srv/wenyousite/artifacts/thread-fonts-pr58-pr60-20261024/preserved-font-resources/` 只读使用；已对照保存清单核验工具链、历史产物和原始字体共 2,392 个文件的大小与 SHA，无差异。未重建旧 Worktree，未使用线上账号或数据库。每轮实际候选 Build ID、随机端口、独立数据库／缓存／上传及本地对象存储身份由统一 fixture 校验，邮件使用测试 transport，外部推送和外部存储写入关闭。
+
+| 最终连续完整运行 | 通过 / 跳过 / 失败 | 清理 |
+| --- | --- | --- |
+| `e2e_bd2d2e13d45a31ecc0c43045` | 265 / 13 / 0 | 三项清理 true；根目录及 PG／Redis／API 端口额外确认归零 |
+| `e2e_e408a488ca7c8d8b83e08476` | 265 / 13 / 0 | 三项清理 true；根目录及 PG／Redis／API／Web 端口额外确认归零 |
+
+每轮共 278 项，13 项为既有可选讨论样本，没有新增跳过或降低断言。最终整合候选两轮均无失败，覆盖楼层编辑音频误提示、外部收起、上下边框拖动、草稿和保存、字体新版管理编排、自动定位及运行时兼容。生产源码在门禁后不再变化，仅追加本节验收记录；文档另行检查，不重复构建。
+
+`pnpm check` 生产产物保留在本任务 Worktree 的 `.next`，源码 SHA 为 `c729735817152f0b67a57b79842fc74ee8783f09`，BUILD_ID 与 standalone BUILD_ID 均为 `Xt5egm_L2fSv2b_QGEnCl`，实际 `/api/v1/:path*` rewrite 指向 `http://127.0.0.1:3000/api/v1/:path*`。E2E 仅使用 `.next-e2e`。两轮后重新核验 `.next/standalone`、`.next/static` 和 `public` 的 2,416 个文件／链接条目，与构建完成时完全一致；生产 Build ID 和路由映射未变化。管理端仍须核验最终合并源码及发布源条件后，才能决定复用这份产物。
+
+本轮全部证据位于原持久目录的 `editor-interaction-integration/`：`final-check.log`、`final-e2e-1.log`、`final-e2e-2.log`、各 runId 的资源／脱敏报告／清理记录、`font-resource-verification.json`、`production-source-tree.txt`、`production-build-provenance.json`、`production-build-files.json` 和 `status.json`。后续文档提交相对构建源码的精确差异单独保存到交接记录。治理报告已审阅亮暗编辑器截图；本线程不将其表述为用户亲自完成视觉验收。PR #85 的合并和管理员部署由治理任务执行，本任务仅交付检查通过的候选与产物。
