@@ -103,7 +103,10 @@ export class FontAssetLoader {
         const mime = descriptor.contentType ?? (original ? "font/ttf" : descriptor.path.endsWith(".woff2") ? "font/woff2" : descriptor.path.endsWith(".json") ? "application/json" : "text/plain");
         if (response.headers.get("content-type")?.split(";")[0]?.trim().toLowerCase() !== mime) { await response.body.cancel(); throw new FontResourceError("asset-mime"); }
         const length = response.headers.get("content-length");
-        if (length !== null && Number(length) !== descriptor.bytes) { await response.body.cancel(); throw new FontResourceError("asset-length"); }
+        // Fetch 的正文已解压，Content-Length 在压缩响应中仍是传输长度。
+        // 解压后的流仍逐块受 descriptor.bytes 限制，并在缓存/注册前核验长度与 SHA。
+        const encoding = response.headers.get("content-encoding")?.trim().toLowerCase();
+        if ((!encoding || encoding === "identity") && length !== null && Number(length) !== descriptor.bytes) { await response.body.cancel(); throw new FontResourceError("asset-length"); }
         const reader = response.body.getReader(), chunks: Uint8Array[] = [];
         const cancel = () => { void reader.cancel().catch(() => {}); };
         timeout.signal.addEventListener("abort", cancel, { once: true });

@@ -695,3 +695,25 @@ test("空光标预订阅不会被同字体阅读完成解除，稍后输入仍�
   await vi.waitFor(() => expect(progress).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready", started: true })));
   expect(progress.mock.calls.some(([value]) => value.status === "loading" && value.totalBytes > 0)).toBe(true);
 });
+
+test.each([false, true])("压缩许可资产完整性校验后才注册字库（篡改=%s）", async tampered => {
+  const f = await fixture(), shown = vi.fn();
+  const manifest = JSON.parse(new TextDecoder().decode(f.assets.get(f.first.manifest!.sha256 + ".json")!));
+  const notice = manifest.notices[0];
+  env.transport.mockImplementation(async input => {
+    if (!String(input).endsWith(notice.sha256 + ".json")) return f.transport(input);
+    const bytes = new Uint8Array(f.assets.get(notice.sha256 + ".json")!.slice(0));
+    if (tampered) bytes[0] ^= 1;
+    return new Response(bytes, { headers: { "content-type": "application/json", "content-encoding": "gzip", "content-length": "2" } });
+  });
+  f.runtime.watch(f.first.versionId, "A", shown);
+  await vi.waitFor(() => expect(shown).toHaveBeenLastCalledWith(expect.objectContaining({ status: tampered ? "fallback" : "ready" })));
+  if (tampered) {
+    expect(env.install).not.toHaveBeenCalled();
+    expect(env.cache.has(notice.sha256)).toBe(false);
+    expect(f.runtime.snapshot.assets?.failures).toBe(1);
+  } else {
+    expect(env.install).toHaveBeenCalledExactlyOnceWith(f.shards[0], f.assets.get(f.shards[0].web.sha256 + ".woff2"));
+    expect(env.cache.has(notice.sha256)).toBe(true);
+  }
+});
