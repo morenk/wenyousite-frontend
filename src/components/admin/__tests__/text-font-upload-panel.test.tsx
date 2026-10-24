@@ -17,7 +17,7 @@ const blank: FontSubmission = { submissionId: id, familyId, familyRevision: 8, n
 const draft: FontSubmission = { ...blank, job: { jobId: "tfj_" + "c".repeat(32), familyId, status: "draft", sourceSha256: "a".repeat(64), sourceBytes: 4, versionId: null, failureCode: null } };
 const ready: FontSubmission = { ...draft, job: { ...draft.job!, status: "ready", versionId } };
 const storageKey = "admin-font-submission:test-admin:new";
-beforeEach(() => { vi.clearAllMocks(); sessionStorage.clear(); env.data = undefined; env.sessionStatus = "authenticated"; env.previewError = false; env.previewLoading = false; env.create.mockResolvedValue(blank); env.upload.mockResolvedValue(draft.job); env.process.mockResolvedValue(ready.job); env.refresh.mockResolvedValue(undefined); });
+beforeEach(() => { vi.resetAllMocks(); sessionStorage.clear(); env.data = undefined; env.sessionStatus = "authenticated"; env.previewError = false; env.previewLoading = false; env.create.mockResolvedValue(blank); env.upload.mockResolvedValue(draft.job); env.process.mockResolvedValue(ready.job); env.refresh.mockResolvedValue(undefined); });
 afterEach(cleanup);
 const select = () => { const file = new File(["font"], "新字体.ttf"); fireEvent.change(screen.getByLabelText("字体文件"), { target: { files: [file] } }); return file; };
 test("一次按钮编排创建上传处理，重复点击锁定；就绪仅提供手动预览发布入口", async () => {
@@ -44,12 +44,45 @@ test("刷新恢复未上传提交只要求重新选择文件，保留首次请�
 });
 test("恢复已上传任务无需文件直接继续，处理失败明确重试才换键", async () => {
   const recovery = newFontSubmissionRecovery({ submissionId: id, name: "字体", language: "other" }); saveFontRecovery(storageKey, recovery);
-  env.data = { ...draft, job: { ...draft.job!, status: "failed" } }; env.read.mockResolvedValueOnce(env.data).mockResolvedValueOnce(ready);
+  env.data = { ...draft, job: { ...draft.job!, status: "failed", failureCode: "sandbox-unavailable" } }; env.read.mockResolvedValueOnce(env.data).mockResolvedValueOnce(ready);
   render(<TextFontUploadPanel />); expect(screen.queryByLabelText("字体文件")).not.toBeInTheDocument();
+  expect(screen.getByRole("alert")).toHaveTextContent("处理环境暂不可用，可使用已上传文件重试。");
   expect(env.process).not.toHaveBeenCalled(); fireEvent.click(screen.getByRole("button", { name: "重试处理" }));
   await waitFor(() => expect(env.process).toHaveBeenCalledTimes(1)); expect(env.upload).not.toHaveBeenCalled();
   expect(env.process.mock.calls[0]![1]).not.toBe(recovery.processRequestId);
   expect(JSON.parse(sessionStorage.getItem(storageKey)!).firstProcessRequestId).toBe(recovery.firstProcessRequestId);
+});
+
+test.each([
+  ["invalid-font", "字体文件无效"],
+  ["unsupported-font", "不支持此字体格式"],
+  ["rights-required", "授权材料或权限不完整"],
+  ["resource-limit", "超出处理资源限制"],
+  ["sandbox-unavailable", "处理环境暂不可用"],
+  ["processing-failed", "字体处理失败"],
+] as const)("失败上传显示固定安全类别%s，不自动重试", (failureCode, message) => {
+  env.data = { ...draft, job: { ...draft.job!, status: "failed", failureCode } };
+  render(<TextFontUploadPanel submissionId={id} />);
+  expect(screen.getByRole("alert")).toHaveTextContent(`${message}，可使用已上传文件重试。`);
+  expect(screen.getByRole("button", { name: "重试处理" })).toBeEnabled();
+  expect(screen.getByRole("button", { name: "上传另一个文件" })).toBeEnabled();
+  expect(env.process).not.toHaveBeenCalled();
+  expect(env.upload).not.toHaveBeenCalled();
+});
+
+test.each([["embedding-restricted", "字体禁止嵌入"], ["subsetting-restricted", "字体禁止分片"], ["bitmap-only", "字体仅允许位图嵌入"]] as const)("字体权限限制%s优先于通用失败类别且不重复提示", (failureReason, message) => {
+  env.data = { ...draft, job: { ...draft.job!, status: "failed", failureCode: "rights-required", failureReason } };
+  render(<TextFontUploadPanel submissionId={id} />);
+  expect(screen.getAllByRole("alert")).toHaveLength(1);
+  expect(screen.getByRole("alert")).toHaveTextContent(`${message}，可使用已上传文件重试。`);
+  expect(screen.queryByText(/授权材料或权限不完整/)).not.toBeInTheDocument();
+});
+
+test.each([null, "worker error at /private/font/source.ttf", "__proto__", "toString"])("缺失或未识别的失败类别%s使用安全兜底，不回显诊断内容", (failureCode) => {
+  env.data = { ...draft, job: { ...draft.job!, status: "failed", failureCode, failureReason: "unknown internal reason" } } as unknown as FontSubmission;
+  render(<TextFontUploadPanel submissionId={id} />);
+  expect(screen.getByRole("alert")).toHaveTextContent("处理失败，可使用已上传文件重试。");
+  expect(screen.queryByText(/private\/font|unknown internal reason|__proto__|toString/)).not.toBeInTheDocument();
 });
 test("上传超时保留所选文件和恢复键；再次点击先GET不再创建", async () => {
   env.read.mockRejectedValueOnce({ status: 404 }).mockResolvedValue(blank); env.upload.mockRejectedValue(new TypeError("超时，结果尚未确认"));

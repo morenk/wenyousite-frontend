@@ -30,7 +30,7 @@ import {
 import { DynamicFontSpecimen } from "@/components/editor/dynamic-font-specimen";
 import { TextFontMetadataFields } from "./text-font-metadata-fields";
 import { TextFontUploadPanel } from "./text-font-upload-panel";
-import { fontFailureReasons, fontLanguageLabels } from "@/lib/admin-text-font-upload";
+import { fontJobFailureMessage, fontLanguageLabels } from "@/lib/admin-text-font-upload";
 import fontManagementFixture from "../../../contracts/admin-font-management-v1-fixtures.json";
 import { TextFontWithdrawDialog } from "./text-font-withdraw-dialog";
 import {
@@ -49,14 +49,6 @@ const statuses = {
   processing: "处理中",
   ready: "处理完成",
   failed: "处理失败",
-};
-const failures = {
-  "invalid-font": "字体文件无效",
-  "unsupported-font": "不支持此字体格式",
-  "rights-required": "授权材料或权限不完整",
-  "resource-limit": "超出处理资源限制",
-  "sandbox-unavailable": "处理环境暂不可用",
-  "processing-failed": "字体处理失败",
 };
 export function TextFontDetail({ familyId, submissionId }: { familyId?: string; submissionId?: string }) {
   const detail = useAdminTextFont(familyId);
@@ -303,10 +295,7 @@ function TextFontEditor({
                     </AdminTableCell>
                     <AdminTableCell>{statuses[job.status]}</AdminTableCell>
                     <AdminTableCell>
-                      {job.failureReason
-                        ? fontFailureReasons[job.failureReason]
-                        : job.failureCode ? failures[job.failureCode]
-                        : (job.versionId?.slice(-8) ?? "—")}
+                      {fontJobFailureMessage(job) ?? job.versionId?.slice(-8) ?? "—"}
                     </AdminTableCell>
                     <AdminTableActionCell>
                       {job.status === "draft" || job.status === "failed" ? (
