@@ -24,6 +24,7 @@ import {
   EDITOR_WEB_LAYOUT,
   editorCapabilityLabels,
 } from "@/lib/editor-capabilities";
+import type { EditorToolbarPreference } from "@/lib/editor-toolbar-preference";
 
 describe("syncMilkdownToolbarVisibility", () => {
   test("上传结束恢复可编辑后清除 Crepe 遗留的隐藏样式", () => {
@@ -438,4 +439,69 @@ test("恰好容纳按钮时分隔线不触发提前收纳，自定义恢复默�
   expect(fitMilkdownToolbar(toolbar)).toBe("expanded");
   expect(toolbar.scrollWidth).toBe(120);
   expect(toolbar.querySelectorAll(".top-bar-divider:not([hidden])")).toHaveLength(0);
+});
+
+describe("仅音频的展开栏直接呈现原按钮", () => {
+  function measuredToolbar() {
+    const toolbar = document.createElement("div");
+    toolbar.innerHTML = '<div class="top-bar-inner"><button data-editor-tool="bold"></button><button data-editor-tool="link"></button><button data-editor-tool="align-center"></button><button data-editor-tool="align-right"></button><button data-editor-tool="audio"></button><button data-editor-tool="more"></button></div>';
+    let width = 240;
+    Object.defineProperty(toolbar, "clientWidth", { get: () => width });
+    Object.defineProperty(toolbar, "scrollWidth", { get: () => Array.from(toolbar.querySelectorAll<HTMLElement>("button:not([hidden])")).reduce((sum, button) => sum + (button.dataset.editorTool === "audio" ? 44 : 40), 0) });
+    return { toolbar, resize: (next: number) => { width = next; } };
+  }
+
+  test("默认宽栏隐藏更多，缩窄收纳音频且恢复宽度后只有一个音频入口", () => {
+    const { toolbar, resize } = measuredToolbar();
+    const audio = toolbar.querySelector('[data-editor-tool="audio"]');
+    const more = toolbar.querySelector('[data-editor-tool="more"]');
+    expect(fitDefaultMilkdownToolbar(toolbar, true, true, true)).toEqual([]);
+    expect(audio).not.toHaveAttribute("hidden");
+    expect(audio).toHaveAttribute("tabindex", "0");
+    expect(more).toHaveAttribute("hidden");
+    // 音频实际比 More 宽，不能用被隐藏的 More 宽度判断恰好放下。
+    resize(200);
+    expect(fitDefaultMilkdownToolbar(toolbar, true, true, true)).toEqual(["link", "alignment", "audio"]);
+    expect(audio).toHaveAttribute("hidden");
+    expect(audio).toHaveAttribute("tabindex", "-1");
+    expect(more).not.toHaveAttribute("hidden");
+    resize(240);
+    expect(fitDefaultMilkdownToolbar(toolbar, true, true, true)).toEqual([]);
+    expect(toolbar.querySelector('[data-editor-tool="audio"]')).toBe(audio);
+    expect(audio).not.toHaveAttribute("hidden");
+    expect(fitDefaultMilkdownToolbar(toolbar, true, true, false)).toEqual([]);
+    expect(audio).toHaveAttribute("hidden");
+    expect(more).toHaveAttribute("hidden");
+  });
+
+  test("自定义只在可用展开项恰好为音频时直达，宽窄往返不改偏好", () => {
+    const { toolbar, resize } = measuredToolbar();
+    const preference: EditorToolbarPreference = { version: 1, primary: ["link", "bold"], more: ["audio", "draft"] };
+    const original = JSON.stringify(preference);
+    const available = new Set(["link", "bold", "audio"] as const);
+    const fit = () => fitCustomMilkdownToolbar(toolbar, preference, available);
+    expect(fit()).toEqual([]);
+    expect(toolbar.querySelector('[data-editor-tool="more"]')).toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="audio"]')).not.toHaveAttribute("hidden");
+    expect(Array.from(toolbar.querySelectorAll("button:not([hidden])")).map((button) => (button as HTMLElement).dataset.editorTool)).toEqual(["link", "bold", "audio"]);
+    resize(120);
+    expect(fit()).toEqual(["bold", "audio"]);
+    expect(toolbar.querySelector('[data-editor-tool="audio"]')).toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
+    resize(240);
+    expect(fit()).toEqual([]);
+    expect(JSON.stringify(preference)).toBe(original);
+    fitCustomMilkdownToolbar(toolbar, preference, new Set(["link", "bold"]));
+    expect(toolbar.querySelector('[data-editor-tool="audio"]')).toHaveAttribute("hidden");
+    expect(fitDefaultMilkdownToolbar(toolbar, true, true, true)).toEqual([]);
+    expect(toolbar.querySelector('[data-editor-tool="audio"]')).not.toHaveAttribute("hidden");
+  });
+
+  test("单一对齐能力仍保留包含两枚图标的更多托盘", () => {
+    const { toolbar } = measuredToolbar();
+    expect(fitCustomMilkdownToolbar(toolbar, { version: 1, primary: ["bold"], more: ["alignment"] }, new Set(["bold", "alignment"]))).toEqual(["alignment"]);
+    expect(toolbar.querySelector('[data-editor-tool="more"]')).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="align-center"]')).toHaveAttribute("hidden");
+    expect(toolbar.querySelector('[data-editor-tool="align-right"]')).toHaveAttribute("hidden");
+  });
 });

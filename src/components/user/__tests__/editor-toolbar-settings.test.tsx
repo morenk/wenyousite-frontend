@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from "@testing-li
 import userEvent from "@testing-library/user-event";
 import { ConfirmProvider } from "@/components/ui/confirm-provider";
 import { EditorToolbarSettings } from "../editor-toolbar-settings";
-import { EDITOR_TOOLBAR_STORAGE_KEY, defaultCustomToolbar, parseEditorToolbarPreference } from "@/lib/editor-toolbar-preference";
+import { EDITOR_TOOLBAR_STORAGE_KEY, EDITOR_TOOLBAR_TOOLS, defaultCustomToolbar, parseEditorToolbarPreference } from "@/lib/editor-toolbar-preference";
 
 const capability = vi.hoisted(() => ({ enabled: false }));
 vi.mock("@/api/hooks/use-api-meta", () => ({ useApiMeta: () => ({ data: capability.enabled ? { audioUpload: { version: 1 } } : {} }) }));
@@ -113,11 +113,11 @@ test("打开和关闭默认设置不转换偏好，取消拖动保留底部表�
   expect(screen.queryByText("放弃未保存修改")).toBeNull();
 });
 
-test("有能力时音频默认展开，可拖到主栏；能力关闭后隐藏但保存排序不丢", async () => {
+test("有能力时音频默认直达，可排序；能力关闭后隐藏但保存排序不丢", async () => {
   capability.enabled = true;
   let close = show();
-  const audio = tool("展开栏", "音频");
-  expect(screen.getByRole("img", { name: "更多，固定位置" })).toBeVisible();
+  const audio = tool("主栏", "音频");
+  expect(screen.queryByRole("img", { name: "更多，固定位置" })).toBeNull();
   fireEvent.keyDown(audio, { key: " " }); fireEvent.keyDown(audio, { key: "ArrowUp" }); fireEvent.keyDown(audio, { key: "Home" }); fireEvent.keyDown(audio, { key: " " });
   expect(tool("主栏", "音频")).toBeVisible();
   await waitFor(() => expect(screen.getByRole("button", { name: "保存" })).toBeEnabled());
@@ -131,4 +131,18 @@ test("有能力时音频默认展开，可拖到主栏；能力关闭后隐藏�
   fireEvent.click(screen.getByRole("button", { name: "保存" }));
   await waitFor(() => expect(close).toHaveBeenCalled());
   expect(parseEditorToolbarPreference(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY))!.primary[0]).toBe("audio");
+});
+
+test("自定义仅展开音频时预览主栏仍有音频，关闭设置不改归属", async () => {
+  capability.enabled = true;
+  const stored = JSON.stringify({ version: 1, primary: EDITOR_TOOLBAR_TOOLS.filter((tool) => tool !== "audio"), more: ["audio"] });
+  localStorage.setItem(EDITOR_TOOLBAR_STORAGE_KEY, stored);
+  const close = show();
+  expect(tool("主栏", "音频")).toBeVisible();
+  expect(screen.getAllByRole("button", { name: "音频" })).toHaveLength(1);
+  expect(screen.queryByRole("img", { name: "更多，固定位置" })).toBeNull();
+  expect(screen.getByRole("button", { name: "保存" })).toBeDisabled();
+  fireEvent.click(screen.getByRole("button", { name: "取消" }));
+  await waitFor(() => expect(close).toHaveBeenCalled());
+  expect(localStorage.getItem(EDITOR_TOOLBAR_STORAGE_KEY)).toBe(stored);
 });

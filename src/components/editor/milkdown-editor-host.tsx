@@ -1040,6 +1040,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           const next = fitDefaultMilkdownToolbar(topBar, Boolean(onOpenDrafts), alignmentEnabled, audioUpload.available);
           setDefaultMore((previous) => previous.join() === next.join() ? previous : next);
         }
+        if (topBar.querySelector<HTMLElement>('[data-editor-tool="more"]')?.hidden) setMoreMenuAnchor(null);
       });
     };
     const syncEditorSemantics = () => {
