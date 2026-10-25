@@ -187,4 +187,4 @@ v2 严格消费显式无进度超时和独立总传输上限，不接受已移�
 
 ## 简化字体管理
 
-管理员字体管理契约同步自 Backend `2b8abf3b6ae23c94dd843dfd6ce72865554a657e`（HTTP `5.44.0-dev.20261024.2`）；该提交包含运行实现，契约与先前 `1ce559b42be9ac04c4fd09137ee30f482facbfe2` 逐字一致。固定契约、共享样例 `admin-font-management-v1-fixtures.json` 与生成类型通过同一 Git 提交同步。简化提交使用 `/admin/text-fonts/submissions`，管理列表使用 `/management`，整组排序使用一次 `PUT /order`；旧接口继续保留。新接口仍经统一 `apiClient` 和后台 Cookie／CSRF，请求不会带社区 Bearer。上传单次传输实现提供真实字节进度，并继承管理请求中止与响应会话校验。提交键冲突 40930、列表游标过期 40931、排序修订冲突 40928 分别处理，详见[站务字体管理](admin-station.md#正文字体)。
+管理员字体管理契约同步自 Backend `2db4ef1254c7738966dc28b1cd1fc10dcb19da47`（HTTP `5.44.0-dev.20261024.3`）；本次统一四种语言分类的自动样张文案，HTTP 形状不变。固定契约、共享样例 `admin-font-management-v1-fixtures.json` 与生成类型通过同一 Git 提交同步。简化提交使用 `/admin/text-fonts/submissions`，管理列表使用 `/management`，整组排序使用一次 `PUT /order`；旧接口继续保留。新接口仍经统一 `apiClient` 和后台 Cookie／CSRF，请求不会带社区 Bearer。上传单次传输实现提供真实字节进度，并继承管理请求中止与响应会话校验。提交键冲突 40930、列表游标过期 40931、排序修订冲突 40928 分别处理，详见[站务字体管理](admin-station.md#正文字体)。
