@@ -22,6 +22,7 @@ async function saveEdit(page: Page, card: Locator, menu: string, id: string, con
   await card.getByRole("button", { name: menu, exact: true }).click();
   await page.getByRole("menuitem", { name: "编辑", exact: true }).click();
   await expect(page.locator(".milkdown-editor .ProseMirror")).toBeVisible();
+  expect(await page.getByText("请先完成或移除音频上传", { exact: true }).count()).toBe(0);
   if (content !== undefined) await writeEditor(page, content);
   const saved = page.waitForResponse((response) =>
     new URL(response.url()).pathname === `/api/v1/posts/${id}` && response.request().method() === "PATCH");

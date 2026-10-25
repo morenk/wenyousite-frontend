@@ -11,7 +11,7 @@ function show(color: string | null | undefined = undefined) {
 test("混色无错误预选；默认T与五预设及自定义同行", () => {
  const { onApply } = show();
  expect(screen.queryAllByRole("button", { pressed: true })).toHaveLength(0);
- expect(screen.getByRole("button", { name: "默认文字颜色" })).toHaveTextContent("T");
+ expect(screen.getByRole("button", { name: "默认文字颜色" }).querySelector('[data-icon-semantic="editor.text-color"]')).toHaveAttribute("data-icon-glyph", "type");
  fireEvent.click(screen.getByRole("button", { name: "蓝色" }));
  expect(onApply).toHaveBeenCalledWith("#2563EB");
 });

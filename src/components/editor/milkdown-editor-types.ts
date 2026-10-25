@@ -30,6 +30,8 @@ export interface MilkdownEditorProps {
   footerActions?: ReactNode;
   /** 是否允许拖动调整正文高度；默认开启。 */
   resizable?: boolean;
+  /** 底部浮动输入使用上边框向上拉高，普通文流使用下边框。 */
+  resizeEdge?: "top" | "bottom";
   /** 内容区最大高度（px），超过后内容区出现滚动条；默认 400 */
   maxHeight?: number;
   /** 内容区最小高度（px），保证空白区可点击落位；默认 280 */

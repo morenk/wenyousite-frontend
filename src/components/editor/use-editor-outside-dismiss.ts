@@ -9,9 +9,12 @@ export function useEditorOutsideDismiss(dismiss: () => Promise<unknown>, disable
   const closing = useRef(false);
   useEffect(() => {
     let active = true;
+    let capturedClick: MouseEvent | null = null;
+    const captureClick = (event: MouseEvent) => { capturedClick = event; };
     const resetPointer = () => { pointerStartedInside.current = false; };
     const onClick = (event: MouseEvent) => {
-      if (disabled || event.button !== 0 || insideClick.current === event
+      // 新编辑器可能在打开按钮的冒泡途中挂载；只处理挂载后完整捕获的点击。
+      if (capturedClick !== event || disabled || event.button !== 0 || insideClick.current === event
         || (event.detail > 0 && pointerStartedInside.current)) return;
       queueMicrotask(() => {
         if (!active || closing.current || event.defaultPrevented) return;
@@ -22,10 +25,12 @@ export function useEditorOutsideDismiss(dismiss: () => Promise<unknown>, disable
       });
     };
     document.addEventListener("pointerdown", resetPointer, true);
+    document.addEventListener("click", captureClick, true);
     document.addEventListener("click", onClick);
     return () => {
       active = false;
       document.removeEventListener("pointerdown", resetPointer, true);
+      document.removeEventListener("click", captureClick, true);
       document.removeEventListener("click", onClick);
     };
   }, [dismiss, disabled]);

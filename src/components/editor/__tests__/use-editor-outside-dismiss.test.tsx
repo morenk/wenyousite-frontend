@@ -1,4 +1,5 @@
-import { createPortal } from "react-dom";
+import { createPortal, flushSync } from "react-dom";
+import { useState } from "react";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, expect, test, vi } from "vitest";
 import { useEditorOutsideDismiss } from "../use-editor-outside-dismiss";
@@ -45,4 +46,19 @@ test("从正文拖动到外部不收起，禁用和全局确认流程也不收�
   fireEvent.click(document.body);
   await Promise.resolve();
   expect(dismiss).not.toHaveBeenCalled();
+});
+
+test("打开编辑器的同一次点击不会被新挂载的外部监听器误判为关闭", async () => {
+  const dismiss = vi.fn().mockResolvedValue(false);
+  function Entry() {
+    const [open, setOpen] = useState(false);
+    return <><button onClick={() => flushSync(() => setOpen(true))}>编辑楼层</button>{open && <Harness dismiss={dismiss} />}</>;
+  }
+  render(<Entry />);
+  fireEvent.click(screen.getByRole("button", { name: "编辑楼层" }));
+  await Promise.resolve();
+  expect(screen.getByLabelText("正文")).toBeInTheDocument();
+  expect(dismiss).not.toHaveBeenCalled();
+  fireEvent.click(document.body);
+  await waitFor(() => expect(dismiss).toHaveBeenCalledOnce());
 });
