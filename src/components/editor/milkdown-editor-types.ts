@@ -26,6 +26,8 @@ export interface MilkdownEditorProps {
   onUploadImage?: (file: File, options?: UploadImageOptions) => Promise<string>;
   placeholder?: string;
   disabled?: boolean;
+  /** 业务上下文，位于统一编辑器外框内、工具栏上方。 */
+  headerContent?: ReactNode;
   /** 业务提交操作，位于字数右侧；不传时保持普通编辑器页脚。 */
   footerActions?: ReactNode;
   /** 是否允许拖动调整正文高度；默认开启。 */

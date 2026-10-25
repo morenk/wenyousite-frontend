@@ -87,13 +87,21 @@ export function EditorTextColorPicker({ controls, onModeChange }: { controls: Ed
     <div className="flex h-11 items-center justify-center rounded-[var(--radius-control)] border border-border bg-background text-lg" style={{ color }}>文字预览 Aa</div>
     <div className="flex justify-end gap-2"><Button variant="ghost" size="sm" onClick={controls.onCancel}>取消</Button><Button size="sm" disabled={!valid} onClick={() => { if (controls.onApply(color)) rememberTextColor(controls.accountId, color); }}>应用</Button></div>
   </div>;
-  const swatch = (label: string, rgb: string | null, key: string) => <Button key={key} variant="ghost" size="icon-sm" disabled={!controls.enabled} aria-label={label} title={label} aria-pressed={controls.color !== undefined && controls.color === rgb} className={cn("size-8 shrink-0 rounded-[var(--radius-control)]", controls.color !== undefined && controls.color === rgb && "bg-accent ring-1 ring-ring/40")} onClick={() => { if (controls.onApply(rgb) && rgb && key === rgb) rememberTextColor(controls.accountId, rgb); }}>{rgb ? <span className="size-4 rounded-full border border-foreground/15" style={{ backgroundColor: rgb }} /> : <span className="flex size-5 items-center justify-center rounded-full border border-border bg-card"><WenyouIcon id="editor.text-color" className="size-4" /></span>}</Button>;
-  return <div className="border-t border-border pt-1">
-    <div className="flex items-center gap-0.5">
-      {swatch("默认文字颜色", null, "default")}
-      {EDITOR_TEXT_COLOR_PRESETS.map((preset) => swatch(preset.label, preset.rgb, preset.id))}
-      <Button variant="ghost" size="sm" disabled={!controls.enabled} className="h-8 px-2" onClick={() => { setCustom(true); onModeChange(true); }}>自定义</Button>
+  const swatch = (label: string, rgb: string | null, key: string) => <Button
+    key={key} variant="ghost" size="icon-sm" disabled={!controls.enabled}
+    aria-label={label} title={label}
+    aria-pressed={controls.color !== undefined && controls.color === rgb}
+    className={cn("size-8 shrink-0 rounded-[var(--radius-control)]", controls.color !== undefined && controls.color === rgb && "bg-accent text-accent-foreground ring-2 ring-ring/50 ring-inset")}
+    onClick={() => { if (controls.onApply(rgb) && rgb && key === rgb) rememberTextColor(controls.accountId, rgb); }}
+  >{rgb ? <span className="size-4 rounded-full border border-foreground/15" style={{ backgroundColor: rgb }} /> : <WenyouIcon id="editor.text-color" className="size-4" />}</Button>;
+  return <div className="grid gap-2">
+    <div className="flex items-center justify-between gap-3">
+      <div role="group" aria-label="文字颜色" className="flex flex-wrap items-center gap-1">
+        {swatch("默认文字颜色", null, "default")}
+        {EDITOR_TEXT_COLOR_PRESETS.map((preset) => swatch(preset.label, preset.rgb, preset.id))}
+      </div>
+      <Button variant="ghost" size="sm" disabled={!controls.enabled} className="h-8 px-2 text-muted-foreground" onClick={() => { setCustom(true); onModeChange(true); }}>自定义</Button>
     </div>
-    {recent.length > 0 && <div aria-label="最近使用的颜色" className="mt-1 flex items-center gap-0.5">{recent.map((rgb) => swatch("最近颜色 " + rgb, rgb, rgb))}</div>}
+    {recent.length > 0 && <div role="group" aria-label="最近使用的颜色" className="flex flex-wrap items-center gap-1">{recent.map((rgb) => swatch("最近颜色 " + rgb, rgb, rgb))}</div>}
   </div>;
 }

@@ -292,6 +292,11 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await host.evaluate((element) => {
     element.style.width = "580px";
   });
+  await expect(toolbar).toHaveAttribute("data-editor-density", "expanded");
+  const dividers = await toolbar.locator(".top-bar-divider").evaluateAll(elements =>
+    elements.map(element => element.getBoundingClientRect().width));
+  expect(dividers.every(width => width === 0)).toBe(true);
+  await host.evaluate((element) => { element.style.width = "500px"; });
   await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
   for (const label of ["行内代码", "引用", "分隔线", "骰子"]) {
     await expect(toolbar.getByRole("button", { name: label })).toBeVisible();
@@ -314,10 +319,14 @@ test("编辑器格式、分隔线、窄栏、骰子与正文草稿工具在真�
   await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "左对齐" })).toHaveCount(0);
   await expect(alignmentPicker.getByRole("menuitemcheckbox", { name: "居中对齐" }))
     .toHaveAttribute("aria-checked", "false");
-  // 明确取键盘焦点态，避免指针打开时的焦点可见性影响圆角外的 outline。
+  // 初始聚焦托盘，按钮自行提供键盘焦点样式；面板不叠加全局外框。
   await expect(moreMenu).toBeFocused();
   await moreMenu.press("ArrowRight");
-  await expect(moreMenu).toHaveCSS("outline-width", "2px");
+  await expect(moreMenu).toHaveCSS("outline-style", "none");
+  const compactMenu = await moreMenu.boundingBox();
+  expect(compactMenu!.width).toBeLessThan(180);
+  expect(compactMenu!.height).toBeLessThan(70);
+  await moreMenu.screenshot({ path: join(process.cwd(), ".e2e-results", process.env.E2E_RUN_ID! + "-editor-more-menu.png"), animations: "disabled" });
   await expect(moreMenu).toHaveScreenshot("editor-more-menu.png", {
     animations: "disabled",
   });

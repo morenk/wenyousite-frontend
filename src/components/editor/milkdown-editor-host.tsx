@@ -21,6 +21,7 @@ import { useEditorToolbarPreference } from "./use-editor-toolbar-preference";
 import { applyEditorTextColor, clearEditorTextColorTyping, editorTextColorTyping, getEditorTextColor } from "./editor-text-color-command";
 import type { SelectionBookmark } from "@milkdown/kit/prose/state";
 import { EditorHeadingMenu } from "./editor-heading-menu";
+import { getSelectedEditorHeading } from "./editor-heading-state";
 import { EDITOR_TOOLBAR_TOOLS, type EditorToolbarTool } from "@/lib/editor-toolbar-preference";
 import type { Ctx } from "@milkdown/kit/ctx";
 import { editorTextColorSchema, editorTextColorAtomicPolicy } from "./editor-text-color";
@@ -321,6 +322,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
   const [customMore, setCustomMore] = useState<EditorToolbarTool[]>([]);
   const [stickerAnchor, setStickerAnchor] = useState<HTMLElement | null>(null);
   const [headingMenuAnchor, setHeadingMenuAnchor] = useState<HTMLElement | null>(null);
+  const [headingLevel, setHeadingLevel] = useState<0 | 2 | 3>();
   const fontDemandScope = useRef(Symbol("editor-font-demand"));
   const fontDownloadRef = useRef<EditorFontDownloadHandle>(null);
   const colorSelectionRef = useRef<SelectionBookmark | null>(null);
@@ -342,6 +344,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
     crepeRef.current?.editor.action((ctx) => {
       const state = ctx.get(editorViewCtx).state;
       colorSelectionRef.current = state.selection.getBookmark();
+      setHeadingLevel(getSelectedEditorHeading(state));
       setColorSelection(getEditorTextColor(state));
       setFontSelection(getEditorTextFont(state));
     });
@@ -1166,6 +1169,7 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       <EditorHeadingMenu
         key={(headingMenuAnchor ? "open" : "closed") + String(textColorWriteEnabled) + String(textFontWriteEnabled)}
         anchor={headingMenuAnchor}
+        level={headingLevel}
         fontControls={textFontRenderingEnabled && (textFontVersion === 1 || textFontVersion === 2) ? {
           enabled: fontSelection.enabled && !disabled && !composingRef.current,
           value: fontSelection.fontId,

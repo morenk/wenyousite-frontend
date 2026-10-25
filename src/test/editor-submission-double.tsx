@@ -11,7 +11,7 @@ export function withEditorSubmission(Component: ComponentType<MilkdownEditorProp
       if (pending.current) { pending.current = false; onChange?.(value.current); }
       return value.current;
     } }), [onChange]);
-    return <><Component {...props} footerActions={undefined} onChange={(next) => {
+    return <>{props.headerContent && <div data-testid="editor-header">{props.headerContent}</div>}<Component {...props} headerContent={undefined} footerActions={undefined} onChange={(next) => {
       value.current = next;
       props.onDocumentChange?.();
       pending.current = options?.deferChange?.() ?? false;

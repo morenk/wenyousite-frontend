@@ -320,7 +320,13 @@
 }
 
 .milkdown .milkdown-top-bar .top-bar-divider {
-  margin: 10px 6px;
+  display: none;
+}
+
+/* 弹层初始聚焦容器；控件沿用自身的 focus-visible ring，避免叠加全局 outline。 */
+:is([data-editor-style-menu], [data-editor-more-menu]):focus-visible,
+:is([data-editor-style-menu], [data-editor-more-menu]) :where(button, input[data-slot="input"], [role="slider"]):focus-visible {
+  outline: none;
 }
 
 .milkdown .milkdown-top-bar .top-bar-heading-button {

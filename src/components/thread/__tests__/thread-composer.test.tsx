@@ -201,10 +201,10 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
     expect(screen.queryByText("发表回复")).not.toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
-    expect(screen.getByText("回复 @小明")).toBeInTheDocument();
+    expect(screen.getByTestId("editor-header")).toHaveTextContent("回复 @小明");
     expect(screen.getByRole("button", { name: "身份选择" })).toBeInTheDocument();
     await userEvent.click(screen.getByRole("button", { name: "编辑入口" }));
-    expect(screen.getByText("编辑回复")).toBeInTheDocument();
+    expect(screen.getByTestId("editor-header")).toHaveTextContent("编辑回复");
     expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
   });
 
