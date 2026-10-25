@@ -11,6 +11,7 @@ function show(color: string | null | undefined = undefined) {
 test("混色无错误预选；默认T与五预设及自定义同行", () => {
  const { onApply } = show();
  expect(screen.queryAllByRole("button", { pressed: true })).toHaveLength(0);
+ expect(screen.queryByRole("group", { name: "最近使用的颜色" })).toBeNull();
  expect(screen.getByRole("button", { name: "默认文字颜色" }).querySelector('[data-icon-semantic="editor.text-color"]')).toHaveAttribute("data-icon-glyph", "type");
  fireEvent.click(screen.getByRole("button", { name: "蓝色" }));
  expect(onApply).toHaveBeenCalledWith("#2563EB");
@@ -33,6 +34,7 @@ test("RGB只预览，整数边界和取消不修改正文", async () => {
 test("自定义应用一次；最近色按账号去重最多4，选最近色重排", async () => {
  localStorage.setItem("wenyou:text-colors:account", JSON.stringify(["#111111", "#222222", "#333333", "#444444"]));
  const { onApply } = show();
+ expect(screen.getByRole("group", { name: "最近使用的颜色" }).children).toHaveLength(4);
  fireEvent.click(screen.getByRole("button", { name: "最近颜色 #333333" }));
  expect(readRecentTextColors("account")).toEqual(["#333333", "#111111", "#222222", "#444444"]);
  fireEvent.click(screen.getByRole("button", { name: "自定义" }));

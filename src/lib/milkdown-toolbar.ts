@@ -105,7 +105,7 @@ export function syncMilkdownHeadingOptions(
 
 export type MilkdownToolbarDensity = EditorToolbarDensity;
 
-/** 同步每级密度的可见按钮，并移除没有可见按钮的空分组分隔线。 */
+/** 同步每级密度的可见按钮；组间分隔线始终退出布局和溢出测量。 */
 export function applyMilkdownToolbarDensity(
   topBar: HTMLElement,
   density: MilkdownToolbarDensity,
@@ -125,21 +125,7 @@ export function applyMilkdownToolbarDensity(
       || (capability === "alignment" && !alignmentEnabled);
   });
 
-  const inner = topBar.querySelector<HTMLElement>(".top-bar-inner");
-  if (!inner) return;
-  const children = Array.from(inner.children) as HTMLElement[];
-  children.forEach((child, index) => {
-    if (!child.classList.contains("top-bar-divider")) return;
-    const group = children
-      .slice(index + 1)
-      .findIndex((candidate) =>
-        candidate.classList.contains("top-bar-divider"),
-      );
-    const end = group === -1 ? children.length : index + 1 + group;
-    child.hidden = !children
-      .slice(index + 1, end)
-      .some((candidate) => !candidate.hidden);
-  });
+  topBar.querySelectorAll<HTMLElement>(".top-bar-divider").forEach((divider) => { divider.hidden = true; });
 }
 
 /** “更多”只列出当前密度确实隐藏的能力，避免与一级按钮重复。 */
@@ -197,15 +183,6 @@ export function fitDefaultMilkdownToolbar(
       const element = id === "heading" ? button.closest<HTMLElement>(".top-bar-heading-selector") ?? button : button;
       element.hidden = true;
       element.dataset.editorToolbarOrder = "true";
-    });
-    const children = Array.from(topBar.querySelector(".top-bar-inner")?.children ?? []) as HTMLElement[];
-    children.forEach((child, index) => {
-      if (!child.classList.contains("top-bar-divider")) return;
-      const nextDivider = children.slice(index + 1).findIndex((item) => item.classList.contains("top-bar-divider"));
-      const end = nextDivider === -1 ? children.length : index + 1 + nextDivider;
-      const groupVisible = children.slice(index + 1, end).some((item) => !item.hidden);
-      const priorVisible = children.slice(0, index).some((item) => !item.hidden && !item.classList.contains("top-bar-divider"));
-      child.hidden = !groupVisible || !priorVisible;
     });
   }
   return [...overflow, ...more];

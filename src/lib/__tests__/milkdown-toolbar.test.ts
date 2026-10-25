@@ -257,7 +257,7 @@ describe("syncMilkdownToolbarVisibility", () => {
     expect(
       root.querySelector<HTMLElement>('[data-editor-tool="draft"]'),
     ).not.toHaveAttribute("hidden");
-    expect(root.querySelectorAll(".top-bar-divider[hidden]")).toHaveLength(1);
+    expect(root.querySelectorAll(".top-bar-divider:not([hidden])")).toHaveLength(0);
   });
 
   test("双对齐按钮共用 Foundation 对齐能力收纳与版本门控", () => {
@@ -380,7 +380,7 @@ test("自定义顺序从末尾收纳并随宽度恢复，更多固定且可键�
 
 
 describe("默认工具栏极窄回退", () => {
-  test("继续按测量收纳并传给 More，变宽恢复标题容器和分隔线", () => {
+  test("继续按测量收纳并传给 More，变宽恢复标题容器但不恢复分隔线", () => {
     const toolbar = document.createElement("div");
     toolbar.innerHTML = `<div class="top-bar-inner">
       <span class="top-bar-heading-selector"><button data-editor-tool="heading"></button></span>
@@ -411,7 +411,7 @@ describe("默认工具栏极窄回退", () => {
     expect(fitDefaultMilkdownToolbar(toolbar)).toEqual([]);
     expect(toolbar.querySelector(".top-bar-heading-selector")).not.toHaveAttribute("hidden");
     expect(toolbar.querySelector('[data-editor-tool="italic"]')).not.toHaveAttribute("hidden");
-    expect(toolbar.querySelector(".top-bar-divider")).not.toHaveAttribute("hidden");
+    expect(toolbar.querySelector(".top-bar-divider")).toHaveAttribute("hidden");
   });
 });
 
@@ -426,4 +426,16 @@ test("T入口复用Foundation图标，重复同步及标题更新不会复制图
  expect(root.querySelector("button")).toHaveAttribute("aria-haspopup", "dialog");
  expect(root.querySelector("button")).toHaveAccessibleName("切换正文样式");
  expect(root.querySelector(".top-bar-heading-label")).toHaveTextContent("标题 2");
+});
+
+test("恰好容纳按钮时分隔线不触发提前收纳，自定义恢复默认仍然一致", () => {
+  const toolbar = document.createElement("div");
+  toolbar.innerHTML = '<div class="top-bar-inner"><button data-editor-tool="heading"></button><span class="top-bar-divider"></span><button data-editor-tool="bold"></button><span class="top-bar-divider"></span><button data-editor-tool="image"></button><span class="top-bar-divider"></span><button data-editor-tool="more"></button></div>';
+  Object.defineProperty(toolbar, "clientWidth", { value: 120 });
+  Object.defineProperty(toolbar, "scrollWidth", { get: () => Array.from(toolbar.firstElementChild!.children).reduce((width, child) => width + ((child as HTMLElement).hidden ? 0 : child.classList.contains("top-bar-divider") ? 13 : 40), 0) });
+  expect(fitMilkdownToolbar(toolbar)).toBe("expanded");
+  fitCustomMilkdownToolbar(toolbar, { version: 1, primary: ["image", "bold", "heading"], more: [] }, new Set(["heading", "bold", "image"]));
+  expect(fitMilkdownToolbar(toolbar)).toBe("expanded");
+  expect(toolbar.scrollWidth).toBe(120);
+  expect(toolbar.querySelectorAll(".top-bar-divider:not([hidden])")).toHaveLength(0);
 });

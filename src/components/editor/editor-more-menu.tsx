@@ -9,6 +9,7 @@ import {
   isEditorIconCapability,
 } from "@/lib/editor-icons";
 import { cn } from "@/lib/utils";
+import { useEditorVisualViewport } from "./use-editor-visual-viewport";
 import { Tooltip } from "@/components/ui/tooltip";
 import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import type { IconSemanticId } from "@wenyousite/foundation/icons";
@@ -52,6 +53,7 @@ export function EditorMoreMenu({
   keyboardAccessible = false,
 }: EditorMoreMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const viewport = useEditorVisualViewport(Boolean(anchor));
   if (!anchor) return null;
 
   return (
@@ -78,6 +80,7 @@ export function EditorMoreMenu({
         <Popover.Positioner
           anchor={anchor}
           positionMethod="fixed"
+          collisionBoundary={viewport}
           side="bottom"
           align="end"
           sideOffset={6}
@@ -93,7 +96,11 @@ export function EditorMoreMenu({
             tabIndex={-1}
             initialFocus={menuRef}
             finalFocus={false}
-            className="max-h-[min(28rem,var(--available-height))] w-80 max-w-[var(--available-width)] origin-(--transform-origin) overflow-y-auto rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
+            style={viewport ? {
+              maxWidth: `min(320px, var(--available-width), ${Math.max(0, viewport.width - 16)}px)`,
+              maxHeight: `min(28rem, var(--available-height), ${Math.max(0, viewport.height - 16)}px)`,
+            } : undefined}
+            className="max-h-[min(28rem,var(--available-height))] w-max max-w-[min(320px,var(--available-width))] origin-(--transform-origin) overflow-auto overscroll-contain rounded-[var(--radius-panel)] border border-border bg-popover p-2 text-popover-foreground shadow-popover outline-none duration-[var(--motion-standard)] data-open:animate-in data-open:fade-in-0 data-open:zoom-in-95 data-closed:animate-out data-closed:fade-out-0 data-closed:zoom-out-95 motion-reduce:animate-none"
           >
             <div className="flex flex-wrap gap-1">
               {items.map((item) => {

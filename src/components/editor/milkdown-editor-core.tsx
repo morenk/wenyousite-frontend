@@ -41,6 +41,7 @@ function EditorCore({
   onUploadImage,
   placeholder,
   disabled,
+  headerContent,
   footerActions,
   resizable = true,
   resizeEdge = "bottom",
@@ -163,6 +164,7 @@ function EditorCore({
         "--editor-max-height": `${maxHeight}px`,
       } as React.CSSProperties}
     >
+      {headerContent && <div data-slot="milkdown-editor-header">{headerContent}</div>}
       {contractVersionReady && !protectedContent && (
         <MilkdownEditorHost mentionIdentities={mentionIdentities}
           audioDraftKey={audioDraftKey} audioUserId={user?.id}

@@ -19,6 +19,7 @@ import { useContentAccessCache } from "@/api/hooks/use-content-access-cache";
 import { useEditorSubmission } from "@/components/editor/use-editor-submission";
 import { useEditorOutsideDismiss } from "@/components/editor/use-editor-outside-dismiss";
 import { MilkdownEditor } from "@/components/editor/milkdown-editor";
+import { WenyouIcon } from "@/components/ui/wenyou-icon";
 import { Button } from "@/components/ui/button";
 import { useThreadComposer, useThreadComposerSession } from "@/components/thread/thread-composer-context";
 import { hasVisibleMarkdownContent } from "@/lib/markdown";
@@ -187,9 +188,14 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
   return (
     <div ref={containerRef} {...outsideDismiss} className="space-y-2">
       {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
-      {session.label !== "发表回复" ? <p className="text-sm font-medium text-foreground">{session.label}</p> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
       <MilkdownEditor allowTextFont allowTextColor audioDraftKey={session.key} mentionIdentities={mentionIdentities}
+        headerContent={session.label !== "发表回复" ? (
+          <div className="flex items-start gap-2 bg-muted/50 px-3 py-2 text-sm text-muted-foreground">
+            <WenyouIcon id={isEdit ? "action.edit" : "action.reply"} className="mt-0.5 size-4 shrink-0" />
+            <span className="min-w-0 break-words font-medium text-foreground">{session.label}</span>
+          </div>
+        ) : undefined}
         onSyncErrorChange={setSyncError}
         editorRef={editor.editorRef}
         onValidityChange={editor.onValidityChange}

@@ -63,6 +63,16 @@ test("先选颜色后输入可发布，已着色选区可再次改色", async ({
       await expect(editor.locator('[data-wenyou-color-v1="#2563EB"]')).toHaveText(text);
       await menu.click();
       await page.getByRole("button", { name: "自定义", exact: true }).click();
+      await expect(page.getByRole("textbox", { name: "R", exact: true })).toBeFocused();
+      await page.keyboard.press("Shift+Tab");
+      const hue = page.getByRole("slider", { name: "色相", exact: true });
+      await expect(hue).toBeFocused();
+      await expect(hue).toHaveCSS("outline-style", "solid");
+      await expect(hue).toHaveCSS("outline-width", "2px");
+      if (mode === "普通输入") {
+        const run = await requireIsolationRunner();
+        await page.locator("[data-editor-style-menu]").screenshot({ path: ".e2e-results/" + run.manifest.runId + "-hue-keyboard.png" });
+      }
       await page.getByRole("textbox", { name: "R", exact: true }).fill("200");
       await page.getByRole("button", { name: "取消", exact: true }).click();
       await expect(editor).toBeFocused();
