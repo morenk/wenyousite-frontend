@@ -89,8 +89,7 @@ function MeasurementToolbar({ layout, custom, audioEnabled, onFit }: { layout: L
     if (!toolbar) return;
     const more = custom ? fitCustomMilkdownToolbar(toolbar, { version: 1, ...layout }, availableTools)
       : fitDefaultMilkdownToolbar(toolbar, true, true, audioEnabled).filter(isEditorToolbarTool);
-    const primary = custom ? layout.primary.filter((tool) => availableTools.has(tool) && !more.includes(tool))
-      : EDITOR_TOOLBAR_TOOLS.filter((tool) => {
+    const primary = (custom ? [...layout.primary, ...layout.more] : EDITOR_TOOLBAR_TOOLS).filter((tool) => {
         const item = toolbar.querySelector<HTMLElement>(`[data-editor-tool="${tool === "alignment" ? "align-center" : tool}"]`);
         return item && !item.closest("[hidden]");
       });

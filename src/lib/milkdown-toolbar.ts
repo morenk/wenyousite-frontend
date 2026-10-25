@@ -76,7 +76,8 @@ export function syncMilkdownToolbarItems(
         button.title = item.label;
         button.setAttribute("aria-label", item.label);
         button.dataset.editorTool = item.key;
-        button.tabIndex = item.key === "more" && topBar.getAttribute("data-editor-audio-enabled") === "true" ? 0 : -1;
+        button.tabIndex = !button.hidden && (topBar.getAttribute("data-editor-density") === "custom"
+          || (["audio", "more"].includes(item.key) && topBar.getAttribute("data-editor-audio-enabled") === "true")) ? 0 : -1;
         if (["bold", "italic", "strikethrough", "inline-code", "link"].includes(item.key)) {
           button.setAttribute("aria-pressed", String(button.classList.contains("active")));
         }
@@ -115,14 +116,15 @@ export function applyMilkdownToolbarDensity(
   topBar.dataset.editorDensity = density;
   topBar.dataset.editorAudioEnabled = String(audioEnabled);
   const primary = new Set<string>(EDITOR_PRIMARY_BY_DENSITY[density]);
-  if (audioEnabled) primary.add("more");
+  if (audioEnabled) primary.add(density === "expanded" ? "audio" : "more");
   topBar.querySelectorAll<HTMLElement>("[data-editor-tool]").forEach((item) => {
     const tool = item.dataset.editorTool ?? "";
     const capability = tool === "align-center" || tool === "align-right" ? "alignment" : tool;
-    if (capability === "more" && audioEnabled) { item.tabIndex = 0; item.setAttribute("aria-haspopup", "dialog"); }
+    if (capability === "more" && audioEnabled) item.setAttribute("aria-haspopup", "dialog");
     item.hidden = !primary.has(capability)
       || !isEditorToolbarCapabilityVisible(capability)
       || (capability === "alignment" && !alignmentEnabled);
+    if (capability === "audio" || capability === "more") item.tabIndex = !item.hidden && audioEnabled ? 0 : -1;
   });
 
   topBar.querySelectorAll<HTMLElement>(".top-bar-divider").forEach((divider) => { divider.hidden = true; });
@@ -135,7 +137,7 @@ export function getMilkdownMoreCapabilities(
   alignmentEnabled = true,
   audioEnabled = false,
 ): EditorCapabilityId[] {
-  return [...EDITOR_MORE_BY_DENSITY[density], ...(audioEnabled ? ["audio" as const] : [])].filter(
+  return [...EDITOR_MORE_BY_DENSITY[density], ...(audioEnabled && density !== "expanded" ? ["audio" as const] : [])].filter(
     (capability): capability is EditorCapabilityId =>
       isEditorToolbarCapabilityVisible(capability)
       && (capability !== "draft" || hasDraft)
@@ -207,6 +209,7 @@ export function fitCustomMilkdownToolbar(
   available: ReadonlySet<EditorToolbarTool>,
 ): EditorToolbarTool[] {
   topBar.dataset.editorDensity = "custom";
+  topBar.dataset.editorAudioEnabled = String(available.has("audio"));
   const buttons = Array.from(topBar.querySelectorAll<HTMLElement>("[data-editor-tool]"));
   const toolFor = (item: HTMLElement) => {
     const key = item.dataset.editorTool;
@@ -218,22 +221,28 @@ export function fitCustomMilkdownToolbar(
   if (inner && !originalToolbarChildren.get(topBar)?.every((child) => child.parentElement === inner)) originalToolbarChildren.set(topBar, Array.from(inner.children) as HTMLElement[]);
   const primary = preference.primary.filter((id) => available.has(id));
   const more = preference.more.filter((id) => available.has(id));
+  const overflow: EditorToolbarTool[] = [];
+  let remaining = more;
   const apply = () => {
+    remaining = [...overflow, ...more];
+    // 只折叠一个音频按钮时直接呈现原控件；对齐等多按钮能力不适用。
+    const inlineAudio = remaining.length === 1 && remaining[0] === "audio";
+    const visiblePrimary = inlineAudio ? [...primary, "audio"] : primary;
+    if (inlineAudio) remaining = [];
     for (const button of buttons) {
       const id = toolFor(button);
       const element = elementFor(button);
       button.hidden = false;
-      element.hidden = id !== "more" && (!isEditorToolbarTool(id) || !primary.includes(id));
+      element.hidden = id === "more" ? inlineAudio : !isEditorToolbarTool(id) || !visiblePrimary.includes(id);
       element.dataset.editorToolbarOrder = "true";
-      element.style.order = String(id === "more" ? primary.length * 2 + 1
-        : isEditorToolbarTool(id) ? primary.indexOf(id) * 2 + (button.dataset.editorTool === "align-right" ? 1 : 0) : -1);
+      element.style.order = String(id === "more" ? visiblePrimary.length * 2 + 1
+        : isEditorToolbarTool(id) ? visiblePrimary.indexOf(id) * 2 + (button.dataset.editorTool === "align-right" ? 1 : 0) : -1);
       button.tabIndex = element.hidden ? -1 : 0;
       if (id === "more") button.setAttribute("aria-haspopup", "dialog");
     }
     topBar.querySelectorAll<HTMLElement>(".top-bar-divider").forEach((divider) => { divider.hidden = true; });
   };
   apply();
-  const overflow: EditorToolbarTool[] = [];
   while (primary.length && topBar.scrollWidth > topBar.clientWidth) {
     overflow.unshift(primary.pop()!);
     apply();
@@ -245,15 +254,15 @@ export function fitCustomMilkdownToolbar(
       });
     reorderToolbarChildren(inner, ordered);
   }
-  return [...overflow, ...more];
+  return remaining;
 }
 
 /** 自定义主栏按实际 DOM 顺序支持键盘，复用 Crepe 的原命令和选区。 */
 export function handleCustomToolbarKeyDown(event: KeyboardEvent): void {
   const target = event.target instanceof HTMLElement ? event.target : null;
   const toolbar = target?.closest<HTMLElement>(".milkdown-top-bar");
-  if (!target || !toolbar || !target.matches("button")) return;
-  if (toolbar.dataset.editorDensity !== "custom" && !(target.dataset.editorTool === "more" && toolbar.dataset.editorAudioEnabled === "true")) return;
+  if (!target || !toolbar || !target.matches("button") || target.closest("[hidden]") || target.matches(":disabled")) return;
+  if (toolbar.dataset.editorDensity !== "custom" && !(["audio", "more"].includes(target.dataset.editorTool ?? "") && toolbar.dataset.editorAudioEnabled === "true")) return;
   if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
     target.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, cancelable: true }));
