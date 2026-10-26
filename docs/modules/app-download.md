@@ -8,7 +8,7 @@
 
 ## 移动设备提示
 
-浏览器完成 hydration 后，依据 Android、iPhone/iPad/iPod、触控 iPad 桌面 UA 或浏览器移动标记识别移动设备；窄桌面窗口不会触发提示。首次访问显示可关闭的共享 Dialog，登录页同样适用，不新增移动版社区布局。
+浏览器完成 hydration 后，依据 Android、iPhone/iPad/iPod、触控 iPad 桌面 UA 或浏览器移动标记识别移动设备；Android 也接受 `navigator.userAgentData.platform` 的明确平台标记，因此桌面模式 UA 即使没有 Android 字样、`mobile=false` 仍能显示下载选择；浏览器既不暴露 Android UA 也不提供平台标记时不凭触屏或窗口宽度猜测。窄桌面窗口不会触发提示。首次访问显示可关闭的共享 Dialog，登录页同样适用，不新增移动版社区布局。
 
 Android 提示纵向排列两个等宽、等高的按钮：“下载 APP”为主按钮，“继续使用网页”为次按钮。两项操作共用按钮圆角、对齐和文字层级，描述与操作区分组，不复用菜单分割线或 ghost 行样式。失败或交接后，原位主按钮改为“重试下载”，附近显示状态，不另加文字式重试入口；等待期间禁用，双击后续点击及长按不重复传输。iOS／其他移动平台仅保留一个通栏的“继续使用网页”按钮。iOS 明确目前仅支持 Android、暂无 iOS 版本，不显示 APK 按钮；其他移动平台只说明 Android 限制并允许继续浏览。关闭、按 Escape、继续浏览或主动点击下载后，以 `sessionStorage` 的 `wenyou:app-download-prompt=handled` 记录本次会话已处理，不跨路由或刷新反复打扰。该键不含账号或凭证。存储受限时仍可关闭，本次应用挂载不重复弹出；无法保证禁用存储后的整页刷新记忆。
 

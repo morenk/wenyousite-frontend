@@ -2,6 +2,16 @@ import { describe, expect, test } from "vitest";
 import { detectMobileDevice } from "@/lib/mobile-device";
 
 describe("移动设备提示识别", () => {
+  test("Android Client Hints 可识别桌面模式 UA，mobile=false 不否定平台", () => {
+    expect(detectMobileDevice({
+      userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/132.0.0.0 Safari/537.36",
+      mobileHint: false, platformHint: "Android",
+    })).toBe("android");
+  });
+
+  test.each(["Windows", "macOS", "Linux", "Chrome OS", ""])("桌面平台 %s 不按视口或触屏推断 Android", (platformHint) => {
+    expect(detectMobileDevice({ userAgent: "Unrecognized", maxTouchPoints: 10, platformHint })).toBeNull();
+  });
   test.each([
     ["Mozilla/5.0 (Linux; Android 15; Pixel 9) Mobile", 5, false, "android"],
     ["Mozilla/5.0 (Linux; Android 14; Tablet)", 5, false, "android"],

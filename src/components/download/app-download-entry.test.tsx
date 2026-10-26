@@ -89,6 +89,23 @@ describe("菜单下载与应用级生命周期", () => {
 });
 
 describe("移动设备首次访问提示", () => {
+  test("Android 桌面 UA 通过平台提示自动弹窗，继续浏览后本会话不重复、不预取", async () => {
+    vi.spyOn(navigator, "userAgent", "get").mockReturnValue("Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/132.0.0.0 Safari/537.36");
+    vi.stubGlobal("navigator", {
+      userAgent: navigator.userAgent, maxTouchPoints: 5,
+      userAgentData: { platform: "Android", mobile: false },
+    });
+    const { info, head, get } = handlers();
+    const view = render(<Scene />);
+    const dialog = await screen.findByRole("dialog", { name: "温油站 APP" });
+    expect(within(dialog).getByRole("button", { name: "下载 APP" })).toBeVisible();
+    await userEvent.click(within(dialog).getByRole("button", { name: "继续使用网页" }));
+    await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+    view.unmount(); render(<Scene />);
+    expect(screen.queryByRole("dialog")).toBeNull();
+    expect(info).not.toHaveBeenCalled(); expect(head).not.toHaveBeenCalled(); expect(get).not.toHaveBeenCalled();
+  });
+
   test("桌面窄窗口不弹窗，不预取信息或文件", () => {
     const { info, head, get } = handlers(); vi.stubGlobal("innerWidth", 390);
     render(<Scene />);

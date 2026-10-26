@@ -18,10 +18,13 @@ export function MobileDownloadPrompt() {
 }
 
 function ClientMobileDownloadPrompt() {
-  const [device] = useState<MobileDevice | null>(() => detectMobileDevice({
-    userAgent: navigator.userAgent, maxTouchPoints: navigator.maxTouchPoints,
-    mobileHint: (navigator as Navigator & { userAgentData?: { mobile?: boolean } }).userAgentData?.mobile,
-  }));
+  const [device] = useState<MobileDevice | null>(() => {
+    const hints = (navigator as Navigator & { userAgentData?: { mobile?: boolean; platform?: string } }).userAgentData;
+    return detectMobileDevice({
+      userAgent: navigator.userAgent, maxTouchPoints: navigator.maxTouchPoints,
+      mobileHint: hints?.mobile, platformHint: hints?.platform,
+    });
+  });
   const [open, setOpen] = useState(() => {
     if (!device) return false;
     try { return sessionStorage.getItem(DOWNLOAD_PROMPT_SESSION_KEY) !== "handled"; }
