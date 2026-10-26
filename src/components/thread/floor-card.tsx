@@ -189,7 +189,7 @@ export function FloorCard({
       {!isEditing && floor._count.replies > 0 && (
         <div
           data-testid="inline-replies"
-          className="mt-2 ml-3 rounded-[var(--radius-card)] bg-muted px-3 py-1"
+          className="mt-2 ml-3 rounded-[var(--radius-card)] bg-muted/55 px-3 py-1"
         >
           <div>
             {inlineReplies.map((reply) => (

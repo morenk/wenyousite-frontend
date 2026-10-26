@@ -230,6 +230,17 @@ describe("主题详情精确楼层阅读态", () => {
     vi.restoreAllMocks();
   });
 
+  test("正文、排序和回复串共用不透明的主题阅读底色", () => {
+    initialPostId = null;
+    render(<ThreadDetailPage />);
+
+    const surface = screen.getByTestId("floor-list").closest('[data-slot="page-shell"]');
+    expect(surface).toHaveClass("bg-background", "max-w-feed");
+    expect(surface).toContainElement(screen.getByText("默认子贴"));
+    expect(surface).toContainElement(screen.getByText("楼层控制行"));
+    expect(surface).toContainElement(screen.getByTestId("floor-list"));
+  });
+
   test("慢请求复核完成前不展示缓存正文且不预取所属子贴", () => {
     mocks.targetQuery.mockReturnValue({
       ...readyQuery(targetFloor),

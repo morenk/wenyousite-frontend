@@ -20,7 +20,7 @@ import { WenyouTime } from "@/components/shared/wenyou-time";
 import { LevelBadge } from "@/components/shared/level-badge";
 import { getPostHref } from "@/lib/post-navigation";
 import type { PostDetail } from "@/api/hooks/use-post";
-import { PageShell } from "@/components/layout/page-shell";
+import { ThreadReadingSurface } from "@/components/thread/thread-reading-surface";
 import {
   getVisibleContentText,
   PostActionsMenu,
@@ -88,7 +88,7 @@ export function ReplyDiscussion({
   };
 
   return (
-    <PageShell id="reply-discussion-start" width="feed" className="scroll-mt-6">
+    <ThreadReadingSurface id="reply-discussion-start" width="feed" className="scroll-mt-6">
       <h1 className="sr-only">{rootPost.thread.title}的楼层回复</h1>
       <div className="mb-4 flex items-center gap-2 text-sm text-muted-foreground">
         <Link href={originalFloorHref} className="inline-flex items-center gap-1 hover:text-foreground">
@@ -181,6 +181,6 @@ export function ReplyDiscussion({
           />
         </FloatingComposerDock>
       </section>
-    </PageShell>
+    </ThreadReadingSurface>
   );
 }
