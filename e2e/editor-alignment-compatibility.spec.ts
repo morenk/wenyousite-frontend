@@ -626,7 +626,8 @@ test.describe("编辑器对齐真实浏览器兼容性", () => {
     expect(metrics.rightOverflow).toBeLessThanOrEqual(1);
 
     await host.evaluate((element) => {
-      element.style.width = "580px";
+      // 520px位于expanded约570px与with-more约490px之间，远离密度边界。
+      element.style.width = "520px";
     });
     await expect(toolbar).toHaveAttribute("data-editor-density", "with-more");
     await expect(toolbar.locator('[data-editor-tool="align-center"]')).not.toBeVisible();

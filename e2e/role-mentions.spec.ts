@@ -191,7 +191,14 @@ test("平级角色@保留同名目标、账号通知去重、复制编辑和新�
     });
     await senderPage.reload();
     await senderPage.getByRole("button", { name: "发表回复…", exact: true }).click();
-    await senderPage.getByRole("textbox", { name: "楼层正文", exact: true }).pressSequentially("@");
+    const gatedEditor = senderPage.getByRole("textbox", { name: "楼层正文", exact: true });
+    // 刷新应保留本地回复；空候选门禁使用显式清空后的独立输入边界。
+    await expect(gatedEditor.locator('a[href$="rpIdentityId=' + a.identityId + '"]')).toHaveCount(1);
+    await expect(gatedEditor.locator('a[href$="rpIdentityId=' + b.identityId + '"]')).toHaveCount(1);
+    await expect(gatedEditor.locator('a[href$="identityMode=ACCOUNT"]')).toHaveCount(1);
+    await gatedEditor.fill("");
+    await expect(gatedEditor).toBeEmpty();
+    await gatedEditor.pressSequentially("@");
     await expect(senderPage.getByText("暂时无法提及用户")).toBeVisible();
     expect(queries.length).toBeGreaterThan(0);
     expect(queries.every((url) => new URL(url).searchParams.get("includeIdentities") === "true")).toBe(true);

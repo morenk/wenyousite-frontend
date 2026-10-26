@@ -1,6 +1,7 @@
 /** ThreadComposerProvider 测试：保证详情页仅有一个受保护的编辑会话 */
 
 import { useEffect, useState } from "react";
+import { ThreadReplyDraftStore } from "../thread-reply-draft-store";
 import { act, cleanup, render, renderHook, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
@@ -52,7 +53,7 @@ function Harness() {
   );
 }
 
-afterEach(() => cleanup());
+afterEach(() => { cleanup(); localStorage.clear(); vi.restoreAllMocks(); });
 
 describe("ThreadComposerProvider", () => {
 
@@ -186,7 +187,7 @@ test.each(["guard", "invalid", "unsynchronized"])("%s 保护未完成编辑，�
   expect(result.current.content).toBe("保留现场");
 });
 
-test("跨回复路由重挂恢复同主题草稿，不同主题隔离，切换账号与登出销毁草稿", async () => {
+test("跨回复路由重挂恢复同主题草稿，不同主题与账号隔离，登出后同账号可恢复盘稿", async () => {
   let composer!: ReturnType<typeof useThreadComposer>;
   function Capture() { const value = useThreadComposer(); useEffect(() => { composer = value; }, [value]); return null; }
   const view = (accountId: string, threadId: string, route: string) => (
@@ -207,11 +208,11 @@ test("跨回复路由重挂恢复同主题草稿，不同主题隔离，切换�
   rerender(view("u1", "t1", "floor"));
   await act(async () => { await composer.open(createFloorSession); });
   expect(composer.content).toBe("主题一草稿");
-  for (const account of ["u2", "u1", "anonymous", "u1"]) {
+  for (const account of ["u2", "anonymous", "u1"]) {
     rerender(view(account, "t1", "floor"));
     await act(async () => { await composer.open(createFloorSession); });
-    expect(composer.content).toBe("");
-    act(() => { composer.setContent("这个账号的新草稿"); });
+    expect(composer.content).toBe(account === "u1" ? "主题一草稿" : "");
+    if (account === "u2") act(() => { composer.setContent("用户二草稿"); });
   }
 });
 
@@ -317,4 +318,123 @@ test("迟到的外部关闭只能处理原会话，不能关闭新回复目标",
   expect(result.current.content).toBe("保留正文");
   await act(async () => { expect(await result.current.close({ sessionKey: replySession.key })).toBe(true); });
   expect(result.current.session).toBeNull();
+});
+
+
+test("全Provider卸载后自动恢复本地回复，不依赖云草稿且发表成功后不复活", async () => {
+  const wrapper = ({ children }: { children: React.ReactNode }) => <ThreadReplyDraftsProvider accountId="local-user"><ThreadComposerProvider threadId="local-thread">{children}</ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const first = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await first.result.current.open(replySession); });
+  act(() => { first.result.current.setContent("关闭页面后仍在的正文"); });
+  first.unmount();
+  const second = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await second.result.current.open(createFloorSession); });
+  expect(second.result.current.content).toBe("关闭页面后仍在的正文");
+  await act(async () => { await second.result.current.close({ force: true }); });
+  second.unmount();
+  const third = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await third.result.current.open(replySession); });
+  expect(third.result.current.content).toBe("");
+});
+
+test.each(["pagehide", "beforeunload", "visibilitychange"])("%s 同步离开前尚未到防抖窗口的最后文字", async (eventName) => {
+  const wrapper = ({ children }: { children: React.ReactNode }) => <ThreadReplyDraftsProvider accountId="local-user"><ThreadComposerProvider threadId="local-thread">{children}</ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const first = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await first.result.current.open(replySession); });
+  act(() => {
+    first.result.current.setContent("已保存");
+    first.result.current.onDocumentChange();
+    first.result.current.registerCloseGuard(() => { first.result.current.setContent("最后一字"); return true; });
+    if (eventName === "visibilitychange") {
+      vi.spyOn(document, "visibilityState", "get").mockReturnValue("hidden");
+      document.dispatchEvent(new Event(eventName));
+    } else window.dispatchEvent(new Event(eventName));
+  });
+  first.unmount();
+  const second = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await second.result.current.open(replySession); });
+  expect(second.result.current.content).toBe("最后一字");
+});
+
+test("组词未完成或本地保存失败时刷新保护仍生效且不会阻断编辑", async () => {
+  const wrapper = ({ children }: { children: React.ReactNode }) => <ThreadReplyDraftsProvider accountId="local-user"><ThreadComposerProvider threadId="local-thread">{children}</ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const { result } = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await result.current.open(replySession); });
+  act(() => { result.current.registerCloseGuard(() => false); });
+  const event = new Event("beforeunload", { cancelable: true });
+  window.dispatchEvent(event);
+  expect(event.defaultPrevented).toBe(true);
+  act(() => { result.current.setContent("继续输入"); });
+  expect(result.current.content).toBe("继续输入");
+});
+
+test("跨标签认证短暂匿名后同账号重新初始化，盘稿不被误删且不串入其他账号", async () => {
+  let composer!: ReturnType<typeof useThreadComposer>;
+  function Capture() { const value = useThreadComposer(); useEffect(() => { composer = value; }, [value]); return null; }
+  const view = (accountId: string) => <ThreadReplyDraftsProvider accountId={accountId}><ThreadComposerProvider threadId="auth-thread"><Capture /></ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const { rerender } = render(view("u1"));
+  await act(async () => { await composer.open(replySession); });
+  act(() => composer.setContent("同账号重新认证仍保留"));
+  const snapshot = localStorage.getItem("wenyou:thread-reply:v1:u1:auth-thread");
+  rerender(view("anonymous"));
+  await act(async () => { await composer.open(replySession); });
+  expect(composer.content).toBe("");
+  expect(localStorage.getItem("wenyou:thread-reply:v1:u1:auth-thread")).toBe(snapshot);
+  rerender(view("u2"));
+  await act(async () => { await composer.open(replySession); });
+  expect(composer.content).toBe("");
+  rerender(view("u1"));
+  await act(async () => { await composer.open(replySession); });
+  expect(composer.content).toBe("同账号重新认证仍保留");
+});
+
+
+test("冲突草稿通过确认恢复，旧编辑器卸载快照不会覆盖恢复稿，原稿仍可取回", async () => {
+  vi.stubGlobal("confirm", vi.fn(() => true));
+  const first = new ThreadReplyDraftStore("u1", vi.fn());
+  first.set("conflict-thread", { session: replySession as never, content: "共同起点", pendingCreate: null });
+  const second = new ThreadReplyDraftStore("u1", vi.fn());
+  second.get("conflict-thread");
+  first.set("conflict-thread", { session: replySession as never, content: "另一份正文", pendingCreate: null });
+  second.set("conflict-thread", { session: replySession as never, content: "当前正文", pendingCreate: null });
+  const wrapper = ({ children }: { children: React.ReactNode }) => <ThreadReplyDraftsProvider accountId="u1"><ThreadComposerProvider threadId="conflict-thread">{children}</ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const { result } = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await result.current.open(replySession); });
+  const before = result.current.content;
+  expect(result.current.localDraftAlternatives).toBe(1);
+  const generation = result.current.localDraftRecovery;
+  await act(async () => { expect(await result.current.recoverLocalDraft()).toBe(true); });
+  expect(result.current.content).not.toBe(before);
+  const recovered = result.current.content;
+  act(() => { result.current.setSessionContent(replySession.key, "旧编辑器卸载快照", generation); });
+  expect(result.current.content).toBe(recovered);
+  await act(async () => { expect(await result.current.recoverLocalDraft()).toBe(true); });
+  expect(result.current.content).toBe(before);
+});
+
+
+test("恢复确认期间切换目标后拒绝恢复，原结果不明请求不串入新目标", async () => {
+  const source = new ThreadReplyDraftStore("u1", vi.fn());
+  source.set("confirm-thread", { session: replySession as never, content: "共同起点", pendingCreate: null });
+  const another = new ThreadReplyDraftStore("u1", vi.fn()); another.get("confirm-thread");
+  source.set("confirm-thread", { session: replySession as never, content: "A原请求", pendingCreate: { subthreadId: "s1", parentPostId: "post-1", replyToPostId: "post-1", content: "A原请求", clientRequestId: "A-uuid" } });
+  another.set("confirm-thread", { session: replySession as never, content: "B当前草稿", pendingCreate: null });
+  // 以B为主恢复入口，A保留为独立待确认版本。
+  const primary = localStorage.getItem("wenyou:thread-reply:v1:u1:confirm-thread");
+  const revisions = Object.values(localStorage).map((raw) => { try { return JSON.parse(raw); } catch { return null; } });
+  const b = revisions.find((item) => item?.draft?.content === "B当前草稿");
+  localStorage.setItem("wenyou:thread-reply:v1:u1:confirm-thread", JSON.stringify(b));
+  expect(primary).toBeTruthy();
+  let resolve!: (value: boolean) => void;
+  vi.stubGlobal("confirm", vi.fn(() => new Promise<boolean>((accept) => { resolve = accept; })));
+  const wrapper = ({ children }: { children: React.ReactNode }) => <ThreadReplyDraftsProvider accountId="u1"><ThreadComposerProvider threadId="confirm-thread">{children}</ThreadComposerProvider></ThreadReplyDraftsProvider>;
+  const { result } = renderHook(useThreadComposer, { wrapper });
+  await act(async () => { await result.current.open(replySession); });
+  let recovering!: Promise<boolean>;
+  act(() => { recovering = result.current.recoverLocalDraft(); });
+  await act(async () => { expect(await result.current.open(createFloorSession)).toBe(true); });
+  await act(async () => { resolve(true); expect(await recovering).toBe(false); });
+  expect(result.current.session?.key).toBe(createFloorSession.key);
+  expect(result.current.pendingCreate).toBeNull();
+  expect(result.current.content).toBe("B当前草稿");
 });
