@@ -1,6 +1,7 @@
 /** ThreadComposer 测试：按需挂载唯一编辑器并统一创建、回复与编辑提交 */
 
 import { useState } from "react";
+import { webcrypto } from "node:crypto";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,6 +16,7 @@ import { ThreadComposerOutlet } from "@/components/thread/thread-composer";
 
 const mocks = vi.hoisted(() => ({
   rp: false,
+  readIdentities: vi.fn(),
   identityEnabled: true,
   identityEligible: true,
   deferChange: false,
@@ -27,6 +29,8 @@ const mocks = vi.hoisted(() => ({
   success: vi.fn(),
   error: vi.fn(),
 }));
+
+vi.mock("@/api/hooks/use-rp-identities", () => ({ readRpIdentities: mocks.readIdentities }));
 
 vi.mock("@/components/thread/thread-permissions-context", () => ({
   useThreadPermissions: () => ({ rpIdentitySupported: mocks.rp }),
@@ -135,13 +139,11 @@ function Harness() {
   );
 }
 
-function renderHarness() {
+function renderHarness(persistent = false) {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(
     <QueryClientProvider client={queryClient}>
-      <ThreadComposerProvider threadId="thread-1">
-        <Harness />
-      </ThreadComposerProvider>
+      {persistent ? <ThreadReplyDraftsProvider accountId="persist-user"><ThreadComposerProvider threadId="thread-1"><Harness /></ThreadComposerProvider></ThreadReplyDraftsProvider> : <ThreadComposerProvider threadId="thread-1"><Harness /></ThreadComposerProvider>}
     </QueryClientProvider>,
   );
   return queryClient;
@@ -175,7 +177,7 @@ test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备�
 });
 test("40011保留正文并要求确认，明确失败后使用新UUID；编辑旧帖不送新身份", async () => {
   mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "token" });
-  vi.stubGlobal("crypto", { randomUUID: vi.fn().mockReturnValueOnce("uuid-one").mockReturnValueOnce("uuid-two") });
+  vi.stubGlobal("crypto", { subtle: webcrypto.subtle, randomUUID: vi.fn().mockReturnValueOnce("uuid-one").mockReturnValueOnce("uuid-two") });
   mocks.create.mockRejectedValueOnce({ code: 40011, status: 409 }).mockResolvedValueOnce({ id: "created" });
   renderHarness();
   await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
@@ -227,14 +229,124 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     expect(screen.queryByRole("button", { name: "身份选择" })).not.toBeInTheDocument();
   });
 
-  afterEach(() => cleanup());
+  test.each([true, false])("RP未确认请求硬重载后校验摘要并保留原UUID：token相同=%s", async (same) => {
+    mocks.rp = true;
+    mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
+    mocks.create.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ id: "created" });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.type(screen.getByTestId("milkdown-editor"), "本地未知请求");
+    await userEvent.click(screen.getByRole("button", { name: "发布" }));
+    await screen.findByRole("button", { name: "重试确认发表" });
+    expect(mocks.create).toHaveBeenCalledTimes(1);
+    const original = mocks.create.mock.calls[0][0];
+    expect(Object.values(localStorage).join("")).not.toContain("original-token");
+    cleanup();
+    mocks.readIdentities.mockResolvedValue({ identities: [{ identityId: "rp-selected", identityToken: same ? "original-token" : "changed-token" }] });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+    expect(screen.queryByTestId("milkdown-editor")).not.toBeInTheDocument();
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await expect(screen.getByTestId("milkdown-editor")).toHaveValue("本地未知请求");
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.readIdentities).toHaveBeenCalled());
+    if (same) {
+      await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+      expect(mocks.create.mock.calls[1][0]).toEqual(original);
+    } else {
+      await waitFor(() => expect(mocks.error).toHaveBeenCalledWith(expect.stringContaining("原发言身份已变化")));
+      expect(mocks.create).toHaveBeenCalledTimes(1);
+      expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+    }
+  });
+
+  test.each([{ status: 429, code: 42900 }, { status: 403, code: 40300 }, { status: 401, code: 40100 }, { status: 403 }, { status: 404 }, { code: 40402, status: 404 }])("恢复未知RP请求时身份GET %j不能清理原UUID或改成新发表", async (error) => {
+    mocks.rp = true;
+    mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
+    mocks.create.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ id: "created" });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.type(screen.getByTestId("milkdown-editor"), "原请求正文");
+    await userEvent.click(screen.getByRole("button", { name: "发布" }));
+    await screen.findByRole("button", { name: "重试确认发表" });
+    const original = mocks.create.mock.calls[0][0];
+    cleanup();
+    mocks.readIdentities.mockRejectedValueOnce(error)
+      .mockResolvedValue({ identities: [{ identityId: "rp-selected", identityToken: "original-token" }] });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.readIdentities).toHaveBeenCalledTimes(1));
+    await waitFor(() => expect(screen.getByRole("button", { name: "重试确认发表" })).toBeEnabled());
+    expect(mocks.create).toHaveBeenCalledTimes(1);
+    expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "回复入口" }));
+    expect(screen.getByTestId("milkdown-editor")).toHaveValue("原请求正文");
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+    expect(mocks.create.mock.calls[1][0]).toEqual(original);
+  });
+
+  test.each([429, 401, 403, 404])("恢复未知请求的POST %s也不证明原请求未成功，仍以原UUID重试", async (status) => {
+    mocks.rp = true;
+    mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
+    mocks.create.mockRejectedValueOnce(new TypeError("response lost"))
+      .mockRejectedValueOnce({ status }).mockResolvedValueOnce({ id: "created" });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.type(screen.getByTestId("milkdown-editor"), "原请求完整正文");
+    await userEvent.click(screen.getByRole("button", { name: "发布" }));
+    await screen.findByRole("button", { name: "重试确认发表" });
+    const original = mocks.create.mock.calls[0][0];
+    cleanup();
+    mocks.readIdentities.mockResolvedValue({ identities: [{ identityId: "rp-selected", identityToken: "original-token" }] });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+    await waitFor(() => expect(screen.getByRole("button", { name: "重试确认发表" })).toBeEnabled());
+    expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(3));
+    expect(mocks.create.mock.calls[1][0]).toEqual(original);
+    expect(mocks.create.mock.calls[2][0]).toEqual(original);
+  });
+
+  test("摘要准备失败不发送请求，正文仍可编辑；未知请求409不解锁新UUID", async () => {
+    mocks.rp = true;
+    mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
+    vi.stubGlobal("crypto", { randomUUID: () => REQUEST_ID, subtle: { digest: vi.fn().mockRejectedValue(new Error("digest unavailable")) } });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.type(screen.getByTestId("milkdown-editor"), "保留准备失败内容");
+    await userEvent.click(screen.getByRole("button", { name: "发布" }));
+    await waitFor(() => expect(mocks.error).toHaveBeenCalled());
+    expect(mocks.create).not.toHaveBeenCalled();
+    expect(screen.getByTestId("milkdown-editor")).not.toBeDisabled();
+    cleanup();
+    mocks.prepare.mockResolvedValue({ identityMode: "ACCOUNT" });
+    mocks.create.mockRejectedValue({ code: 40002, status: 409 });
+    renderHarness(true);
+    await userEvent.click(screen.getByRole("button", { name: "发表入口" }));
+    await userEvent.click(screen.getByRole("button", { name: "发布" }));
+    await screen.findByRole("button", { name: "重试确认发表" });
+    await userEvent.click(screen.getByRole("button", { name: "重试确认发表" }));
+    await waitFor(() => expect(mocks.create).toHaveBeenCalledTimes(2));
+    expect(mocks.create.mock.calls[1][0].clientRequestId).toBe(mocks.create.mock.calls[0][0].clientRequestId);
+    expect(screen.getByTestId("milkdown-editor")).toBeDisabled();
+  });
+
+  afterEach(() => { cleanup(); localStorage.clear(); });
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mocks.readIdentities.mockReset();
+    mocks.create.mockReset().mockResolvedValue({ id: "created-post" });
+    mocks.update.mockReset().mockResolvedValue({});
     mocks.identityEnabled = true; mocks.identityEligible = true;
     mocks.rp = false; mocks.deferChange = false; mocks.uploadPending = false; mocks.prepare.mockResolvedValue(undefined);
     vi.stubGlobal("confirm", vi.fn(() => true));
-    vi.stubGlobal("crypto", { randomUUID: vi.fn(() => REQUEST_ID) });
+    vi.stubGlobal("crypto", { subtle: webcrypto.subtle, randomUUID: vi.fn(() => REQUEST_ID) });
   });
 
   test.each(["发表入口", "回复入口", "编辑入口"])("%s 同步失败禁止提交，恢复后才能写入", async (entry) => {
@@ -359,7 +471,7 @@ test("40011保留正文并要求确认，明确失败后使用新UUID；编辑�
     const user = userEvent.setup();
     const nextRequestId = "d9428888-122b-4c71-9a16-6f91a7c31917";
     vi.stubGlobal("crypto", {
-      randomUUID: vi.fn().mockReturnValueOnce(REQUEST_ID).mockReturnValueOnce(nextRequestId),
+      subtle: webcrypto.subtle, randomUUID: vi.fn().mockReturnValueOnce(REQUEST_ID).mockReturnValueOnce(nextRequestId),
     });
     mocks.create.mockRejectedValueOnce({ code: 40012, message: "提及已变化" }).mockResolvedValueOnce({ id: "created-post" });
     renderHarness();

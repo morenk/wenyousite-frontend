@@ -184,6 +184,9 @@ async function copyFloorAndSave(
   if (fontAllowed)
     expect(savedPost.content).toContain(`data-wenyou-font-v2="${versionId}"`);
   if (!fontAllowed) expect(sent.content).not.toMatch(/data-wenyou-font-v[12]/u);
+  // HTTP成功还可能在等待查询刷新；先确认客户端已收尾，再进入下一段刷新旅程。
+  await expect(page.getByText("发布成功", { exact: true }).first()).toBeVisible();
+  await expect(reply).toHaveCount(0);
   await page.reload();
   const savedFloor = page.locator("#post-" + savedPost.id);
   await savedFloor.scrollIntoViewIfNeeded();
@@ -620,6 +623,8 @@ test("构建后真实上传发布新ID，同会话选择、复制保存、历史
     expect((await lastObservedPost(page)).content).toContain(
       `data-wenyou-font-v2="${second}"`,
     );
+    await expect(page.getByText("发布成功", { exact: true }).first()).toBeVisible();
+    await expect(secondReply).toHaveCount(0);
     await page.reload();
     await expect(
       page.locator(`[data-wenyou-font-v2="${first}"]`).first(),

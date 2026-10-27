@@ -2,6 +2,8 @@
 
 "use client";
 
+import { hashReplyIdentity } from "./thread-reply-draft-store";
+import { readRpIdentities } from "@/api/hooks/use-rp-identities";
 import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
 import type { MentionIdentity } from "@/lib/thread-identity";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -49,6 +51,10 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
     content,
     pending,
     pendingCreate,
+    pendingIdentityHash,
+    localDraftRecovery,
+    localDraftAlternatives,
+    recoverLocalDraft,
     setPendingCreate,
     identitySelection,
     setIdentitySelection,
@@ -73,7 +79,7 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
   const containerRef = useRef<HTMLDivElement>(null);
   const submissionLock = useRef(false);
   const createRequestRef = useRef<CreatePostArgs | null>(pendingCreate);
-  const storeCreateRequest = (request: CreatePostArgs | null) => { createRequestRef.current = request; setPendingCreate(request); };
+  const storeCreateRequest = async (request: CreatePostArgs | null) => { createRequestRef.current = request; await setPendingCreate(request); };
 
   useEffect(() => {
     containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -86,20 +92,20 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
     if (!sessionKey || editorHandle.current?.isComposing?.()) return;
     const snapshot = editorHandle.current?.flush();
     if (snapshot !== null && snapshot !== undefined) {
-      setSessionContent(sessionKey, snapshot);
-      setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.());
-      setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.());
+      setSessionContent(sessionKey, snapshot, localDraftRecovery);
+      setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.(), localDraftRecovery);
+      setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.(), localDraftRecovery);
     }
-  }, [editorHandle, sessionKey, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios]);
+  }, [editorHandle, sessionKey, localDraftRecovery, setSessionContent, setSessionMediaDisplays, setSessionMediaAudios]);
 
   const canClose = editor.canClose;
   useEffect(() => registerCloseGuard(() => {
     if (createRequestRef.current) { toast.error("发表结果尚未确认，请先重试确认发表"); return false; }
     if (uploadImage.isPending) { toast.error("图片正在上传，请完成或取消上传后重试"); return false; }
     const allowed = canClose();
-    if (allowed && sessionKey) { setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.()); setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.()); }
+    if (allowed && sessionKey) { setSessionMediaDisplays(sessionKey, editorHandle.current?.getMediaDisplays?.(), localDraftRecovery); setSessionMediaAudios(sessionKey, editorHandle.current?.getMediaAudios?.(), localDraftRecovery); }
     return allowed;
-  }), [canClose, editorHandle, registerCloseGuard, sessionKey, setSessionMediaDisplays, setSessionMediaAudios, uploadImage.isPending]);
+  }), [canClose, editorHandle, registerCloseGuard, sessionKey, localDraftRecovery, setSessionMediaDisplays, setSessionMediaAudios, uploadImage.isPending]);
   useEffect(() => { setEditorValid(!editor.invalid); }, [editor.invalid, setEditorValid]);
 
   const dismiss = useCallback(() => close({ sessionKey }), [close, sessionKey]);
@@ -125,9 +131,12 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
     if (!uncertain && !(await confirmPublicInvite(nextContent, visibility !== "PRIVATE"))) return;
 
     if (!uncertain && !editor.isCurrent(nextContent)) return;
+    const recoveringRequest = Boolean(createRequestRef.current);
+    let requestSent = false;
     setPending(true);
     try {
       if (session.type === "edit") {
+        requestSent = true;
         await updatePost.mutateAsync({
           postId: session.postId,
           content: nextContent,
@@ -138,25 +147,43 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
           const publicationIdentity = await identity.prepare();
           if (publicationIdentity === null) { setPending(false); return; }
           if (!editor.isCurrent(nextContent)) { setPending(false); return; }
-          storeCreateRequest({
+          await storeCreateRequest({
             subthreadId: session.subthreadId, content: nextContent,
             clientRequestId: crypto.randomUUID(), ...publicationIdentity, ...snapshotMarkdownCapability(),
             ...(session.type === "reply" ? { parentPostId: session.parentPostId, replyToPostId: session.replyToPostId } : {}),
           });
         }
+        const request = createRequestRef.current!;
+        if (request.identityMode === "RP" && !request.identityToken) {
+          // 原 token 不落盘；只允许与原摘要相同的当前 token 确认同一 UUID。
+          const latest = await readRpIdentities(threadId!);
+          const token = latest.identities.find((role) => role.identityId === request.identityId)?.identityToken;
+          if (!token || !pendingIdentityHash || await hashReplyIdentity(token) !== pendingIdentityHash) {
+            setPending(false);
+            toast.error("原发言身份已变化，发表结果仍待确认，请先核对原回复；正文已保留");
+            return;
+          }
+          await storeCreateRequest({ ...request, identityToken: token });
+        }
+        requestSent = true;
         await createPost.mutateAsync(createRequestRef.current!);
       }
 
       resetPublicInviteConfirmation();
-      storeCreateRequest(null);
+      await storeCreateRequest(null);
       await close({ force: true, preserveReplyDraft: isEdit });
       toast.success(isEdit ? "已保存" : isReply ? "回复成功" : "发布成功");
     } catch (error: unknown) {
       setPending(false);
       const apiError = getApiError(error);
+      if (recoveringRequest) {
+        setUncertain(true);
+        toast.error("发表结果仍待确认，原请求与正文已保留，请稍后重试");
+        return;
+      }
       const definitive = (apiError.status !== undefined && apiError.status >= 400 && apiError.status < 500)
         || (apiError.code !== undefined && apiError.code >= 40000 && apiError.code < 50000);
-      if (definitive) { storeCreateRequest(null); setUncertain(false); }
+      if ((!requestSent && !recoveringRequest) || (requestSent && definitive && apiError.code !== API_ERROR_CODE.OPTIMISTIC_LOCK_CONFLICT)) { await storeCreateRequest(null); setUncertain(false); }
       else if (createRequestRef.current) setUncertain(true);
       if (apiError.code === API_ERROR_CODE.RP_IDENTITY_CHANGED) {
         identity.requireConfirmation();
@@ -188,6 +215,7 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
   return (
     <div ref={containerRef} {...outsideDismiss} className="space-y-2">
       {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
+      {!isEdit && localDraftAlternatives > 0 ? <Button type="button" variant="ghost" size="sm" disabled={busy || uncertain} onClick={() => void recoverLocalDraft()}>恢复另一份本地稿</Button> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
       <MilkdownEditor allowTextFont allowTextColor audioDraftKey={session.key} mentionIdentities={mentionIdentities}
         headerContent={session.label !== "发表回复" ? (
@@ -203,8 +231,8 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
         defaultValue={initialContent}
         mediaDisplays={session.mediaDisplays}
         mediaAudios={session.mediaAudios}
-        onChange={(value) => { editor.onSynchronized(); setSessionContent(session.key, value); setSessionMediaDisplays(session.key, editorHandle.current?.getMediaDisplays?.()); setSessionMediaAudios(session.key, editorHandle.current?.getMediaAudios?.()); }}
-        onDocumentChange={() => { editor.onDocumentChange(); onDocumentChange(); }}
+        onChange={(value) => { editor.onSynchronized(); setSessionContent(session.key, value, localDraftRecovery); setSessionMediaDisplays(session.key, editorHandle.current?.getMediaDisplays?.(), localDraftRecovery); setSessionMediaAudios(session.key, editorHandle.current?.getMediaAudios?.(), localDraftRecovery); }}
+        onDocumentChange={() => { editor.onDocumentChange(); onDocumentChange(localDraftRecovery); }}
         onUploadImage={handleUploadImage}
         placeholder={isReply ? "输入回复内容…" : isEdit ? "编辑正文内容…" : "输入正文内容…"}
         disabled={pending || uncertain}
@@ -237,7 +265,7 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
 }
 
 export function ThreadComposerOutlet({ anchorId, mentionIdentities, resizeEdge }: { anchorId: string; mentionIdentities?: readonly MentionIdentity[]; resizeEdge?: "top" | "bottom" }) {
-  const { session } = useThreadComposerSession();
+  const { session, localDraftRecovery } = useThreadComposerSession();
   if (session?.anchorId !== anchorId) return null;
-  return <ThreadComposer key={session.key} mentionIdentities={mentionIdentities} resizeEdge={resizeEdge} />;
+  return <ThreadComposer key={session.key + ":" + localDraftRecovery} mentionIdentities={mentionIdentities} resizeEdge={resizeEdge} />;
 }
