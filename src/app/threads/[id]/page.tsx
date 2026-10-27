@@ -52,6 +52,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/shared/empty-state";
 import { PageShell } from "@/components/layout/page-shell";
+import { ThreadReadingSurface } from "@/components/thread/thread-reading-surface";
 import { PageRouteFallback } from "@/components/layout/page-route-fallback";
 import {
   floorOrderParser,
@@ -425,7 +426,7 @@ function ThreadDetailPageContent() {
   const latestAvailable = thread._count.posts > 0 || floors.length > 0;
 
   return (
-    <PageShell width="feed">
+    <ThreadReadingSurface width="feed">
       <ThreadReadingBar
         subthreads={thread.subthreads}
         selectedSubthreadId={effectiveSubthreadId}
@@ -543,6 +544,6 @@ function ThreadDetailPageContent() {
           </FloatingComposerDock>
         )}
       </div>
-    </PageShell>
+    </ThreadReadingSurface>
   );
 }

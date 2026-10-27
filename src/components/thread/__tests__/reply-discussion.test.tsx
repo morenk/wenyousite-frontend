@@ -162,6 +162,17 @@ describe("ReplyDiscussion", () => {
     expect(screen.getByRole("button", { name: "登录后参与讨论" })).toBeInTheDocument();
   });
 
+  test("原楼层与完整回复列表共用不透明的主题阅读底色并保留定位锚点", () => {
+    mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
+    render(<ThreadComposerProvider><ReplyDiscussion rootPost={rootPost} /></ThreadComposerProvider>);
+
+    const surface = screen.getByTestId("reply-list").closest('[data-slot="page-shell"]');
+    expect(surface).toHaveClass("bg-background", "max-w-feed", "scroll-mt-6");
+    expect(surface).toHaveAttribute("id", "reply-discussion-start");
+    expect(surface).toContainElement(screen.getByText("原楼层长文"));
+    expect(surface).toContainElement(screen.getByRole("region", { name: "楼层回复，共 87 条" }));
+  });
+
   test("独立楼中楼页的原楼层显示编辑时间，重新进入仍保持语义", () => {
     mockUseAuth.mockReturnValue({ user: null, isInitialized: true });
     const editedAt = "2026-08-02T00:00:00Z";

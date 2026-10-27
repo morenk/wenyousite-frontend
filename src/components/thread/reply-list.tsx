@@ -119,7 +119,7 @@ export function ReplyList({
   );
 
   const content = (
-    <div className={variant === "discussion" ? "flex flex-col" : "mt-3 ml-3 rounded-[var(--radius-card)] bg-muted px-3 py-1"}>
+    <div className={variant === "discussion" ? "flex flex-col" : "mt-3 ml-3 rounded-[var(--radius-card)] bg-muted/55 px-3 py-1"}>
       {variant === "discussion" ? (
         <DiscussionPositionBar key={`${windowQuery.viewerScope}:${postId}:${targetReplyId ?? ""}`} subject="回复" current={reading.current} maxNumber={windowQuery.maxNumber} total={windowQuery.total} onJump={reading.jump} onOpen={reading.cancelPending} onReturn={reading.returnToPrevious}>
         <DiscussionListControls
