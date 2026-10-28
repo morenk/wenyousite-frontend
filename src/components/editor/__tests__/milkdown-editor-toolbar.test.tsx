@@ -1033,3 +1033,34 @@ test("自定义工具排序与移动生效，表情只出现一次且恢复默�
   expect(within(toolbar).queryByRole("button", { name: "表情包" })).toBeNull();
   expect(await getEditor(container)).toBe(editor);
 });
+
+for (const entry of ["main", "more", "shortcut"] as const) {
+  test(`引用 ${entry} 入口保留选区并只切换中间逻辑行`, async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    const { container } = renderEditor("首行\n中间文字\n末行", undefined, onChange);
+    const editor = await getEditor(container);
+    const toolbar = container.querySelector<HTMLElement>(".milkdown-top-bar")!;
+    if (entry === "more") await makeToolbarCompact(toolbar);
+    editor.focus();
+    const text = [...editor.querySelector("p")!.childNodes].find(node => node.textContent === "中间文字")!;
+    const range = document.createRange(); range.setStart(text, 1); range.setEnd(text, 3);
+    window.getSelection()!.removeAllRanges(); window.getSelection()!.addRange(range);
+    document.dispatchEvent(new Event("selectionchange"));
+    await new Promise(resolve => setTimeout(resolve, 30));
+    const invoke = async () => {
+      if (entry === "shortcut") fireEvent.keyDown(editor, { key: "B", code: "KeyB", keyCode: 66, ctrlKey: true, shiftKey: true });
+      else {
+        if (entry === "more") await user.click(within(toolbar).getByRole("button", { name: "更多" }));
+        await user.click(await screen.findByRole(entry === "more" ? "menuitem" : "button", { name: "引用" }));
+      }
+    };
+    await invoke();
+    await waitFor(() => expect(onChange).toHaveBeenLastCalledWith("首行\n\n> 中间文字\n\n末行"));
+    expect(window.getSelection()!.toString()).toBe("间文");
+    expect(editor.querySelector("blockquote")!.textContent).toBe("中间文字");
+    await invoke();
+    await waitFor(() => expect(editor.querySelector("blockquote")).toBeNull());
+    expect(window.getSelection()!.toString()).toBe("间文");
+  });
+}

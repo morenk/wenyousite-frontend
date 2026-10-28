@@ -1,3 +1,4 @@
+import { setSelectedBlockStyle } from "./editor-block-commands";
 import { editorViewCtx, remarkPluginsCtx } from "@milkdown/core";
 import type { Ctx } from "@milkdown/kit/ctx";
 import type {
@@ -352,10 +353,6 @@ function isEligibleTopLevelNode(
 
 type SelectedBlock = { node: ProseNode; position: number };
 
-function selectedTopLevelTextBlocks(state: EditorState): SelectedBlock[] {
-  return selectedTopLevelBlocksByKind(state, false);
-}
-
 function selectedTopLevelBlocksByKind(
   state: EditorState,
   includeImageBlocks: boolean,
@@ -368,10 +365,11 @@ function selectedTopLevelBlocksByKind(
       && node.type.name !== "heading"
       && (!includeImageBlocks || node.type.name !== "image-block")
     ) return;
-    const end = position + node.nodeSize;
+    const start = position + (node.isTextblock ? 1 : 0);
+    const end = position + node.nodeSize - (node.isTextblock ? 1 : 0);
     const selected = empty
-      ? from >= position && from <= end
-      : from < end && to > position;
+      ? from >= start && from <= end
+      : (node.isTextblock ? from <= end : from < end) && to > start;
     if (selected) result.push({ node, position });
   });
   return result;
@@ -419,27 +417,12 @@ export function setSelectedTextAlignment(
   return true;
 }
 
-/** 标题/正文互转时保留仍然合法的对齐；嵌套块交还给 Milkdown 原命令。 */
+/** 正文／标题以逻辑行转换，与引用共用块边界和选区映射。 */
 export function setSelectedEditorHeading(ctx: Ctx, level: number | null): boolean {
   const view = ctx.get(editorViewCtx);
-  const blocks = selectedTopLevelTextBlocks(view.state);
-  if (blocks.length === 0) return false;
-  const targetType = level == null ? paragraphSchema.type(ctx) : headingSchema.type(ctx);
-  const transaction = blocks.reduce((nextTransaction, { node, position }) => {
-    const keepsAlignment = hasAlignableInlineContent(node)
-      && !hasRegularImage(node)
-      && (level == null || level === 2 || level === 3);
-    const textAlign = keepsAlignment && isStoredWenyouTextAlignment(node.attrs.textAlign)
-      ? node.attrs.textAlign
-      : "left";
-    const attrs = level == null
-      ? { textAlign }
-      : { id: node.attrs.id ?? "", level, textAlign };
-    return nextTransaction.setNodeMarkup(position, targetType, attrs);
-  }, view.state.tr);
-  view.dispatch(transaction);
+  const changed = setSelectedBlockStyle(level === 2 || level === 3 ? level : 0)(view.state, view.dispatch);
   view.focus();
-  return true;
+  return changed;
 }
 
 function clearInvalidAlignment(

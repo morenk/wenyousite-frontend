@@ -16,3 +16,9 @@ describe('标题分段当前状态',()=>{
   expect(getSelectedEditorHeading(state(levels,true))).toBeUndefined();
  });
 });
+
+test('选区终点停在下一段起点时不把下一段计入标题状态', () => {
+ const initial=state([2,0]);
+ const selected=EditorState.create({doc:initial.doc,selection:TextSelection.create(initial.doc,1,5)});
+ expect(getSelectedEditorHeading(selected)).toBe(2);
+});

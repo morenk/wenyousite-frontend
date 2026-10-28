@@ -31,7 +31,9 @@ import type { MentionIdentity } from "@/lib/thread-identity";
 import { threadAppearance } from "@/lib/thread-identity";
 import { useEditorMediaDisplay } from "@/components/editor/use-editor-media-display";
 import { editorMentionCaretPlugin } from "./editor-mention-caret";
-import { editorInlineCodeCommand } from "./editor-inline-code";
+import { editorBlockCommands, isSelectedQuote } from "./editor-block-commands";
+import { editorDividerCommand } from "./editor-divider-command";
+import { editorInlineCodeCommand, isInlineStyleActive } from "./editor-inline-code";
 import type { MarkdownMediaDisplay, MediaDisplay } from "@/lib/media-display";
 import {
   memo,
@@ -731,6 +733,8 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
       ]);
       crepe.editor.use(toolbarHeadingKeymap);
       crepe.editor.use(editorInlineCodeCommand);
+      crepe.editor.use(editorBlockCommands);
+      crepe.editor.use(editorDividerCommand);
       crepe.editor.use(editorBoundaryTextSchema);
 
       // 只装载当前顶部工具栏实际依赖的交互特性；表格、代码编辑器、公式、AI、
@@ -762,12 +766,20 @@ export const MilkdownEditorHost = memo(function MilkdownEditorHost({
           formatting.items = formatting.items.filter((item) =>
             ["bold", "italic", "strikethrough", "code"].includes(item.key),
           );
+          for (const item of formatting.items) {
+            const markName = ({ bold: "strong", italic: "emphasis", strikethrough: "strike_through", code: "inlineCode" } as Record<string, string>)[item.key];
+            if (markName) item.active = ctx => isInlineStyleActive(ctx.get(editorViewCtx).state, markName);
+          }
           const insert = builder.getGroup("insert").group;
           const imageItem = insert.items.find((item) => item.key === "image");
           const block = builder.getGroup("block").group;
           block.items = [];
           const more = builder.getGroup("more").group;
           more.items = more.items.filter((item) => ["quote", "hr"].includes(item.key));
+          for (const item of more.items) {
+            item.onRun = ctx => { ctx.get(commandsCtx).call(item.key === "quote" ? wrapInBlockquoteCommand.key : insertHrCommand.key); };
+            if (item.key === "quote") item.active = ctx => isSelectedQuote(ctx.get(editorViewCtx).state);
+          }
 
           const headingSelector = builder.getGroup("heading").group.items
             .find((item) => item.key === "heading-selector");

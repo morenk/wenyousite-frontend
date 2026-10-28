@@ -8,8 +8,9 @@ export function getSelectedEditorHeading(state: EditorState): 0 | 2 | 3 | undefi
       : undefined;
   if (state.selection.empty) return level(state.selection.$from.parent);
   const levels = new Set<0 | 2 | 3 | undefined>();
-  state.doc.nodesBetween(state.selection.from, state.selection.to, node => {
+  state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
     if (!node.isTextblock) return;
+    if (pos + 1 >= state.selection.to) return false;
     levels.add(level(node));
     return false;
   });
