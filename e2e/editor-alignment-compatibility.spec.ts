@@ -1099,3 +1099,92 @@ test("粗体代码叠加斜体链接删除线时保留实际字重，普通代�
   });
   await expect(reader.locator("pre > code")).toHaveCSS("font-weight", "400");
 });
+
+for (const entry of ["main", "more", "shortcut"] as const) {
+  test(`逻辑行引用 ${entry} 保存、重开、撤销重做与取消保持范围`, async ({ page }) => {
+    const harness = await mockAlignmentWorkspace(page, "首行\n中间文字\n末行", 5);
+    await page.setViewportSize({ width: 1920, height: 1000 });
+    await openFreshThreadDraft(page);
+    const editor = page.locator(".milkdown-editor .ProseMirror").first();
+    const host = page.locator(".milkdown-editor").first();
+    const toolbar = host.locator(".milkdown-top-bar");
+    if (entry === "more") {
+      await host.evaluate(element => { element.style.width = "320px"; });
+      await expect(toolbar).toHaveAttribute("data-editor-density", "compact");
+    }
+    await selectText(editor, "间文");
+    await page.evaluate(() => document.dispatchEvent(new Event("selectionchange")));
+    const invoke = async () => {
+      if (entry === "shortcut") await page.keyboard.press("Control+Shift+B");
+      else if (entry === "more") {
+        await toolbar.getByRole("button", { name: "更多", exact: true }).click();
+        await page.getByRole("menuitem", { name: "引用", exact: true }).click();
+      } else await toolbar.getByRole("button", { name: "引用", exact: true }).click();
+    };
+    await invoke();
+    await expect(editor.locator("blockquote")).toHaveText("中间文字");
+    await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe("间文");
+    await page.keyboard.press("Control+z");
+    await expect(editor.locator("blockquote")).toHaveCount(0);
+    await page.keyboard.press("Control+Shift+z");
+    await expect(editor.locator("blockquote")).toHaveText("中间文字");
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe("首行\n\n> 中间文字\n\n末行");
+    await page.reload();
+    await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+    await expect(editor.locator("blockquote")).toHaveText("中间文字");
+    if (entry === "more") {
+      await host.evaluate(element => { element.style.width = "320px"; });
+      await expect(toolbar).toHaveAttribute("data-editor-density", "compact");
+    }
+    await selectText(editor, "间文");
+    await page.evaluate(() => document.dispatchEvent(new Event("selectionchange")));
+    await invoke();
+    await expect(editor.locator("blockquote")).toHaveCount(0);
+    await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+    await expect.poll(harness.getStoredMarkdown).toBe("首行\n\n中间文字\n\n末行");
+    await expect(page).toHaveURL(new RegExp(`/threads/${THREAD_ID}/edit$`));
+    await page.reload();
+    await expect(editor.locator(":scope > p").filter({ hasText: /\S/u })).toHaveText(["首行", "中间文字", "末行"]);
+    await expect(editor.locator("blockquote")).toHaveCount(0);
+  });
+}
+
+test("逻辑行标题、混合粗体及分隔线在更多菜单保持一致", async ({ page }) => {
+  const harness = await mockAlignmentWorkspace(page, "> 首行\n> 中间文字\n> 末行", 5);
+  await openFreshThreadDraft(page);
+  const editor = page.locator(".milkdown-editor .ProseMirror").first();
+  const host = page.locator(".milkdown-editor").first();
+  const toolbar = host.locator(".milkdown-top-bar");
+  await selectText(editor, "中间文字");
+  await page.evaluate(() => document.dispatchEvent(new Event("selectionchange")));
+  await page.keyboard.press("Control+Alt+2");
+  await expect(editor.locator(":scope > h2")).toHaveText("中间文字");
+  await expect(editor.locator("blockquote")).toHaveCount(2);
+  await selectText(editor.locator("h2"), "中间");
+  await toolbar.getByRole("button", { name: "粗体", exact: true }).click();
+  await selectText(editor.locator("h2"), "文字");
+  // 通过 DOM 范围选取整个标题，包含已有和未有粗体的两段文字。
+  await editor.locator("h2").evaluate(element => {
+    element.closest<HTMLElement>('[contenteditable="true"]')!.focus();
+    const range = document.createRange(); range.selectNodeContents(element);
+    window.getSelection()!.removeAllRanges(); window.getSelection()!.addRange(range);
+    document.dispatchEvent(new Event("selectionchange"));
+  });
+  await toolbar.getByRole("button", { name: "粗体", exact: true }).click();
+  await expect(editor.locator("h2 strong")).toHaveText("中间文字");
+  await host.evaluate(element => { element.style.width = "320px"; });
+  await expect(toolbar).toHaveAttribute("data-editor-density", "compact");
+  await placeCaretAtEnd(editor.locator("h2"));
+  await toolbar.getByRole("button", { name: "更多", exact: true }).click();
+  await page.getByRole("menuitem", { name: "分隔线", exact: true }).click();
+  await expect(editor.locator(":scope > hr")).toHaveCount(1);
+  await expect(editor.locator("hr + blockquote")).toHaveText("末行");
+  await page.keyboard.type("新正文");
+  await page.getByRole("button", { name: "保存草稿", exact: true }).click();
+  const stored = harness.getStoredMarkdown();
+  expect(stored).toContain("## **中间文字**\n\n---\n\n> 新正文末行");
+  await page.reload();
+  await page.getByRole("link", { name: "继续编辑", exact: true }).click();
+  await expect(editor.locator("hr + blockquote")).toHaveText("新正文末行");
+});
