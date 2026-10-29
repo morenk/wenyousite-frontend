@@ -213,7 +213,7 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
   );
 
   return (
-    <div ref={containerRef} {...outsideDismiss} className="space-y-2">
+    <div ref={containerRef} {...outsideDismiss} className="space-y-2 rounded-[var(--radius-control)] bg-background">
       {showIdentity && threadId ? <ThreadPublicationIdentity controller={identity} threadId={threadId} disabled={busy || uncertain} /> : null}
       {!isEdit && localDraftAlternatives > 0 ? <Button type="button" variant="ghost" size="sm" disabled={busy || uncertain} onClick={() => void recoverLocalDraft()}>恢复另一份本地稿</Button> : null}
       {uncertain ? <p role="alert" className="text-sm text-warning">发表结果尚未确认，正文与身份已保留。请重试确认发表，确认前不能切换身份或退出编辑。</p> : null}
