@@ -150,6 +150,16 @@ function renderHarness(persistent = false) {
 }
 
 describe("ThreadComposer", () => {
+test.each(["发表入口", "回复入口"])("%s的身份行与编辑器共用不透明背景", async (entry) => {
+  mocks.rp = true;
+  renderHarness();
+  await userEvent.click(screen.getByRole("button", { name: entry }));
+  const identity = screen.getByRole("button", { name: "身份选择" });
+  const composer = identity.parentElement;
+  expect(composer).toHaveClass("bg-background", "rounded-[var(--radius-control)]");
+  expect(composer).toContainElement(screen.getByTestId("milkdown-editor"));
+});
+
 test("RP结果不明时连mode/token/正文/UUID冻结，重试不重新准备身份", async () => {
   mocks.rp = true; mocks.prepare.mockResolvedValue({ identityMode: "RP", identityId: "rp-selected", identityToken: "original-token" });
   mocks.create.mockRejectedValueOnce(new TypeError("offline")).mockResolvedValueOnce({ id: "created" });
