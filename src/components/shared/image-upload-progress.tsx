@@ -12,7 +12,7 @@ function formatBytes(bytes: number): string {
 }
 
 function getProgressLabel(progress: UploadImageProgressValue): string {
-  if (progress.stage === "preparing") return "正在获取上传地址";
+  if (progress.stage === "preparing") return "正在准备图片";
   if (progress.stage === "processing") return "上传完成，正在处理图片";
   return "正在上传图片";
 }
@@ -34,7 +34,7 @@ export function ImageUploadProgress({
   className,
   compact = false,
 }: ImageUploadProgressProps) {
-  const value = progress.stage === "preparing" ? null : progress.percent;
+  const value = progress.stage === "uploading" ? progress.percent : null;
   const byteLabel = progress.stage === "uploading"
     && progress.loadedBytes !== null
     && progress.totalBytes !== null
@@ -75,7 +75,7 @@ export function ImageUploadProgress({
       <Progress
         value={value}
         aria-label={label ?? getProgressLabel(progress)}
-        aria-valuetext={progress.percent === null ? undefined : `${progress.percent}%`}
+        aria-valuetext={value === null ? undefined : `${value}%`}
       />
     </div>
   );

@@ -3,6 +3,7 @@
 import { trackNavigationHistory } from "@/lib/navigation-history";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { MotionConfig } from "framer-motion";
+import { observeMotionVisibility, standardTransition } from "@/lib/motion";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { ViewportToaster as Toaster } from "@/components/ui/viewport-toaster";
 import { usePathname } from "next/navigation";
@@ -85,6 +86,7 @@ function AdminSessionLifecycle() {
 }
 
 export function Providers({ children }: { children: React.ReactNode }) {
+  useEffect(observeMotionVisibility, []);
   useEffect(() => { trackNavigationHistory(); }, []);
   const pathname = usePathname() ?? "";
   if (isToolEmbedPath(pathname)) {
@@ -102,7 +104,7 @@ function CommunityProviders({ children }: { children: React.ReactNode }) {
             <IdentityScopedQueries>
               <ConfirmProvider>
                 <TooltipProvider>
-                  <MotionConfig reducedMotion="user">
+                  <MotionConfig reducedMotion="user" transition={standardTransition}>
                     <Suspense fallback={null}><CoverPlaybackNavigation /></Suspense>
                     {children}
                   </MotionConfig>

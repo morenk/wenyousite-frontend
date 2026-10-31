@@ -2,6 +2,8 @@
 
 "use client";
 
+import { readingScrollBehavior } from "@/lib/motion";
+
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQueryState, useQueryStates } from "nuqs";
@@ -299,7 +301,7 @@ function ThreadDetailPageContent() {
     if (!isSearching) return;
     window.requestAnimationFrame(() => {
       document.querySelector<HTMLElement>('[aria-label="帖内楼层搜索"]')
-        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+        ?.scrollIntoView({ behavior: readingScrollBehavior(), block: "start" });
     });
   }, [isSearching]);
 

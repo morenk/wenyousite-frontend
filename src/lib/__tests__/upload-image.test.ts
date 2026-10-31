@@ -775,6 +775,21 @@ describe("uploadImageFile", () => {
     expect(apiClient.POST).not.toHaveBeenCalled();
   });
 
+  test("重选同内容且预约已完成时不再解码压缩，准备反馈先于异步读取", async () => {
+    const reservation = await reserveForRetry(file, "media-reselected-complete");
+    const reselected = new File([await file.arrayBuffer()], file.name, { type: file.type });
+    const decode = vi.fn().mockRejectedValue(new Error("不应再次解码"));
+    vi.stubGlobal("createImageBitmap", decode);
+    const onProgress = vi.fn();
+    vi.mocked(apiClient.GET).mockResolvedValueOnce({ data: { data: mediaPayload("media-reselected-complete", "https://cdn.example.com/complete.jpg", "COMPLETED") } } as never);
+    const pending = uploadImageFile(reselected, { resume: reservation, onProgress });
+    expect(onProgress).toHaveBeenCalledWith({ stage: "preparing", loadedBytes: null, totalBytes: null, percent: null });
+    await expect(pending).resolves.toMatchObject({ mediaId: "media-reselected-complete" });
+    expect(decode).not.toHaveBeenCalled();
+    expect(apiClient.POST).not.toHaveBeenCalled();
+    vi.unstubAllGlobals();
+  });
+
   test("PROCESSING reservation 从状态轮询继续，不重复直传", async () => {
     const reservation = await reserveForRetry(file, "media-processing");
     const publicUrl = "https://cdn.example.com/uploads/processing.jpg";

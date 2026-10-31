@@ -1,5 +1,7 @@
 "use client";
 
+import { motionTokens } from "@/lib/motion";
+
 import { useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 import {
   DndContext, DragOverlay, MouseSensor, TouchSensor, pointerWithin,
@@ -60,11 +62,13 @@ function Tool({ tool, zone, index, total, active, footer = false }: {
     if (!element) return;
     const rect = element.getBoundingClientRect();
     const previous = previousRect.current;
+    let animation: Animation | undefined;
     if (previous && !active && (previous.x !== rect.x || previous.y !== rect.y)
       && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      element.animate?.([{ transform: `translate(${previous.x - rect.x}px, ${previous.y - rect.y}px)` }, { transform: "none" }], { duration: 140, easing: "ease-out" });
+      animation = element.animate?.([{ transform: `translate(${previous.x - rect.x}px, ${previous.y - rect.y}px)` }, { transform: "none" }], { duration: motionTokens.fastMs, easing: motionTokens.standardEase });
     }
     previousRect.current = rect;
+    return () => animation?.cancel();
   }, [index, zone, active]);
   return <div ref={(element) => { node.current = element; setDropNodeRef(element); }} className="relative flex shrink-0"
     data-toolbar-placeholder={active || undefined}>

@@ -4,6 +4,8 @@
 
 import Lightbox, { type Render } from "yet-another-react-lightbox";
 import Zoom from "yet-another-react-lightbox/plugins/zoom";
+import { useReducedMotion } from "framer-motion";
+import { motionTokens } from "@/lib/motion";
 
 export interface GalleryLightboxImage {
   src: string;
@@ -21,11 +23,15 @@ interface GalleryLightboxProps {
 }
 
 export function GalleryLightbox({ images, index, onClose, renderSlide, preload = 2 }: GalleryLightboxProps) {
+  const reduced = useReducedMotion();
   return (
     <Lightbox
       open
       close={onClose}
       index={index}
+      animation={{ fade: reduced ? 0 : motionTokens.standardMs,
+        swipe: reduced ? 0 : motionTokens.slowMs, navigation: reduced ? 0 : motionTokens.standardMs,
+        easing: { fade: motionTokens.standardEase, swipe: motionTokens.standardEase, navigation: motionTokens.standardEase } }}
       slides={images.map((image) => ({
         src: image.src,
         alt: image.alt,

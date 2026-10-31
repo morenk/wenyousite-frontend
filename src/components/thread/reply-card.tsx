@@ -106,7 +106,7 @@ export function ReplyCard({
       tabIndex={focused ? -1 : undefined}
       data-testid={isPreview ? "inline-reply" : undefined}
       className={cn(
-        "scroll-mt-6 bg-transparent transition-[border-color,background-color] duration-[var(--motion-slow)] ease-out",
+        "scroll-mt-6 bg-transparent transition-[border-color,background-color] duration-[var(--motion-slow)] ease-[var(--ease-standard)]",
         isDiscussion ? "border-b border-border/60 px-4 py-5" : "py-2",
         highlightVisible && "border-primary bg-primary/10",
       )}

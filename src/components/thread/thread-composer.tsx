@@ -2,6 +2,8 @@
 
 "use client";
 
+import { readingScrollBehavior } from "@/lib/motion";
+
 import { hashReplyIdentity } from "./thread-reply-draft-store";
 import { readRpIdentities } from "@/api/hooks/use-rp-identities";
 import { useMarkdownWriteCapability } from "@/api/hooks/use-markdown-write-capability";
@@ -82,7 +84,7 @@ function ThreadComposer({ mentionIdentities, resizeEdge }: { mentionIdentities?:
   const storeCreateRequest = async (request: CreatePostArgs | null) => { createRequestRef.current = request; await setPendingCreate(request); };
 
   useEffect(() => {
-    containerRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    containerRef.current?.scrollIntoView({ behavior: readingScrollBehavior(), block: "nearest" });
   }, [session?.key]);
 
   const sessionKey = session?.key;

@@ -437,6 +437,45 @@ export class DynamicTextFontRuntime {
     demand.capacityWaiting = false;
     clearTimeout(demand.retry);
     try {
+      // 新阅读节点复用已校验清单和仍驻留的字形，不把显示阻塞在策略元数据重取上。
+      const cached = this.manifests.get(descriptor.manifest.sha256);
+      const residentParts = cached && requiredFontShards(cached.value.shards, demand.text);
+      const residency = sharedFontResidency();
+      if (cached && residentParts?.length && residentParts.every((part) => residency.values().some(
+        (entry) => entry.key === part.web.sha256 + ":" + part.family && entry.dispose,
+      ))) {
+        for (const part of residentParts) {
+          const key = part.web.sha256 + ":" + part.family;
+          if (!demand.holds.has(key)) {
+            const hold = await residency.acquire({ key, fontId: demand.id,
+              bytes: this.sfntBytes.get(part.web.sha256) ?? part.mobile.bytes, original: false }, demand.abort.signal, false);
+            if (!this.alive(demand)) { hold.release(); return; }
+            demand.holds.set(key, hold);
+          }
+        }
+        if (residentParts.every((part) => {
+          const entry = demand.holds.get(part.web.sha256 + ":" + part.family)?.entry;
+          return entry && residency.has(entry) && entry.dispose;
+        })) {
+          if (demand.manifest !== cached) {
+            if (demand.manifest) demand.manifest.users--;
+            cached.users++;
+            demand.manifest = cached;
+            demand.manifestHash = descriptor.manifest.sha256;
+          }
+          demand.parts = residentParts;
+          demand.planReady = true;
+          this.report(demand, "ready");
+          // 继续收紧策略与撤回检查；复用不会新增下载、绕过校验或延长离屏租约。
+          if (dynamicFontMetadata.assetsAvailable(demand.id)) void this.prepare(demand.abort.signal).then(() => {
+            if (this.alive(demand) && [...demand.holds.values()].some((hold) => !residency.has(hold.entry))) {
+              this.clear(demand);
+              void this.attempt(demand);
+            }
+          }).catch(() => { /* 已驻留字形可在元数据暂不可用时继续使用。 */ });
+          return;
+        }
+      }
       if (dynamicFontMetadata.assetsAvailable(demand.id))
         await this.prepare(demand.abort.signal);
       else if (!this.policy)

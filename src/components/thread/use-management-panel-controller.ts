@@ -303,15 +303,15 @@ export function useManagementPanelController({
         initialBody.finish();
         dispatch({
           type: "commit-content",
-          content,
+          content: updatedBody.content,
           version: updatedBody.version,
         });
         savedPart = true;
       }
       if (contentDirty) resetPublicInviteConfirmation();
       dispatch({ type: "subthread-status", status: SAVED_MANAGEMENT_STATUS });
-      await onRefetch();
       toast.success("子贴修改已保存");
+      void onRefetch().catch(() => undefined);
     } catch (error) {
       initialBody.fail(error);
       const apiError = getApiError(error);

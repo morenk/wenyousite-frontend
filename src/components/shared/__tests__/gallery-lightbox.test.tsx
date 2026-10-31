@@ -4,17 +4,19 @@ import { afterEach, beforeEach, expect, test, vi } from "vitest";
 import { MomentGalleryLightbox } from "@/components/moment/moment-gallery-lightbox";
 import { GalleryLightbox } from "@/components/shared/gallery-lightbox";
 
-const state = vi.hoisted(() => ({ props: undefined as LightboxExternalProps | undefined, offset: 0 }));
+const state = vi.hoisted(() => ({ props: undefined as LightboxExternalProps | undefined, offset: 0, reduced: false }));
 vi.mock("yet-another-react-lightbox", () => ({
   default: (props: LightboxExternalProps) => {
     state.props = props;
     return props.render?.slide?.({ slide: props.slides![0] as Slide, offset: state.offset, rect: { width: 800, height: 600 } }) ?? <div>默认图片渲染器</div>;
   },
 }));
+vi.mock("framer-motion", () => ({ useReducedMotion: () => state.reduced }));
 vi.mock("yet-another-react-lightbox/plugins/zoom", () => ({ default: vi.fn() }));
 let callback: IntersectionObserverCallback;
 beforeEach(() => {
   state.offset = 0;
+  state.reduced = false;
   vi.stubGlobal("IntersectionObserver", class {
     constructor(cb: IntersectionObserverCallback) { callback = cb; }
     observe() {} disconnect() {}
@@ -60,4 +62,12 @@ test("邻图只渲染预览，大图保持比例适配视窗", () => {
   state.offset = 0;
   view.rerender(<MomentGalleryLightbox images={[{ ...images[0], width: 1600, height: 1200 }]} index={0} onClose={vi.fn()} />);
   expect(screen.getByAltText("表情")).toHaveAttribute("src", "/animated");
+});
+
+test("灯箱遵循减少动画，运行中切换偏好立即取消切换过渡", () => {
+  const view = render(<GalleryLightbox images={images} index={0} onClose={vi.fn()} />);
+  expect(state.props?.animation?.fade).toBeGreaterThan(0);
+  state.reduced = true;
+  view.rerender(<GalleryLightbox images={images} index={0} onClose={vi.fn()} />);
+  expect(state.props?.animation).toMatchObject({ fade: 0, swipe: 0, navigation: 0 });
 });

@@ -3,6 +3,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
+import { standardTransition } from "@/lib/motion";
 import { ArrowUp, Search } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 
@@ -66,7 +67,7 @@ export function ThreadReadingBar({
             initial={{ opacity: 0, y: -8, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: -6, scale: 0.99 }}
-            transition={{ duration: 0.16, ease: [0.2, 0.8, 0.2, 1] }}
+            transition={standardTransition}
             className="pointer-events-auto mx-1 flex min-w-0 items-center gap-2 overflow-visible rounded-[var(--radius-panel)] border border-border bg-card/95 p-2 shadow-floating backdrop-blur-md"
           >
             {subthreads.length > 1 ? (
