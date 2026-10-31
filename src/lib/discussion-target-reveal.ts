@@ -44,11 +44,11 @@ export function startDiscussionTargetReveal(
   let stableReported = false;
   let userCanRelease = !holdUntilStable;
   let forced = false;
+  let geometry: { destination: number; height: number; top: number } | undefined;
   const observed = new Set<Element>();
 
   const schedule = (force = false) => {
-    if (released) return;
-    if (stableTimer !== undefined) window.clearTimeout(stableTimer);
+    if (released || document.visibilityState === "hidden") return;
     forced ||= force;
     if (frame !== undefined) return;
     frame = window.requestAnimationFrame(reveal);
@@ -64,7 +64,7 @@ export function startDiscussionTargetReveal(
 
   function reveal() {
     frame = undefined;
-    if (released) return;
+    if (released || document.visibilityState === "hidden") return;
     const target = document.getElementById(targetId);
     if (!target) return;
     // 前方图片或同高度的内容替换也可能移动目标，不能只观察目标自身高度。
@@ -100,14 +100,24 @@ export function startDiscussionTargetReveal(
       readingTop = Math.max(readingTop, (Number.parseFloat(getComputedStyle(dock).top) || 0) + dock.offsetHeight + margin);
     }
     const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
-    const destination = Math.max(0, Math.min(maxScroll, window.scrollY + target.getBoundingClientRect().top - (viewportTop ?? readingTop + offset)));
+    const rect = target.getBoundingClientRect();
+    const top = viewportTop ?? readingTop + offset;
+    // 浏览器将滚动坐标取整；向上取整避免前一条仍以小数像素越过阅读线。
+    const destination = Math.ceil(Math.max(0, Math.min(maxScroll, window.scrollY + rect.top - top)));
+    const changed = !geometry || Math.abs(geometry.destination - destination) > 0.5
+      || Math.abs(geometry.height - rect.height) > 0.5 || Math.abs(geometry.top - top) > 0.5;
+    geometry = { destination, height: rect.height, top };
+    if (changed && stableTimer !== undefined) {
+      window.clearTimeout(stableTimer);
+      stableTimer = undefined;
+    }
     if (forced || Math.abs(window.scrollY - destination) > 0.5) {
       forced = false;
       target.scrollIntoView({ behavior: "auto", block: "start" });
       // 明确限制在自然底部；吸顶栏出现后会通过观察器再校准一次。
       window.scrollTo({ top: destination, behavior: "instant" });
     }
-    if (!stableReported && onStable) {
+    if (!stableReported && onStable && stableTimer === undefined) {
       stableTimer = window.setTimeout(() => {
         stableTimer = undefined;
         if (released || stableReported || !document.getElementById(targetId)) return;
@@ -143,7 +153,15 @@ export function startDiscussionTargetReveal(
   window.addEventListener("pointermove", releaseOnPointerMove, { passive: true });
   window.addEventListener("keydown", releaseOnUserInput);
   window.addEventListener("resize", scheduleResize);
+  document.addEventListener("visibilitychange", visibilityChanged);
   function scheduleResize() { schedule(); }
+  function visibilityChanged() {
+    if (document.visibilityState === "hidden") {
+      if (frame !== undefined) window.cancelAnimationFrame(frame);
+      if (stableTimer !== undefined) window.clearTimeout(stableTimer);
+      frame = stableTimer = undefined;
+    } else schedule();
+  }
   schedule(true);
 
   return {
@@ -162,6 +180,7 @@ export function startDiscussionTargetReveal(
       window.removeEventListener("pointermove", releaseOnPointerMove);
       window.removeEventListener("keydown", releaseOnUserInput);
       window.removeEventListener("resize", scheduleResize);
+      document.removeEventListener("visibilitychange", visibilityChanged);
     },
   };
 }

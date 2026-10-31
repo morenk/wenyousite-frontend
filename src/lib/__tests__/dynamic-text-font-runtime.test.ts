@@ -16,6 +16,7 @@ const env = vi.hoisted(() => ({
   listeners: new Map<string, Set<() => void>>(),
   transport: vi.fn<typeof fetch>(),
   install: vi.fn(),
+  policy: vi.fn(),
   residency: undefined as unknown as FontResidency,
   scheduler: undefined as unknown as FontDownloadScheduler,
 }));
@@ -23,7 +24,7 @@ vi.mock("@/api/dynamic-font-metadata", () => ({
   dynamicFontMetadata: {
     assetsAvailable: (id: string) => !env.unavailable.has(id),
     get: (id: string) => env.values.get(id),
-    policy: async () => parseDynamicFontPolicy(policy),
+    policy: (...args: unknown[]) => env.policy(...args),
     watch: (id: string, cb: () => void) => {
       const listeners = env.listeners.get(id) ?? new Set();
       listeners.add(cb);
@@ -80,6 +81,7 @@ vi.mock("../thread-font-binary", async (importOriginal) => ({
 const runtimes: DynamicTextFontRuntime[] = [];
 beforeEach(() => {
   vi.stubGlobal("crypto", webcrypto);
+  env.policy.mockReset().mockResolvedValue(parseDynamicFontPolicy(policy));
   env.values.clear();
   env.unavailable.clear();
   env.cache.clear();
@@ -716,4 +718,21 @@ test.each([false, true])("压缩许可资产完整性校验后才注册字库（
     expect(env.install).toHaveBeenCalledExactlyOnceWith(f.shards[0], f.assets.get(f.shards[0].web.sha256 + ".woff2"));
     expect(env.cache.has(notice.sha256)).toBe(true);
   }
+});
+
+test("新 owner 的已驻留字形不等待策略重取，释放后租约归零", async () => {
+  const f = await fixture();
+  const first = vi.fn();
+  const release = f.runtime.watch(f.first.versionId, "A", first);
+  await vi.waitFor(() => expect(first).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready" })));
+  release();
+  const requests = env.transport.mock.calls.length;
+  env.policy.mockImplementation(() => new Promise(() => {}));
+  const next = vi.fn();
+  const dispose = f.runtime.watch(f.first.versionId, "A", next);
+  await vi.waitFor(() => expect(next).toHaveBeenLastCalledWith(expect.objectContaining({ status: "ready" })));
+  expect(env.transport).toHaveBeenCalledTimes(requests);
+  expect(env.install).toHaveBeenCalledTimes(1);
+  dispose();
+  expect(f.runtime.snapshot.residency.references).toBe(0);
 });

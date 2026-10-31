@@ -28,6 +28,7 @@
 |------|------|------|
 | [auth](./modules/auth.md) | 认证 | active |
 | [theme](./modules/theme.md) | 系统、亮色与黑夜外观偏好 | active |
+| [performance-motion](./modules/performance-motion.md) | 保存反馈、字体复用、上传、定位与全项目动效接入 | active |
 | [app-download](./modules/app-download.md) | 直接下载入口、移动设备提示与失败恢复 | active |
 | [home](./modules/home.md) | 首页 | active |
 | [moments](./modules/moments.md) | 动态瀑布流、发布、详情与楼中楼评论 | active |

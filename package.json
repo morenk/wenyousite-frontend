@@ -22,7 +22,7 @@
     "contract:check": "node scripts/check-generated-api.mjs && node scripts/check-flutter-contract.mjs",
     "brand:sync": "node scripts/sync-foundation-brand-assets.mjs",
     "arch:check": "node scripts/check-query-keys.mjs && node scripts/check-architecture.mjs",
-    "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs && pnpm fonts:check",
+    "design:check": "node scripts/check-foundation.mjs && node scripts/check-design-system.mjs && node scripts/check-motion.mjs && pnpm fonts:check",
     "docs:check": "tsx scripts/check-doc-links.ts && tsx scripts/check-doc-truth.ts",
     "security:audit": "pnpm audit --prod",
     "check": "pnpm security:audit && pnpm lint && pnpm typecheck && pnpm contract:check && pnpm tools:names:check && pnpm tools:historical-names:check && pnpm tools:advanced-names:check && pnpm arch:check && pnpm design:check && pnpm test:coverage && pnpm test:deploy-preflight && pnpm docs:check && pnpm build",

@@ -419,9 +419,19 @@ async function uploadImageWithinSession(
   } = options;
   throwIfUploadAborted(signal);
 
-  const uploadFile = clientNormalized ? file : await normalizeImageForUpload(file);
-  const normalizedValidationError = validateImageFile(uploadFile);
-  if (normalizedValidationError) throw new Error(normalizedValidationError);
+  // 准备状态包括容器检查、解码、编码与摘要，必须在这些工作之前可见。
+  onStage?.("preparing");
+  onProgress?.({ stage: "preparing", loadedBytes: null, totalBytes: null, percent: null });
+
+  let uploadFile: File | undefined;
+  const prepareFile = async () => {
+    if (uploadFile) return uploadFile;
+    uploadFile = clientNormalized ? file : await normalizeImageForUpload(file);
+    const normalizedValidationError = validateImageFile(uploadFile);
+    if (normalizedValidationError) throw new Error(normalizedValidationError);
+    throwIfUploadAborted(signal);
+    return uploadFile;
+  };
 
   const reportStage = (stage: UploadImageStage) => {
     onStage?.(stage);
@@ -430,9 +440,9 @@ async function uploadImageWithinSession(
     } else if (stage === "processing") {
       onProgress?.({
         stage,
-        loadedBytes: uploadFile.size,
-        totalBytes: uploadFile.size,
-        percent: 100,
+        loadedBytes: uploadFile?.size ?? null,
+        totalBytes: uploadFile?.size ?? null,
+        percent: uploadFile ? 100 : null,
       });
     }
   };
@@ -464,7 +474,6 @@ async function uploadImageWithinSession(
     return uploaded;
   };
   try {
-    reportStage("preparing");
     let mediaId: string;
     let needsDirectUpload = true;
     let uploadUrl: string | null = null;
@@ -487,6 +496,7 @@ async function uploadImageWithinSession(
     }
 
     if (!reservation) {
+      const uploadFile = await prepareFile();
       const { data: urlData, error: urlError } = await apiClient.POST(
         "/api/v1/media/upload-url",
         {
@@ -519,7 +529,7 @@ async function uploadImageWithinSession(
 
     if (needsDirectUpload) {
       onStage?.("uploading");
-      await putMediaFile(uploadUrl!, uploadFile, signal, timeoutMs, reportUploadProgress, "图片上传超时，请检查网络后重试");
+      await putMediaFile(uploadUrl!, await prepareFile(), signal, timeoutMs, reportUploadProgress, "图片上传超时，请检查网络后重试");
       throwIfUploadAborted(signal);
     }
 
@@ -539,7 +549,7 @@ async function uploadImageWithinSession(
       onStage?.("uploading");
       await putMediaFile(
         reissueData.data.uploadUrl,
-        uploadFile,
+        await prepareFile(),
         signal,
         timeoutMs,
         reportUploadProgress,

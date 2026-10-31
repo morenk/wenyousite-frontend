@@ -118,7 +118,7 @@ export function FloorCard({
       data-slot="discussion-row"
       tabIndex={focused ? -1 : undefined}
       className={cn(
-        "scroll-mt-6 border-b border-border/60 bg-transparent px-4 py-5 transition-[border-color,background-color] duration-[var(--motion-slow)] ease-out",
+        "scroll-mt-6 border-b border-border/60 bg-transparent px-4 py-5 transition-[border-color,background-color] duration-[var(--motion-slow)] ease-[var(--ease-standard)]",
         highlightVisible && "border-primary bg-primary/10",
       )}
     >

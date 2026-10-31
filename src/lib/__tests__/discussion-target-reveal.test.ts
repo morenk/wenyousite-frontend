@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, test, vi } from "vitest";
-import { startDiscussionTargetReveal } from "../discussion-target-reveal";
+import { getVisibleDiscussionPosition, startDiscussionTargetReveal } from "../discussion-target-reveal";
 
 let resize: () => void;
 let mutate: () => void;
@@ -54,6 +54,32 @@ afterEach(() => {
 });
 
 describe("讨论目标几何", () => {
+  test.each([0.25, 0.75])("小数高度 %s 下浏览器取整后仍以目标为阅读点", (fraction) => {
+    absoluteTop += fraction;
+    vi.mocked(window.scrollTo).mockImplementation((options: ScrollToOptions | number) => {
+      if (typeof options === "object") y = Math.round(options.top ?? y);
+    });
+    const previous = document.createElement("section");
+    previous.dataset.discussionItem = "previous";
+    previous.dataset.discussionNumber = "2";
+    previous.getBoundingClientRect = () => new DOMRect(0, -y, 600, absoluteTop);
+    document.body.append(previous);
+    const element = target();
+    element.dataset.discussionItem = "target";
+    element.dataset.discussionNumber = "3";
+    start();
+    expect(getVisibleDiscussionPosition()).toMatchObject({ id: "target", number: 3 });
+    expect(element.getBoundingClientRect().top).toBeLessThanOrEqual(24);
+    expect(element.getBoundingClientRect().top).toBeGreaterThan(23);
+  });
+  test("无关 DOM 持续更新不推迟已稳定目标揭示", () => {
+    target();
+    const onStable = vi.fn();
+    sessions.push(startDiscussionTargetReveal("target", { onStable, stableMs: 100 }));
+    tick();
+    for (let i = 0; i < 10; i++) { mutate(); resize(); tick(); }
+    expect(onStable).toHaveBeenCalledOnce();
+  });
   test.each([80, 600, 1800])("高度 %i 均从作者开头展示", (height) => {
     const element = target(height);
     start();

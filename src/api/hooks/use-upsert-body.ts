@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { invalidateChangedMentionCandidates } from "./use-mention-candidates";
 import { markdownWriteCapability } from "@/api/markdown-capability";
 import { apiClient } from "@/api/client";
-import { queryKeys } from "@/api/query-keys";
+import { applySavedPost, watchPostWriteSession } from "@/api/post-write-cache";
 import type { components } from "@/api/types";
 
 export type UpsertedBody = components["schemas"]["PostResponseDto"];
@@ -12,6 +12,7 @@ export type UpsertedBody = components["schemas"]["PostResponseDto"];
 export function useUpsertBody() {
   const queryClient = useQueryClient();
   return useMutation({
+    onMutate: watchPostWriteSession,
     mutationFn: async (input: components["schemas"]["UpsertBodyDto"] & { subthreadId: string; threadId: string }) => {
       const { subthreadId, content, version, identityMode, identityId, identityToken, markdownContractVersion, textColorVersion, textFontVersion } = input;
       const capability = { ...markdownWriteCapability(queryClient),
@@ -31,12 +32,8 @@ export function useUpsertBody() {
       return data.data;
     },
     onError: (error) => invalidateChangedMentionCandidates(queryClient, error),
-    onSuccess: (_data, variables) =>
-      Promise.all([
-        queryClient.invalidateQueries({ queryKey: queryKeys.floors.all }),
-        queryClient.invalidateQueries({
-          queryKey: queryKeys.threads.detail(variables.threadId),
-        }),
-      ]),
+    onSuccess: (data, variables, session) => session && applySavedPost(queryClient,
+      { ...data, kind: "BODY", threadId: variables.threadId, subthreadId: variables.subthreadId }, session),
+    onSettled: (_data, _error, _variables, session) => session?.dispose(),
   });
 }

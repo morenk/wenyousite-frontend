@@ -37,6 +37,8 @@ export function MomentImageGallery({ title, images, coverMedia }: MomentImageGal
     loop: images.length > 1,
     align: "start",
     duration: 24,
+    // Embla 的 duration 是物理模型参数，不能把毫秒 Token 填入；减少动画时直接切换。
+    breakpoints: { "(prefers-reduced-motion: reduce)": { duration: 0 } },
     watchDrag: images.length > 1,
   });
   const [activeIndex, setActiveIndex] = useState(0);

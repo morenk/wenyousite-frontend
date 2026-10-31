@@ -34,6 +34,13 @@ test("整页不足一屏维持自然排版", async ({ page }) => {
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
   expect(await page.locator("#target").evaluate((element) => element.getBoundingClientRect().top)).toBe(80);
 });
+test("小数像素定位不会把相邻上一条记作当前阅读位置", async ({ page }) => {
+  await fixture(page, 1800, 1500, 1400.25);
+  const top = () => page.locator("#target").evaluate((element) => element.getBoundingClientRect().top);
+  await expect.poll(top).toBeLessThanOrEqual(24);
+  expect(await top()).toBeGreaterThan(23);
+  expect(await page.locator("#before").evaluate((element) => element.getBoundingClientRect().bottom)).toBeLessThanOrEqual(24);
+});
 test("图片撑高、分页前插、阅读栏迟到和缩放后仍对齐，拖动后释放", async ({ page }) => {
   await fixture(page, 1800, 1500);
   const top = () => page.locator("#target").evaluate((element) => element.getBoundingClientRect().top);

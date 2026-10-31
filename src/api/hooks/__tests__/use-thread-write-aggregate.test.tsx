@@ -60,7 +60,7 @@ describe("主题帖聚合写入 hooks", () => {
     expect(client.getQueryData<{ title: string }>(viewerKey)?.title).toBe("更新后的主题");
     expect(client.getQueryData<{ title: string }>(anonymousKey)?.title).toBe("旧标题");
     expect(client.getQueryData(anonymousKey)).toEqual(expect.objectContaining({ subthreads: [{ id: "s1", postingCapability: { canPost: false, denialReason: "LOGIN_REQUIRED" } }] }));
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threads.detail("t1") });
+    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threads.detail("t1"), refetchType: "none" });
     expect(client.getQueryData(viewerKey)).toEqual(expect.objectContaining({ defaultSubthread: expect.objectContaining({ postingPolicy: "PLAYERS", postingCapability: { canPost: true, denialReason: null } }) }));
     expect(client.getQueryData(queryKeys.threads.detail("t1"))).toBeUndefined();
     await waitFor(() => {
@@ -123,7 +123,7 @@ describe("主题帖聚合写入 hooks", () => {
     });
   });
 
-  test("正文 upsert 传递乐观锁版本并失效楼层与主题详情", async () => {
+  test("正文 upsert 传递版本并即时回填子贴和默认正文，保留权限和计数", async () => {
     const savedPost = { id: "p1", subthreadId: "s1", content: "新正文", version: 3 };
     mockPUT.mockResolvedValue({
       data: { code: 0, message: "ok", data: savedPost },
@@ -131,6 +131,9 @@ describe("主题帖聚合写入 hooks", () => {
     });
     const { client, Wrapper } = createQueryWrapper();
     const invalidate = vi.spyOn(client, "invalidateQueries");
+    const key = queryKeys.threads.detailForViewer("t1", "anonymous");
+    const subthread = { id: "s1", bodyPost: null, postingCapability: { canPost: false }, _count: { posts: 20 } };
+    client.setQueryData(key, { ...rawThread, defaultSubthread: subthread, subthreads: [subthread] });
     const { result } = renderHook(() => useUpsertBody(), { wrapper: Wrapper });
 
     await act(async () => {
@@ -146,8 +149,8 @@ describe("主题帖聚合写入 hooks", () => {
       params: { path: { subthreadId: "s1" } },
       body: { content: "新正文", version: 2 },
     });
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.floors.all });
-    expect(invalidate).toHaveBeenCalledWith({ queryKey: queryKeys.threads.detail("t1") });
+    expect(client.getQueryData(key)).toMatchObject({ defaultSubthread: { bodyPost: savedPost }, subthreads: [{ bodyPost: savedPost, postingCapability: { canPost: false }, _count: { posts: 20 } }] });
+    expect(invalidate).toHaveBeenCalledWith(expect.objectContaining({ refetchType: "none" }));
   });
 
   test("正文 upsert 对空响应防御", async () => {
@@ -163,4 +166,18 @@ describe("主题帖聚合写入 hooks", () => {
       })).rejects.toThrow("保存正文响应为空");
     });
   });
+});
+
+test("聚合保存取消在途详情，晚到旧正文不能覆盖保存响应", async () => {
+  const { client, Wrapper } = createQueryWrapper();
+  const key = queryKeys.threads.detailForViewer("t1", "u1");
+  client.setQueryData(key, { ...rawThread, title: "旧标题", version: 1 });
+  let completeRead!: (data: unknown) => void;
+  const pending = client.fetchQuery({ queryKey: key, queryFn: () => new Promise(resolve => { completeRead = resolve; }) }).catch(() => undefined);
+  mockPATCH.mockResolvedValue({ data: { data: { ...rawThread, version: 2 } } });
+  const { result } = renderHook(() => useSaveThreadAggregate(), { wrapper: Wrapper });
+  await act(async () => { await result.current.mutateAsync({ threadId: "t1", body: { version: 1, defaultSubthreadVersion: 1, content: "新正文", tagNames: [] } }); });
+  completeRead({ ...rawThread, title: "旧标题", version: 1 });
+  await pending;
+  expect(client.getQueryData(key)).toMatchObject({ title: "更新后的主题", version: 2 });
 });

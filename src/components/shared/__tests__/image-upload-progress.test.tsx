@@ -39,10 +39,16 @@ describe("ImageUploadProgress", () => {
       />,
     );
 
-    expect(screen.getByRole("progressbar", { name: "正在获取上传地址" })).not.toHaveAttribute(
+    expect(screen.getByRole("progressbar", { name: "正在准备图片" })).not.toHaveAttribute(
       "aria-valuenow",
     );
     fireEvent.click(screen.getByRole("button", { name: "取消" }));
     expect(onCancel).toHaveBeenCalledOnce();
   });
+});
+
+test("已传完字节仍须服务端确认，处理阶段不报告任务已完成", () => {
+  render(<ImageUploadProgress progress={{ stage: "processing", loadedBytes: 1024, totalBytes: 1024, percent: 100 }} />);
+  expect(screen.getByRole("progressbar", { name: "上传完成，正在处理图片" })).not.toHaveAttribute("aria-valuenow");
+  expect(screen.queryByText("100%")).not.toBeInTheDocument();
 });

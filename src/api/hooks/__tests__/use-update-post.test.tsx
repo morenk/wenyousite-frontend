@@ -7,6 +7,7 @@ import { useUpdatePost } from "@/api/hooks/use-update-post";
 import { useFloors } from "@/api/hooks/use-floors";
 import { useReplies } from "@/api/hooks/use-replies";
 import { usePost } from "@/api/hooks/use-post";
+import { clearAuthSession, setAuthSession } from "@/lib/auth-store";
 import { queryKeys } from "@/api/query-keys";
 
 const { mockPATCH, mockGET } = vi.hoisted(() => ({
@@ -37,7 +38,7 @@ afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 describe("useUpdatePost", () => {
   test("保存后刷新列表、内嵌回复、独立回复与详情的编辑时间，无改动保存和重进页面保留时间", async () => {
     const editedAt = "2026-09-29T10:00:00Z";
-    let post = { id: "post-1", content: "旧正文", version: 1, editedAt: null as string | null };
+    let post = { id: "post-1", subthreadId: "s1", parentPostId: "root-1", content: "旧正文", version: 1, editedAt: null as string | null };
     mockGET.mockImplementation(async (path: string) => ({
       data: { code: 0, message: "ok", data: path === "/api/v1/posts/{id}" ? post
         : path.endsWith("/replies") ? [post] : [{ ...post, replies: [post] }],
@@ -68,7 +69,7 @@ describe("useUpdatePost", () => {
         expect(mounted.result.current.detail.data?.editedAt).toBe(editedAt);
       });
     }
-    expect(mockGET.mock.calls.filter(([path]) => path === "/api/v1/posts/{id}")).toHaveLength(3);
+    expect(mockGET.mock.calls.filter(([path]) => path === "/api/v1/posts/{id}")).toHaveLength(1);
     mounted.unmount();
     const reopened = renderHook(useReader, { wrapper });
     await waitFor(() => expect(reopened.result.current.detail.isFetching).toBe(false));
@@ -139,4 +140,64 @@ describe("useUpdatePost", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toMatchObject({ code: 40300 });
   });
+});
+
+test("保存回填筛选窗口、置顶与内嵌回复，旧读取迟到不覆盖，不重取无关讨论", async () => {
+  const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  const saved = { id: "p1", subthreadId: "s1", parentPostId: "root", content: "服务端规范正文", version: 2, editedAt: "2026-10-31T00:00:00Z" };
+  const old = { ...saved, content: "旧正文", version: 1, mediaDisplays: ["旧映射"] };
+  const key = queryKeys.floors.window("s1", { authorId: "u1", order: "NEWEST" }, "anonymous");
+  const nested = { id: "root", content: "根楼", version: 1, _count: { replies: 6 }, replies: [old] };
+  const page = { data: [nested], window: { total: 20, beforeCursor: "before", afterCursor: "after", pinnedItems: [nested] } };
+  qc.setQueryData(key, { pages: [page], pageParams: [{ postId: "root" }] });
+  const otherKey = queryKeys.floors.window("s2", {}, "anonymous");
+  qc.setQueryData(otherKey, { pages: [{ data: [{ ...old, id: "other" }] }] });
+  const other = qc.getQueryData(otherKey);
+  const otherViewer = queryKeys.floors.window("s1", {}, "other-viewer");
+  qc.setQueryData(otherViewer, { pages: [{ data: [old] }] });
+  const foreign = qc.getQueryData(otherViewer);
+  let finish!: (value: unknown) => void;
+  const pendingRead = qc.fetchQuery({ queryKey: key, queryFn: () => new Promise((resolve) => { finish = resolve; }) }).catch(() => undefined);
+  mockPATCH.mockResolvedValue({ data: { data: saved } });
+  const { result } = renderHook(() => useUpdatePost(), { wrapper: createWrapper(qc) });
+  await act(async () => { await result.current.mutateAsync({ postId: "p1", content: "草稿", version: 1 }); });
+  finish({ pages: [page] });
+  await pendingRead;
+  expect(qc.getQueryData(key)).toMatchObject({ pages: [{ data: [{ _count: { replies: 6 }, replies: [saved] }], window: { total: 20, beforeCursor: "before", afterCursor: "after", pinnedItems: [{ replies: [saved] }] } }], pageParams: [{ postId: "root" }] });
+  expect(qc.getQueryData(otherKey)).toBe(other);
+  expect(qc.getQueryData(otherViewer)).toBe(foreign);
+  expect(mockGET).not.toHaveBeenCalled();
+});
+
+test("保存期间退出再登录同账号，晚到响应不回填；同账号刷新 token 不误取消", async () => {
+  const user = { id: "u1", email: "test@example.test", username: "test", avatar: null, role: "USER" };
+  for (const switchSession of [true, false]) {
+    setAuthSession(user, "test-token");
+    const qc = new QueryClient();
+    const key = queryKeys.posts.detailForViewer("p1", "u1");
+    const old = { id: "p1", content: "旧正文", version: 1 };
+    qc.setQueryData(key, old);
+    let finish!: (value: unknown) => void;
+    mockPATCH.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const mounted = renderHook(() => useUpdatePost(), { wrapper: createWrapper(qc) });
+    let pending!: Promise<unknown>;
+    act(() => { pending = mounted.result.current.mutateAsync({ postId: "p1", content: "新正文", version: 1 }); });
+    await waitFor(() => expect(finish).toBeDefined());
+    if (switchSession) clearAuthSession();
+    setAuthSession(user, "refreshed-test-token");
+    await act(async () => { finish({ data: { data: { ...old, content: "新正文", version: 2 } } }); await pending; });
+    expect(qc.getQueryData(key)).toMatchObject({ content: switchSession ? "旧正文" : "新正文" });
+    mounted.unmount();
+  }
+  clearAuthSession();
+});
+
+test("晚到较低保存版本不覆盖已经读到的更高版本", async () => {
+  const qc = new QueryClient();
+  const key = queryKeys.posts.detailForViewer("p1", "anonymous");
+  qc.setQueryData(key, { id: "p1", content: "更高版本", version: 4, _count: { replies: 9 } });
+  mockPATCH.mockResolvedValue({ data: { data: { id: "p1", content: "较早保存", version: 3 } } });
+  const { result } = renderHook(() => useUpdatePost(), { wrapper: createWrapper(qc) });
+  await act(async () => { await result.current.mutateAsync({ postId: "p1", content: "较早保存", version: 2 }); });
+  expect(qc.getQueryData(key)).toMatchObject({ content: "更高版本", version: 4, _count: { replies: 9 } });
 });

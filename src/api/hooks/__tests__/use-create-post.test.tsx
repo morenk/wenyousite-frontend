@@ -13,10 +13,9 @@ vi.mock("@/api/client", () => ({
   apiClient: { POST: mockPOST },
 }));
 
-function createWrapper() {
-  const qc = new QueryClient({
+function createWrapper(qc = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
-  });
+  })) {
   function Wrapper({ children }: { children: React.ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
@@ -84,4 +83,15 @@ describe("useCreatePost", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect(result.current.error).toMatchObject({ code: 40303 });
   });
+});
+
+test("服务端已确认发表时立即成功，不被后台统计或列表刷新阻塞", async () => {
+  const qc = new QueryClient();
+  const invalidation = vi.spyOn(qc, "invalidateQueries").mockImplementation(() => new Promise(() => {}));
+  mockPOST.mockResolvedValueOnce({ data: { data: { id: "created" } } });
+  const { result } = renderHook(() => useCreatePost(), { wrapper: createWrapper(qc) });
+  result.current.mutate({ subthreadId: "s1", parentPostId: "parent", content: "正文" });
+  await waitFor(() => expect(result.current.isSuccess).toBe(true));
+  expect(result.current.data?.id).toBe("created");
+  expect(invalidation).toHaveBeenCalledTimes(4);
 });

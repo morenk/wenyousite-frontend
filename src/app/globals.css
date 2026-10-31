@@ -3,6 +3,8 @@
 @import "tw-animate-css";
 
 @theme inline {
+  --default-transition-duration: var(--motion-fast);
+  --default-transition-timing-function: var(--ease-standard);
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
@@ -305,7 +307,7 @@ select {
   background: var(--brand-strong);
   content: "";
   transform: translateX(-110%);
-  animation: navigation-progress-travel 900ms var(--ease-standard) var(--motion-fast) infinite;
+  animation: navigation-progress-travel calc(var(--motion-standard) * 5) var(--ease-standard) var(--motion-fast) infinite;
 }
 
 @keyframes navigation-progress-reveal {
@@ -319,6 +321,16 @@ select {
     transform: translateX(365%);
   }
 }
+
+html[data-motion-paused] *,
+html[data-motion-paused] *::before,
+html[data-motion-paused] *::after {
+  animation-play-state: paused !important;
+}
+
+/* 弹层沿用组件的状态机，统一入场与退出曲线。 */
+[data-open] { animation-duration: var(--motion-standard); animation-timing-function: var(--ease-standard); }
+[data-closed] { animation-duration: var(--motion-standard); animation-timing-function: var(--ease-exit); }
 
 @media (prefers-reduced-motion: reduce) {
   html {

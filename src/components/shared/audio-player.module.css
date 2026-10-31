@@ -14,7 +14,7 @@
   container-name: audio-player;
   position: relative;
   isolation: isolate;
-  transition: background-color 180ms ease-out, border-color 180ms ease-out;
+  transition: background-color var(--motion-standard) var(--ease-standard), border-color var(--motion-standard) var(--ease-standard);
 }
 .player[data-download="false"] { grid-template-columns: auto minmax(0, 1fr); }
 .player[data-playing="true"] { border-color: color-mix(in srgb, var(--brand-strong) 22%, var(--border)); }
@@ -25,7 +25,7 @@
   height: 100%;
   border-radius: inherit;
   background: color-mix(in srgb, var(--accent) 65%, transparent);
-  transition: transform 120ms ease-out, background-color 180ms ease-out;
+  transition: transform var(--motion-fast) var(--ease-standard), background-color var(--motion-standard) var(--ease-standard);
 }
 .playButton:hover .playFace { background: var(--accent); }
 .playButton:active .playFace { transform: scale(0.96); }
@@ -36,7 +36,7 @@
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 120ms ease-out;
+  transition: opacity var(--motion-fast) var(--ease-standard);
 }
 .icon[data-visible="true"] { opacity: 1; }
 .loading { animation: loading-turn 1s linear infinite; }
@@ -72,7 +72,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--brand-strong);
-  transition: transform 120ms ease-out;
+  transition: transform var(--motion-fast) var(--ease-standard);
 }
 .seek:disabled::-webkit-slider-thumb { visibility: hidden; }
 
@@ -92,7 +92,7 @@
   border: 0;
   border-radius: 50%;
   background: var(--brand-strong);
-  transition: transform 120ms ease-out;
+  transition: transform var(--motion-fast) var(--ease-standard);
 }
 .seek:disabled::-moz-range-thumb { visibility: hidden; }
 
